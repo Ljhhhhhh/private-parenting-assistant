@@ -1,62 +1,43 @@
 import React from 'react';
+import { NavBar, SafeArea } from 'antd-mobile';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { NavBar, Popover, Avatar } from 'antd-mobile';
-import { UserOutline, CloseOutline, SetOutline } from 'antd-mobile-icons';
 
-const AntNavbar: React.FC = () => {
+interface NavbarProps {
+  title?: string;
+  back?: boolean;
+  right?: React.ReactNode;
+  onBack?: () => void;
+}
+
+const Navbar: React.FC<NavbarProps> = ({
+  title = '育儿助手',
+  back = false,
+  right,
+  onBack,
+}) => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
+    }
   };
 
-  const actions = [
-    {
-      key: 'profile',
-      icon: <UserOutline />,
-      text: 'Profile',
-      onClick: () => navigate('/profile'),
-    },
-    {
-      key: 'settings',
-      icon: <SetOutline />,
-      text: 'Settings',
-      onClick: () => navigate('/settings'),
-    },
-    {
-      key: 'logout',
-      icon: <CloseOutline />,
-      text: 'Logout',
-      onClick: handleLogout,
-    },
-  ];
-
   return (
-    <NavBar
-      style={{
-        backgroundColor: '#fff',
-        '--height': '45px',
-        borderBottom: '1px solid #eee',
-      }}
-      right={
-        <Popover.Menu actions={actions} placement="bottomRight" trigger="click">
-          <Avatar
-            style={{
-              '--size': '32px',
-              '--border-radius': '16px',
-              backgroundColor: '#1677ff',
-            }}
-            src="https://images.unsplash.com/photo-1548532928-b34e3be62fc6?ixlib=rb-1.2.1&q=80&fm=jpg&crop=faces&fit=crop&h=200&w=200&ixid=eyJhcHBfaWQiOjE3Nzg0fQ"
-          ></Avatar>
-        </Popover.Menu>
-      }
-    >
-      Parenting Assistant
-    </NavBar>
+    <>
+      <NavBar
+        className="border-b border-gray-200"
+        back={back ? '返回' : undefined}
+        onBack={handleBack}
+        right={right}
+      >
+        {title}
+      </NavBar>
+      <SafeArea position="top" />
+    </>
   );
 };
 
-export default AntNavbar;
+export default Navbar;

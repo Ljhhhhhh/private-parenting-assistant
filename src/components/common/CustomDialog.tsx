@@ -9,19 +9,21 @@ interface CustomDialogProps {
   cancelText?: string;
   onConfirm?: () => void;
   onCancel?: () => void;
-  onClose?: () => void;
+  onClose: () => void;
 }
 
 const CustomDialog: React.FC<CustomDialogProps> = ({
   visible,
   title,
   content,
-  confirmText = 'OK',
+  confirmText = '确定',
   cancelText,
   onConfirm,
   onCancel,
   onClose,
 }) => {
+  if (!visible) return null;
+
   return (
     <Dialog
       visible={visible}
@@ -29,6 +31,7 @@ const CustomDialog: React.FC<CustomDialogProps> = ({
       content={content}
       closeOnAction
       closeOnMaskClick
+      onClose={onClose}
       actions={[
         ...(cancelText
           ? [
@@ -36,8 +39,8 @@ const CustomDialog: React.FC<CustomDialogProps> = ({
                 key: 'cancel',
                 text: cancelText,
                 onClick: () => {
-                  if (onCancel) onCancel();
-                  if (onClose) onClose();
+                  onCancel?.();
+                  onClose();
                 },
               },
             ]
@@ -47,8 +50,8 @@ const CustomDialog: React.FC<CustomDialogProps> = ({
           text: confirmText,
           bold: true,
           onClick: () => {
-            if (onConfirm) onConfirm();
-            if (onClose) onClose();
+            onConfirm?.();
+            onClose();
           },
         },
       ]}

@@ -13,15 +13,16 @@ import {
   RegisterPage,
   ForgotPasswordPage,
   ResetPasswordPage,
-} from './pages/auth';
+} from './pages/auth/index.ts';
+import {
+  CreateChildPage,
+  ChildrenListPage,
+  ChildDetailPage,
+  EditChildPage,
+} from './pages/children/index.ts';
+import { ChatPage } from './pages/chat/index.ts';
 import ProtectedRoute from './components/auth/AntProtectedRoute';
-import Navbar from './components/layout/AntNavbar';
 import TabBar from './components/layout/TabBar';
-import Dashboard from './pages/Dashboard.tsx';
-import ChatPage from './pages/chat/ChatPage';
-import ChatHistoryPage from './pages/chat/ChatHistoryPage';
-import ChatSettingsPage from './pages/chat/ChatSettingsPage';
-import ProfilePage from './pages/profile/ProfilePage';
 
 const App: React.FC = () => {
   return (
@@ -34,73 +35,57 @@ const App: React.FC = () => {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+              {/* 儿童档案相关路由 */}
               <Route
-                path="/"
+                path="/children"
                 element={
                   <ProtectedRoute>
-                    <div className="flex flex-col h-screen bg-white">
-                      <Navbar />
-                      <div className="flex-1 p-4 pb-16">
-                        <Dashboard />
-                      </div>
-                      <TabBar />
-                    </div>
+                    <ChildrenListPage />
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/children/create"
+                element={
+                  <ProtectedRoute>
+                    <CreateChildPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/children/:id"
+                element={
+                  <ProtectedRoute>
+                    <ChildDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/children/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <EditChildPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* 聊天页面 */}
               <Route
                 path="/chat"
                 element={
                   <ProtectedRoute>
-                    <div className="flex flex-col h-screen bg-white">
+                    <div className="pb-12">
                       <ChatPage />
                       <TabBar />
                     </div>
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/chat/:id"
-                element={
-                  <ProtectedRoute>
-                    <div className="flex flex-col h-screen bg-white">
-                      <ChatPage />
-                      <TabBar />
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/chat-history"
-                element={
-                  <ProtectedRoute>
-                    <div className="flex flex-col h-screen bg-white">
-                      <ChatHistoryPage />
-                      <TabBar />
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/chat-settings"
-                element={
-                  <ProtectedRoute>
-                    <ChatSettingsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <div className="flex flex-col h-screen bg-white">
-                      <ProfilePage />
-                      <TabBar />
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
+
+              {/* 默认路由 */}
+              <Route path="/" element={<Navigate to="/chat" replace />} />
+              <Route path="*" element={<Navigate to="/chat" replace />} />
             </Routes>
           </Router>
         </AuthProvider>

@@ -1,11 +1,11 @@
 import React from 'react';
-import { TabBar as AntTabBar } from 'antd-mobile';
+import { TabBar as AntTabBar, SafeArea } from 'antd-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  MessageOutline,
-  HistogramOutline,
-  UserOutline,
   AppOutline,
+  MessageOutline,
+  UnorderedListOutline,
+  UserOutline,
 } from 'antd-mobile-icons';
 
 const TabBar: React.FC = () => {
@@ -17,22 +17,22 @@ const TabBar: React.FC = () => {
     {
       key: '/',
       title: '首页',
-      icon: () => <AppOutline />,
+      icon: <AppOutline />,
     },
     {
       key: '/chat',
-      title: '聊天',
-      icon: () => <MessageOutline />,
+      title: '智能问答',
+      icon: <MessageOutline />,
     },
     {
-      key: '/chat-history',
+      key: '/records',
       title: '记录',
-      icon: () => <HistogramOutline />,
+      icon: <UnorderedListOutline />,
     },
     {
       key: '/profile',
       title: '我的',
-      icon: () => <UserOutline />,
+      icon: <UserOutline />,
     },
   ];
 
@@ -40,25 +40,24 @@ const TabBar: React.FC = () => {
     navigate(key);
   };
 
+  // 判断当前激活的标签
+  const getActiveKey = () => {
+    if (pathname === '/') return '/chat';
+    if (pathname.startsWith('/chat')) return '/chat';
+    if (pathname.startsWith('/children')) return '/';
+    if (pathname.startsWith('/records')) return '/records';
+    if (pathname.startsWith('/profile')) return '/profile';
+    return pathname;
+  };
+
   return (
-    <div
-      className="tab-bar-container"
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '50px',
-        borderTop: '1px solid #eee',
-        backgroundColor: '#fff',
-        zIndex: 100,
-      }}
-    >
-      <AntTabBar activeKey={pathname} onChange={handleTabChange}>
+    <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white">
+      <AntTabBar activeKey={getActiveKey()} onChange={handleTabChange}>
         {tabs.map((tab) => (
-          <AntTabBar.Item key={tab.key} icon={tab.icon()} title={tab.title} />
+          <AntTabBar.Item key={tab.key} icon={tab.icon} title={tab.title} />
         ))}
       </AntTabBar>
+      <SafeArea position="bottom" />
     </div>
   );
 };

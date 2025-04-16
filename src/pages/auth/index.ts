@@ -1,4 +1,6 @@
-export { default as LoginPage } from './AntLoginPage';
-export { default as RegisterPage } from './AntRegisterPage';
-export { default as ForgotPasswordPage } from './AntForgotPasswordPage';
-export { default as ResetPasswordPage } from './AntResetPasswordPage';
+import LoginPage from './Login.tsx';
+import RegisterPage from './Register.tsx';
+import ForgotPasswordPage from './ForgotPassword.tsx';
+import ResetPasswordPage from './ResetPassword.tsx';
+
+export { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage };

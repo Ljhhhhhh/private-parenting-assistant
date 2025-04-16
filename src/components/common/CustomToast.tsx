@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Toast } from 'antd-mobile';
 
 interface CustomToastProps {
@@ -6,7 +6,7 @@ interface CustomToastProps {
   visible: boolean;
   icon?: 'success' | 'fail' | 'loading';
   duration?: number;
-  onClose?: () => void;
+  onClose: () => void;
 }
 
 const CustomToast: React.FC<CustomToastProps> = ({
@@ -16,32 +16,18 @@ const CustomToast: React.FC<CustomToastProps> = ({
   duration = 2000,
   onClose,
 }) => {
-  const [isVisible, setIsVisible] = useState(false);
-
   useEffect(() => {
-    setIsVisible(visible);
-    
     if (visible) {
-      const timer = setTimeout(() => {
-        setIsVisible(false);
-        if (onClose) onClose();
-      }, duration);
-      
-      return () => clearTimeout(timer);
+      Toast.show({
+        content,
+        icon,
+        duration,
+        afterClose: onClose,
+      });
     }
-  }, [visible, duration, onClose]);
+  }, [visible, content, icon, duration, onClose]);
 
-  return (
-    <>
-      {isVisible && (
-        <Toast
-          content={content}
-          icon={icon}
-          visible={true}
-        />
-      )}
-    </>
-  );
+  return null;
 };
 
 export default CustomToast;
