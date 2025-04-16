@@ -5,7 +5,6 @@ import {
   Button,
   Dialog,
   Toast,
-  Popover,
   Space,
   Result,
   Skeleton,
@@ -92,6 +91,7 @@ const ChatPage: React.FC = () => {
   const [showChildPrompt, setShowChildPrompt] = useState(false);
   const [showChildDropdown, setShowChildDropdown] = useState(false);
   const [sessionDropdownVisible, setSessionDropdownVisible] = useState(false);
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
   const [sessions, setSessions] = useState<string[]>([]);
 
   // 使用 chatUI 的 useMessages hook 管理消息
@@ -101,6 +101,7 @@ const ChatPage: React.FC = () => {
   const messageContainerRef = useRef<any>(null);
   const childDropdownRef = useRef<HTMLDivElement>(null);
   const sessionDropdownRef = useRef<HTMLDivElement>(null);
+  const moreOptionsRef = useRef<HTMLDivElement>(null);
 
   // 点击外部关闭下拉菜单
   useEffect(() => {
@@ -120,13 +121,21 @@ const ChatPage: React.FC = () => {
       ) {
         setSessionDropdownVisible(false);
       }
+
+      if (
+        moreOptionsRef.current &&
+        !moreOptionsRef.current.contains(event.target as Node) &&
+        showMoreOptions
+      ) {
+        setShowMoreOptions(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showChildDropdown, sessionDropdownVisible]);
+  }, [showChildDropdown, sessionDropdownVisible, showMoreOptions]);
 
   // 获取儿童列表
   const fetchChildren = useCallback(async () => {
@@ -302,7 +311,7 @@ const ChatPage: React.FC = () => {
         question: content,
         session_id: sessionId,
         child_id: selectedChildId,
-        model: selectedModel,
+        // model: selectedModel,
       });
 
       // 更新AI消息
@@ -463,125 +472,137 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  // 渲染导航栏右侧内容
-  const renderNavbarRight = () => (
-    <div className="flex items-center">
-      {/* 儿童选择下拉菜单 */}
-      <div className="relative" ref={childDropdownRef}>
-        <div
-          className="flex items-center cursor-pointer"
-          onClick={() => setShowChildDropdown(!showChildDropdown)}
-        >
-          {selectedChild ? (
-            <span className="mr-1">{selectedChild.name}</span>
-          ) : (
-            <span className="mr-1 text-gray-400">选择宝宝</span>
-          )}
-          <DownOutline fontSize={12} />
-        </div>
+  // 渲染导航栏右侧内容 - 完全不使用 Popover 组件
+  const renderNavbarRight = () => {
+    return (
+      <div className="flex items-center">
+        {/* 儿童选择下拉菜单 */}
+        <div className="relative" ref={childDropdownRef}>
+          <div
+            className="flex items-center cursor-pointer"
+            onClick={() => setShowChildDropdown(!showChildDropdown)}
+          >
+            {selectedChild ? (
+              <span className="mr-1">{selectedChild.name}</span>
+            ) : (
+              <span className="mr-1 text-gray-400">选择宝宝</span>
+            )}
+            <DownOutline fontSize={12} />
+          </div>
 
-        {showChildDropdown && (
-          <div className="absolute right-0 z-10 p-2 mt-2 bg-white rounded-lg shadow-lg w-60">
-            {children.length > 0 ? (
-              <>
-                {children.map((child) => (
-                  <div
-                    key={child.id}
-                    className={`p-2 rounded-md flex items-center cursor-pointer ${
-                      selectedChildId === child.id
-                        ? 'bg-primary-50 text-primary-600'
-                        : ''
-                    }`}
-                    onClick={() => {
-                      handleSelectChild(child.id);
-                      setShowChildDropdown(false);
-                    }}
-                  >
-                    <div className="flex items-center justify-center w-8 h-8 mr-2 rounded-full bg-primary-100">
-                      {child.gender === 'male' ? '👦' : '👧'}
-                    </div>
-                    <div>
-                      <div className="font-medium">{child.name}</div>
-                      <div className="text-xs text-gray-500">
-                        {calculateAge(child.birthday)}
+          {showChildDropdown && (
+            <div className="absolute right-0 z-10 p-2 mt-2 bg-white rounded-lg shadow-lg w-60">
+              {children.length > 0 ? (
+                <>
+                  {children.map((child) => (
+                    <div
+                      key={child.id}
+                      className={`p-2 rounded-md flex items-center cursor-pointer ${
+                        selectedChildId === child.id
+                          ? 'bg-primary-50 text-primary-600'
+                          : ''
+                      }`}
+                      onClick={() => {
+                        handleSelectChild(child.id);
+                        setShowChildDropdown(false);
+                      }}
+                    >
+                      <div className="flex items-center justify-center w-8 h-8 mr-2 rounded-full bg-primary-100">
+                        {child.gender === 'male' ? '👦' : '👧'}
+                      </div>
+                      <div>
+                        <div className="font-medium">{child.name}</div>
+                        <div className="text-xs text-gray-500">
+                          {calculateAge(child.birthday)}
+                        </div>
                       </div>
                     </div>
+                  ))}
+                  <div className="pt-2 mt-2 border-t border-gray-100">
+                    <Button
+                      block
+                      size="small"
+                      onClick={() => {
+                        handleGoToChildrenList();
+                        setShowChildDropdown(false);
+                      }}
+                    >
+                      管理宝宝档案
+                    </Button>
                   </div>
-                ))}
-                <div className="pt-2 mt-2 border-t border-gray-100">
+                </>
+              ) : (
+                <div className="p-4 text-center">
+                  <div className="mb-2 text-gray-500">还没有宝宝档案</div>
                   <Button
-                    block
+                    color="primary"
                     size="small"
                     onClick={() => {
-                      handleGoToChildrenList();
+                      handleCreateChild();
                       setShowChildDropdown(false);
                     }}
                   >
-                    管理宝宝档案
+                    创建宝宝档案
                   </Button>
                 </div>
-              </>
-            ) : (
-              <div className="p-4 text-center">
-                <div className="mb-2 text-gray-500">还没有宝宝档案</div>
-                <Button
-                  color="primary"
-                  size="small"
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 更多选项 - 自定义下拉菜单，完全不使用 Popover */}
+        <div className="relative" ref={moreOptionsRef}>
+          <div
+            className="p-1 ml-2 cursor-pointer"
+            onClick={() => setShowMoreOptions(!showMoreOptions)}
+          >
+            <MoreOutline fontSize={24} />
+          </div>
+
+          {showMoreOptions && (
+            <div className="absolute right-0 z-10 w-48 p-2 mt-2 bg-white rounded-lg shadow-lg">
+              <Space direction="vertical" block>
+                <div
+                  className="flex items-center p-2 rounded-md cursor-pointer hover:bg-gray-100"
                   onClick={() => {
-                    handleCreateChild();
-                    setShowChildDropdown(false);
+                    // 打开设置
+                    setShowMoreOptions(false);
                   }}
                 >
-                  创建宝宝档案
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* 更多选项 */}
-      <Popover
-        content={
-          <div className="p-1">
-            <Space direction="vertical" block>
-              <div
-                className="flex items-center p-2"
-                onClick={() => {
-                  // 打开设置
-                }}
-              >
-                <SetOutline className="mr-2" />
-                <span>设置</span>
-              </div>
-              <div
-                className={`p-2 flex items-center ${
-                  !sessionId ? 'text-gray-300' : ''
-                }`}
-                onClick={sessionId ? handleDeleteSession : undefined}
-              >
-                <DeleteOutline className="mr-2" />
-                <span>删除会话</span>
-              </div>
-              <div
-                className="flex items-center p-2"
-                onClick={handleCreateChild}
-              >
-                <UserAddOutline className="mr-2" />
-                <span>添加宝宝档案</span>
-              </div>
-            </Space>
-          </div>
-        }
-        trigger="click"
-        placement="bottom-end"
-      >
-        <div className="p-1 ml-2">
-          <MoreOutline fontSize={24} />
+                  <SetOutline className="mr-2" />
+                  <span>设置</span>
+                </div>
+                <div
+                  className={`p-2 flex items-center cursor-pointer hover:bg-gray-100 rounded-md ${
+                    !sessionId ? 'text-gray-300' : ''
+                  }`}
+                  onClick={() => {
+                    if (sessionId) {
+                      handleDeleteSession();
+                      setShowMoreOptions(false);
+                    }
+                  }}
+                >
+                  <DeleteOutline className="mr-2" />
+                  <span>删除会话</span>
+                </div>
+                <div
+                  className="flex items-center p-2 rounded-md cursor-pointer hover:bg-gray-100"
+                  onClick={() => {
+                    handleCreateChild();
+                    setShowMoreOptions(false);
+                  }}
+                >
+                  <UserAddOutline className="mr-2" />
+                  <span>添加宝宝档案</span>
+                </div>
+              </Space>
+            </div>
+          )}
         </div>
-      </Popover>
-    </div>
-  );
+      </div>
+    );
+  };
 
   // 渲染导航栏标题
   const renderNavbarTitle = () => (
@@ -690,7 +711,7 @@ const ChatPage: React.FC = () => {
         <div className="flex items-center justify-between p-3">
           {renderNavbarTitle()}
           {/* 下方 renderNavbarRight 存在问题 */}
-          {/* {renderNavbarRight()} */}
+          {renderNavbarRight()}
         </div>
         <SafeArea position="top" />
       </div>
