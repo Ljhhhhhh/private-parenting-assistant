@@ -28,7 +28,7 @@ interface QuickReplyItem {
   isHighlight?: boolean;
 }
 import { chatApi, childrenApi } from '../../api';
-import { ChatHistoryPublic, ChildPublic, ModelInfo } from '../../types/api';
+import { ChatHistoryPublic, ChildPublic } from '../../types/api';
 import { useAuth } from '../../contexts/AuthContext';
 import dayjs from 'dayjs';
 
@@ -84,10 +84,6 @@ const ChatPage: React.FC = () => {
   );
   const [children, setChildren] = useState<ChildPublic[]>([]);
   const [selectedChild, setSelectedChild] = useState<ChildPublic | null>(null);
-  const [, setAvailableModels] = useState<ModelInfo[]>([]);
-  const [selectedModel, setSelectedModel] = useState<string | undefined>(
-    undefined,
-  );
   const [showChildPrompt, setShowChildPrompt] = useState(false);
   const [showChildDropdown, setShowChildDropdown] = useState(false);
   const [sessionDropdownVisible, setSessionDropdownVisible] = useState(false);
@@ -164,22 +160,6 @@ const ChatPage: React.FC = () => {
     }
   }, [selectedChildId]);
 
-  // 获取可用的模型
-  const fetchAvailableModels = useCallback(async () => {
-    try {
-      const response = await chatApi.getAvailableModels();
-      setAvailableModels(response.models);
-      if (response.models.length > 0) {
-        // 使用第一个模型作为默认模型
-        setSelectedModel(response.models[0].id);
-      }
-    } catch (error) {
-      console.error('Failed to fetch available models:', error);
-      // 如果获取模型失败，使用默认模型
-      setSelectedModel('gpt-3.5-turbo');
-    }
-  }, []);
-
   // 获取会话列表
   const fetchSessions = useCallback(async () => {
     try {
@@ -254,10 +234,9 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     if (isAuthenticated) {
       fetchChildren();
-      fetchAvailableModels();
       fetchSessions();
     }
-  }, [isAuthenticated, fetchChildren, fetchAvailableModels, fetchSessions]);
+  }, [isAuthenticated, fetchChildren, fetchSessions]);
 
   // 当会话ID变化时，获取聊天历史
   useEffect(() => {
@@ -306,30 +285,63 @@ const ChatPage: React.FC = () => {
     try {
       setSendingMessage(true);
 
-      // 发送消息到服务器
-      const response = await chatApi.sendChatMessage({
+      // 创建请求数据
+      const requestData = {
         question: content,
         session_id: sessionId,
         child_id: selectedChildId,
-        // model: selectedModel,
-      });
+      };
 
-      // 更新AI消息
-      updateMsg(aiMsgId, {
-        type: 'text',
-        content: {
-          text: response.answer,
-          data: {
-            sources: response.sources,
-            model: response.model,
-          },
-        },
-        position: 'left',
+      // 创建一个对象来存储完整的响应数据
+      const responseData = {
+        token: '',
+        sources: [] as string[],
+        model: '',
+        session_id: sessionId,
+      };
+
+      // 使用流式处理发送消息
+      await chatApi.sendChatMessage(requestData, (chunk: string) => {
+        try {
+          // 尝试解析JSON数据
+          // ! 要考虑eventSteam 最后一条 Stream ended 还有一条 sources: []
+
+          const chunkData = JSON.parse(chunk);
+
+          // 更新响应数据
+          if (chunkData.token !== undefined) {
+            responseData.token += chunkData.token;
+          }
+          if (chunkData.sources !== undefined) {
+            responseData.sources = chunkData.sources;
+          }
+          if (chunkData.model !== undefined) {
+            responseData.model = chunkData.model;
+          }
+          if (chunkData.session_id !== undefined) {
+            responseData.session_id = chunkData.session_id;
+          }
+
+          // 实时更新AI消息
+          updateMsg(aiMsgId, {
+            type: 'text',
+            content: {
+              text: responseData.token || '思考中...',
+              data: {
+                sources: responseData.sources,
+                model: responseData.model,
+              },
+            },
+            position: 'left',
+          });
+        } catch (error) {
+          console.error('Error parsing stream chunk:', error, chunk);
+        }
       });
 
       // 如果是新会话，更新会话ID并刷新会话列表
-      if (!sessionId && response.session_id) {
-        setSessionId(response.session_id);
+      if (!sessionId && responseData.session_id) {
+        setSessionId(responseData.session_id);
         fetchSessions();
       }
     } catch (error) {
