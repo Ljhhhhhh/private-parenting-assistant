@@ -302,40 +302,36 @@ const ChatPage: React.FC = () => {
 
       // 使用流式处理发送消息
       await chatApi.sendChatMessage(requestData, (chunk: string) => {
+        console.log(chunk, ' chunk string');
+
         try {
-          // 尝试解析JSON数据
-          // ! 要考虑eventSteam 最后一条 Stream ended 还有一条 sources: []
+          // 解析 JSON 数据
+          const parsedData = JSON.parse(chunk);
 
-          const chunkData = JSON.parse(chunk);
+          console.log(parsedData, 'parsedData');
 
-          // 更新响应数据
-          if (chunkData.token !== undefined) {
-            responseData.token += chunkData.token;
-          }
-          if (chunkData.sources !== undefined) {
-            responseData.sources = chunkData.sources;
-          }
-          if (chunkData.model !== undefined) {
-            responseData.model = chunkData.model;
-          }
-          if (chunkData.session_id !== undefined) {
-            responseData.session_id = chunkData.session_id;
-          }
+          if (parsedData.token) {
+            // 处理消息内容
+            responseData.token += parsedData.token;
 
-          // 实时更新AI消息
-          updateMsg(aiMsgId, {
-            type: 'text',
-            content: {
-              text: responseData.token || '思考中...',
-              data: {
-                sources: responseData.sources,
-                model: responseData.model,
+            // 实时更新AI消息
+            updateMsg(aiMsgId, {
+              type: 'text',
+              content: {
+                text: responseData.token || '思考中...',
+                data: {
+                  sources: responseData.sources,
+                  model: responseData.model,
+                },
               },
-            },
-            position: 'left',
-          });
+              position: 'left',
+            });
+          } else if (parsedData.sources) {
+            // 处理引用源
+            responseData.sources = parsedData;
+          }
         } catch (error) {
-          console.error('Error parsing stream chunk:', error, chunk);
+          console.error('Error parsing JSON data:', error);
         }
       });
 
