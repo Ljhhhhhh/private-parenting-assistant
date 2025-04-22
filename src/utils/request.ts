@@ -358,6 +358,7 @@ class Request {
         onDownloadProgress: (progressEvent) => {
           const response = progressEvent.event.target as XMLHttpRequest;
           const responseText = response.responseText;
+          console.log(responseText, 'responseText');
 
           // Process the response text to extract the latest chunk
           if (responseText) {
@@ -380,23 +381,7 @@ class Request {
               if (line.startsWith('data:')) {
                 try {
                   const data = line.substring(5).trim();
-                  if (data) {
-                    // Validate JSON before passing to callback
-                    try {
-                      // Just check if it's valid JSON, but don't require it
-                      if (data.startsWith('{') && data.endsWith('}')) {
-                        JSON.parse(data);
-                      }
-                      onStream(data);
-                    } catch {
-                      // If it's not valid JSON, still send it as it might be partial
-                      console.warn(
-                        'Received invalid JSON in stream, but processing anyway:',
-                        data,
-                      );
-                      onStream(data);
-                    }
-                  }
+                  onStream(data);
                 } catch (error) {
                   console.error('Error processing stream data:', error);
                 }
