@@ -13,7 +13,7 @@ import {
   Dialog,
   Result,
 } from 'antd-mobile';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ForgotPasswordPage: React.FC = () => {
   const { forgotPassword } = useAuth();
@@ -34,7 +34,7 @@ const ForgotPasswordPage: React.FC = () => {
         content: '重置密码邮件已发送',
       });
     } catch (error) {
-      console.error('Password recovery failed:', error);
+      console.error('密码找回失败:', error);
       Dialog.alert({
         content: '发送重置密码邮件失败，请检查邮箱是否正确或网络连接',
         confirmText: '确定',

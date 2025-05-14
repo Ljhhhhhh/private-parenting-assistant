@@ -1,69 +1,84 @@
-import request from '../utils/request';
-import { ChatRequest, ChatHistoriesPublic, ModelsResponse } from '../types/api';
+/**
+ * 聊天相关API
+ */
+import request from '@/utils/request';
+import {
+  ChatRequestDto,
+  ChatResponseDto,
+  ChatFeedbackDto,
+  ChatStreamResponseDto,
+} from '@/types/models';
 
 /**
- * API endpoints for chat functionality
+ * 发送聊天消息并获取非流式AI回复
+ * @param data 聊天请求数据
+ * @returns AI回复
  */
-export const chatApi = {
-  /**
-   * Send a chat message
-   * @param data Chat request data
-   * @param onStream Optional callback to handle streaming response
-   * @returns Chat response
-   */
-  sendChatMessage: (
-    data: ChatRequest,
-    onStream?: (chunk: string) => void,
-  ): Promise<any> => {
-    // Set timeout to 60000ms (1 minute)
-    const timeout = 60000;
-
-    if (onStream) {
-      // Use streaming mode if callback is provided
-      return request.stream('/api/v1/chat/', data, onStream, { timeout });
-    } else {
-      // Use regular POST request if no callback is provided
-      return request.post('/api/v1/chat/', data, { timeout });
-    }
-  },
-
-  /**
-   * Get chat histories
-   * @param sessionId Optional session ID filter
-   * @param childId Optional child ID filter
-   * @param skip Number of histories to skip
-   * @param limit Maximum number of histories to return
-   * @returns Paginated chat histories
-   */
-  getChatHistories: (
-    sessionId?: string,
-    childId?: string,
-    skip: number = 0,
-    limit: number = 100,
-  ): Promise<ChatHistoriesPublic> => {
-    return request.get('/api/v1/chat/history', {
-      session_id: sessionId,
-      child_id: childId,
-      skip,
-      limit,
-    });
-  },
-
-  /**
-   * Get chat sessions
-   * @returns Array of session IDs
-   */
-  getChatSessions: (): Promise<string[]> => {
-    return request.get('/api/v1/chat/sessions');
-  },
-
-  /**
-   * Get available chat models
-   * @returns Models response
-   */
-  getAvailableModels: (): Promise<ModelsResponse> => {
-    return request.get('/api/v1/chat/models');
-  },
+export const chatSync = (data: ChatRequestDto) => {
+  return request.post<ChatResponseDto>('/chat/sync', data);
 };
 
-export default chatApi;
+/**
+ * 发送聊天消息并以SSE方式获取AI回复
+ * @param data 聊天请求数据
+ * @param onStream 处理流式响应的回调函数
+ * @returns 完整的聊天响应
+ */
+export const chat = (
+  data: ChatRequestDto,
+  onStream?: (chunk: string) => void,
+) => {
+  if (onStream) {
+    return request.stream<ChatStreamResponseDto>('/chat', data, onStream);
+  } else {
+    return request.post<ChatStreamResponseDto>('/chat', data);
+  }
+};
+
+/**
+ * 获取用户的聊天历史
+ * @param childId 儿童ID
+ * @param limit 限制数量
+ * @param offset 偏移量
+ * @returns 聊天历史列表
+ */
+export const getChatHistory = (
+  childId: number,
+  limit: number = 10,
+  offset: number = 0,
+) => {
+  return request.get<any>('/chat/history', { childId, limit, offset });
+};
+
+/**
+ * 获取特定孩子的聊天历史
+ * @param childId 儿童ID
+ * @param limit 限制数量
+ * @param offset 偏移量
+ * @returns 聊天历史列表
+ */
+export const getChildChats = (
+  childId: number,
+  limit: number = 10,
+  offset: number = 0,
+) => {
+  return request.get<any>(`/chat/children/${childId}`, { limit, offset });
+};
+
+/**
+ * 获取基于用户和孩子信息的问题建议
+ * @param childId 儿童ID
+ * @returns 问题建议列表
+ */
+export const getChatSuggestions = (childId: number) => {
+  return request.get<string[]>('/chat/suggestions', { childId });
+};
+
+/**
+ * 为聊天提供反馈（有用/无用）
+ * @param data 反馈数据
+ * @returns 反馈结果
+ */
+export const provideChatFeedback = (data: ChatFeedbackDto) => {
+  return request.post<any>('/chat/feedback', data);
+};

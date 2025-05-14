@@ -1,61 +1,54 @@
-import request from '../utils/request';
+/**
+ * 儿童相关API
+ */
+import request from '@/utils/request';
 import {
-  ChildPublic,
-  ChildrenPublic,
-  ChildCreate,
-  ChildUpdate,
-} from '../types/api';
+  CreateChildDto,
+  UpdateChildDto,
+  ChildResponseDto,
+} from '@/types/models';
 
 /**
- * API endpoints for child management
+ * 添加新的儿童信息
+ * @param data 儿童信息
+ * @returns 创建的儿童信息
  */
-export const childrenApi = {
-  /**
-   * Create a new child
-   * @param data Child data
-   * @returns Created child
-   */
-  createChild: (data: ChildCreate): Promise<ChildPublic> => {
-    return request.post('/api/v1/children/', data);
-  },
-
-  /**
-   * Get all children
-   * @param skip Number of children to skip
-   * @param limit Maximum number of children to return
-   * @returns Paginated children
-   */
-  getChildren: (skip: number = 0, limit: number = 100): Promise<ChildrenPublic> => {
-    return request.get('/api/v1/children/', { skip, limit });
-  },
-
-  /**
-   * Get child by ID
-   * @param childId Child ID
-   * @returns Child
-   */
-  getChildById: (childId: string): Promise<ChildPublic> => {
-    return request.get(`/api/v1/children/${childId}`);
-  },
-
-  /**
-   * Update child
-   * @param childId Child ID
-   * @param data Child data to update
-   * @returns Updated child
-   */
-  updateChild: (childId: string, data: ChildUpdate): Promise<ChildPublic> => {
-    return request.put(`/api/v1/children/${childId}`, data);
-  },
-
-  /**
-   * Delete child
-   * @param childId Child ID
-   * @returns Deleted child
-   */
-  deleteChild: (childId: string): Promise<ChildPublic> => {
-    return request.delete(`/api/v1/children/${childId}`);
-  },
+export const createChild = (data: CreateChildDto) => {
+  return request.post<ChildResponseDto>('/children', data);
 };
 
-export default childrenApi;
+/**
+ * 获取当前用户的所有儿童列表
+ * @returns 儿童列表
+ */
+export const getAllChildren = () => {
+  return request.get<ChildResponseDto[]>('/children');
+};
+
+/**
+ * 获取指定ID的儿童信息
+ * @param id 儿童ID
+ * @returns 儿童信息
+ */
+export const getChildById = (id: number) => {
+  return request.get<ChildResponseDto>(`/children/${id}`);
+};
+
+/**
+ * 更新指定ID的儿童信息
+ * @param id 儿童ID
+ * @param data 更新的儿童信息
+ * @returns 更新后的儿童信息
+ */
+export const updateChild = (id: number, data: UpdateChildDto) => {
+  return request.patch<ChildResponseDto>(`/children/${id}`, data);
+};
+
+/**
+ * 删除指定ID的儿童信息
+ * @param id 儿童ID
+ * @returns 删除的儿童信息
+ */
+export const deleteChild = (id: number) => {
+  return request.delete<ChildResponseDto>(`/children/${id}`);
+};

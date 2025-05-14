@@ -1,14 +1,25 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authApi } from '../api';
-import { UserPublic } from '../types/api';
-import request from '../utils/request';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
+import { register as registerApi, getUserProfile } from '@/api/auth';
+import { UserPublic } from '@/types/api';
+import request from '@/utils/request';
+import { RegisterDto } from '@/types/models';
 
 interface AuthContextType {
   user: UserPublic | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, fullName?: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    fullName?: string,
+  ) => Promise<void>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
@@ -25,21 +36,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Check if user is already logged in
+    // 检查用户是否已登录
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          request.setAuthToken(token);
-          const userData = await authApi.testToken();
-          setUser(userData);
-        } catch (error) {
-          console.error('Authentication failed:', error);
-          localStorage.removeItem('token');
-          request.clearAuthToken();
-        }
+      try {
+        // request.ts 会自动从 localStorage 加载 token
+        const userData = await getUserProfile();
+        setUser(userData);
+      } catch (error) {
+        console.error('认证失败:', error);
+        // 认证失败时，request.ts 的拦截器会自动清除 token 并重定向
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     checkAuth();
@@ -48,29 +56,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await authApi.login({ username: email, password });
-      localStorage.setItem('token', response.access_token);
-      request.setAuthToken(response.access_token);
-      
-      // Get user data
-      const userData = await authApi.testToken();
+      // 使用 request.ts 中封装的 login 方法，会自动保存 token
+      await request.login(email, password);
+
+      // 获取用户数据
+      const userData = await getUserProfile();
       setUser(userData);
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('登录失败:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (email: string, password: string, fullName?: string) => {
+  const register = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      await authApi.registerUser({ email, password, full_name: fullName });
-      // Auto login after registration
+      const registerData: RegisterDto = { email, password };
+
+      // 注册用户
+      await registerApi(registerData);
+
+      // 注册成功后自动登录
       await login(email, password);
     } catch (error) {
-      console.error('Registration failed:', error);
+      console.error('注册失败:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -78,25 +89,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    request.clearAuthToken();
+    // 使用 request.ts 中封装的 logout 方法，会自动清除 token
+    request.logout();
     setUser(null);
   };
 
   const forgotPassword = async (email: string) => {
     try {
-      await authApi.recoverPassword(email);
+      // 发送找回密码请求
+      await request.post('/auth/forgot-password', { email });
     } catch (error) {
-      console.error('Password recovery failed:', error);
+      console.error('密码找回失败:', error);
       throw error;
     }
   };
 
   const resetPassword = async (token: string, newPassword: string) => {
     try {
-      await authApi.resetPassword({ token, new_password: newPassword });
+      // 重置密码
+      await request.post('/auth/reset-password', { token, newPassword });
     } catch (error) {
-      console.error('Password reset failed:', error);
+      console.error('密码重置失败:', error);
       throw error;
     }
   };

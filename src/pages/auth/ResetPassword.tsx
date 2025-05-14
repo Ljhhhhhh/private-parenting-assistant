@@ -13,7 +13,7 @@ import {
   Dialog,
   Result,
 } from 'antd-mobile';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ResetPasswordPage: React.FC = () => {
   const { resetPassword } = useAuth();
@@ -60,7 +60,7 @@ const ResetPasswordPage: React.FC = () => {
         content: '密码重置成功',
       });
     } catch (error) {
-      console.error('Password reset failed:', error);
+      console.error('密码重置失败:', error);
       Dialog.alert({
         content: '密码重置失败，请检查链接是否有效或网络连接',
         confirmText: '确定',

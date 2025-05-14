@@ -1,8 +1,8 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import { TokenDto } from '@/types/models';
 
-// Define request options interface extending AxiosRequestConfig
-export interface RequestOptions
-  extends Omit<AxiosRequestConfig, 'url' | 'method' | 'baseURL'> {
+// 定义请求选项接口，扩展 AxiosRequestConfig
+export interface RequestOptions extends Omit<AxiosRequestConfig, 'url' | 'method' | 'baseURL'> {
   method?: string;
   headers?: Record<string, string>;
   data?: unknown;
@@ -13,12 +13,25 @@ export interface RequestOptions
   onStream?: (chunk: string) => void;
 }
 
-// Define error interface
+// 定义错误接口
 export interface ApiError extends Error {
   status?: number;
   data?: unknown;
   config?: AxiosRequestConfig;
 }
+
+// 定义响应接口
+export interface ApiResponse<T = any> {
+  data: T;
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  config: AxiosRequestConfig;
+}
+
+// 存储 Token 的键名
+const ACCESS_TOKEN_KEY = 'access_token';
+const REFRESH_TOKEN_KEY = 'refresh_token';
 
 class Request {
   private instance: AxiosInstance;
@@ -26,7 +39,7 @@ class Request {
   private defaultHeaders: Record<string, string>;
 
   constructor(
-    baseUrl: string = 'http://localhost:8000',
+    baseUrl: string = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010',
     defaultHeaders: Record<string, string> = {},
     timeout: number = 10000,
   ) {
@@ -36,7 +49,7 @@ class Request {
       ...defaultHeaders,
     };
 
-    // Create axios instance
+    // 创建 axios 实例
     this.instance = axios.create({
       baseURL: this.baseUrl,
       timeout,
@@ -44,10 +57,21 @@ class Request {
       withCredentials: true,
     });
 
-    // Add request interceptor
+    // 初始化拦截器
+    this.setupInterceptors();
+    
+    // 从本地存储加载 token
+    this.loadTokenFromStorage();
+  }
+
+  /**
+   * 设置请求和响应拦截器
+   */
+  private setupInterceptors(): void {
+    // 请求拦截器
     this.instance.interceptors.request.use(
       (config) => {
-        // You can modify the request config here
+        // 在发送请求前可以做一些处理
         return config;
       },
       (error) => {
@@ -55,46 +79,60 @@ class Request {
       },
     );
 
-    // Add response interceptor
+    // 响应拦截器
     this.instance.interceptors.response.use(
-      (response) => {
-        // Return the response data directly
+      (response: AxiosResponse) => {
+        // 直接返回响应数据
         return response.data;
       },
-      (error: AxiosError) => {
-        // Handle error responses
-        const apiError: ApiError = new Error(error.message || 'Request failed');
+      async (error: AxiosError) => {
+        // 处理错误响应
+        const apiError: ApiError = new Error(error.message || '请求失败');
 
         if (error.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
+          // 请求已发出，服务器返回状态码不在 2xx 范围内
           apiError.status = error.response.status;
           apiError.data = error.response.data;
 
-          // Show error message
-          const responseData = error.response.data as Record<string, unknown>;
-          if (responseData && responseData.detail) {
-            if (Array.isArray(responseData.detail)) {
-              const detail = responseData.detail[0] as Record<string, string>;
-              console.error(detail.msg || 'Request failed');
-            } else {
-              console.error(
-                (responseData.detail as string) || 'Request failed',
-              );
+          // 处理 401 未授权错误，尝试刷新 token
+          if (error.response.status === 401) {
+            try {
+              // 尝试刷新 token
+              const originalRequest = error.config as AxiosRequestConfig;
+              const refreshed = await this.refreshToken();
+              
+              if (refreshed) {
+                // 重新发送之前失败的请求
+                return this.instance(originalRequest);
+              }
+            } catch (refreshError) {
+              console.error('刷新 token 失败:', refreshError);
+              // 刷新 token 失败，清除所有 token 并重定向到登录页
+              this.clearTokens();
+              // 可以在这里添加重定向到登录页的逻辑
+              window.location.href = '/login';
             }
+          }
+
+          // 显示错误信息
+          const responseData = error.response.data as Record<string, unknown>;
+          if (responseData && responseData.message) {
+            console.error(responseData.message);
+          } else if (responseData && responseData.error) {
+            console.error(responseData.error);
           } else {
-            console.error('Request failed');
+            console.error('请求失败');
           }
         } else if (error.request) {
-          // The request was made but no response was received
-          console.error('No response from server');
+          // 请求已发出但没有收到响应
+          console.error('服务器无响应');
         } else {
-          // Something happened in setting up the request that triggered an Error
-          console.error('Request configuration error');
+          // 设置请求时发生错误
+          console.error('请求配置错误');
         }
 
         if (axios.isCancel(error)) {
-          console.error('Request cancelled');
+          console.error('请求已取消');
         }
 
         return Promise.reject(apiError);
@@ -103,8 +141,72 @@ class Request {
   }
 
   /**
-   * Set authorization token
-   * @param token Access token
+   * 从本地存储加载 token
+   */
+  private loadTokenFromStorage(): void {
+    const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (accessToken) {
+      this.setAuthToken(accessToken);
+    }
+  }
+
+  /**
+   * 保存 token 到本地存储
+   * @param tokens Token 对象
+   */
+  private saveTokens(tokens: TokenDto): void {
+    localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+    this.setAuthToken(tokens.accessToken);
+  }
+
+  /**
+   * 清除所有 token
+   */
+  private clearTokens(): void {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    this.clearAuthToken();
+  }
+
+  /**
+   * 刷新 token
+   * @returns 是否成功刷新 token
+   */
+  private async refreshToken(): Promise<boolean> {
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    if (!refreshToken) {
+      return false;
+    }
+
+    try {
+      // 创建一个新的 axios 实例来刷新 token，避免进入拦截器循环
+      const response = await axios.post<TokenDto>(
+        `${this.baseUrl}/auth/refresh`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${refreshToken}`,
+          },
+        },
+      );
+
+      if (response.data) {
+        this.saveTokens(response.data);
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('刷新 token 失败:', error);
+      this.clearTokens();
+      return false;
+    }
+  }
+
+  /**
+   * 设置认证 token
+   * @param token 访问令牌
    */
   setAuthToken(token: string): void {
     this.defaultHeaders['Authorization'] = `Bearer ${token}`;
@@ -112,7 +214,7 @@ class Request {
   }
 
   /**
-   * Clear authorization token
+   * 清除认证 token
    */
   clearAuthToken(): void {
     delete this.defaultHeaders['Authorization'];
@@ -120,8 +222,8 @@ class Request {
   }
 
   /**
-   * Set base URL
-   * @param url Base URL
+   * 设置基础 URL
+   * @param url 基础 URL
    */
   setBaseUrl(url: string): void {
     this.baseUrl = url;
@@ -129,8 +231,8 @@ class Request {
   }
 
   /**
-   * Set default headers
-   * @param headers Default headers
+   * 设置默认请求头
+   * @param headers 默认请求头
    */
   setDefaultHeaders(headers: Record<string, string>): void {
     this.defaultHeaders = {
@@ -138,22 +240,38 @@ class Request {
       ...headers,
     };
 
-    // Update axios instance headers
+    // 更新 axios 实例的请求头
     Object.entries(this.defaultHeaders).forEach(([key, value]) => {
       this.instance.defaults.headers.common[key] = value;
     });
   }
 
   /**
-   * Make HTTP request
-   * @param url URL
-   * @param options Request options
-   * @returns Promise with response
+   * 登录并保存 token
+   * @param email 邮箱
+   * @param password 密码
+   * @returns Token 对象
    */
-  async request<T = unknown>(
-    url: string,
-    options: RequestOptions = {},
-  ): Promise<T> {
+  async login(email: string, password: string): Promise<TokenDto> {
+    const response = await this.post<TokenDto>('/auth/login', { email, password });
+    this.saveTokens(response);
+    return response;
+  }
+
+  /**
+   * 登出并清除 token
+   */
+  logout(): void {
+    this.clearTokens();
+  }
+
+  /**
+   * 发起 HTTP 请求
+   * @param url URL
+   * @param options 请求选项
+   * @returns 响应 Promise
+   */
+  async request<T = unknown>(url: string, options: RequestOptions = {}): Promise<T> {
     const config: AxiosRequestConfig = {
       url,
       method: options.method || 'GET',
@@ -167,16 +285,16 @@ class Request {
       ...options,
     };
 
-    // Make the request
+    // 发起请求
     return this.instance.request<unknown, T>(config);
   }
 
   /**
-   * Make GET request
+   * 发起 GET 请求
    * @param url URL
-   * @param params Query parameters
-   * @param options Request options
-   * @returns Promise with response
+   * @param params 查询参数
+   * @param options 请求选项
+   * @returns 响应 Promise
    */
   async get<T = unknown>(
     url: string,
@@ -191,11 +309,11 @@ class Request {
   }
 
   /**
-   * Make POST request
+   * 发起 POST 请求
    * @param url URL
-   * @param data Request body
-   * @param options Request options
-   * @returns Promise with response
+   * @param data 请求体
+   * @param options 请求选项
+   * @returns 响应 Promise
    */
   async post<T = unknown>(
     url: string,
@@ -210,11 +328,11 @@ class Request {
   }
 
   /**
-   * Make PUT request
+   * 发起 PUT 请求
    * @param url URL
-   * @param data Request body
-   * @param options Request options
-   * @returns Promise with response
+   * @param data 请求体
+   * @param options 请求选项
+   * @returns 响应 Promise
    */
   async put<T = unknown>(
     url: string,
@@ -229,11 +347,11 @@ class Request {
   }
 
   /**
-   * Make PATCH request
+   * 发起 PATCH 请求
    * @param url URL
-   * @param data Request body
-   * @param options Request options
-   * @returns Promise with response
+   * @param data 请求体
+   * @param options 请求选项
+   * @returns 响应 Promise
    */
   async patch<T = unknown>(
     url: string,
@@ -248,10 +366,10 @@ class Request {
   }
 
   /**
-   * Make DELETE request
+   * 发起 DELETE 请求
    * @param url URL
-   * @param options Request options
-   * @returns Promise with response
+   * @param options 请求选项
+   * @returns 响应 Promise
    */
   async delete<T = unknown>(
     url: string,
@@ -264,13 +382,13 @@ class Request {
   }
 
   /**
-   * Upload file
+   * 上传文件
    * @param url URL
-   * @param file File to upload
-   * @param fieldName Field name for the file
-   * @param extraData Extra form data
-   * @param options Request options
-   * @returns Promise with response
+   * @param file 要上传的文件
+   * @param fieldName 文件字段名
+   * @param extraData 额外表单数据
+   * @param options 请求选项
+   * @returns 响应 Promise
    */
   async uploadFile<T = unknown>(
     url: string,
@@ -282,12 +400,12 @@ class Request {
     const formData = new FormData();
     formData.append(fieldName, file);
 
-    // Add extra data to form data
+    // 添加额外数据到表单
     Object.entries(extraData).forEach(([key, value]) => {
       formData.append(key, value);
     });
 
-    // Let axios set the Content-Type header with the correct boundary
+    // 让 axios 设置带有正确边界的 Content-Type 头
     return this.request<T>(url, {
       method: 'POST',
       data: formData,
@@ -299,12 +417,12 @@ class Request {
   }
 
   /**
-   * Make a request that handles event streams
+   * 处理流式响应的请求
    * @param url URL
-   * @param data Request body
-   * @param onStream Callback function to handle each chunk of the stream
-   * @param options Request options
-   * @returns Promise that resolves when the stream is complete
+   * @param data 请求体
+   * @param onStream 处理每个数据块的回调函数
+   * @param options 请求选项
+   * @returns 完成时的 Promise
    */
   async stream<T = unknown>(
     url: string,
@@ -313,9 +431,10 @@ class Request {
     options: Omit<RequestOptions, 'method' | 'data' | 'onStream'> = {},
   ): Promise<T> {
     if (!onStream) {
-      throw new Error('onStream callback is required for stream requests');
+      throw new Error('流式请求需要提供 onStream 回调函数');
     }
 
+    const controller = new AbortController();
     const config: AxiosRequestConfig = {
       url,
       method: 'POST',
@@ -326,89 +445,75 @@ class Request {
       },
       data,
       responseType: 'stream',
+      signal: controller.signal,
       ...options,
     };
 
-    // Use axios directly with response type handling
     return new Promise((resolve, reject) => {
-      // Create a variable to track if we've received any data
       let hasReceivedData = false;
-      // Create a variable to store the timeout ID
       let timeoutId: number | null = null;
-      // Create a variable to store the abort controller
-      const controller = new AbortController();
 
-      // Function to reset the activity timer and clear timeout
+      // 重置活动计时器的函数
       const resetActivityTimer = () => {
-        // If we're receiving data, clear any existing timeout
         if (hasReceivedData && timeoutId) {
           clearTimeout(timeoutId);
           timeoutId = null;
         }
       };
 
-      // Set up the request
+      // 设置请求
       const axiosRequest = this.instance.request({
         ...config,
-        // Remove the timeout from config as we'll handle it manually
         timeout: undefined,
         responseType: 'text',
-        // Add the signal from AbortController
-        signal: controller.signal,
         onDownloadProgress: (progressEvent) => {
           const response = progressEvent.event.target as XMLHttpRequest;
           const responseText = response.responseText;
-          console.log(responseText, 'responseText');
 
-          // Process the response text to extract the latest chunk
           if (responseText) {
-            // Reset the activity timer since we received data
+            // 重置活动计时器，因为我们收到了数据
             resetActivityTimer();
-
-            // Mark that we've received data
             hasReceivedData = true;
 
-            // Process the response text to extract new chunks
-            // We need to be careful about partial or incomplete lines
+            // 处理响应文本以提取新块
             const lines = responseText.split('\n');
 
-            // Process each line
+            // 处理每一行
             for (const line of lines) {
               const trimmedLine = line.trim();
-              if (!trimmedLine) continue; // Skip empty lines
+              if (!trimmedLine) continue; // 跳过空行
 
-              // Handle SSE format (data: {...})
+              // 处理 SSE 格式 (data: {...})
               if (line.startsWith('data:')) {
                 try {
                   const data = line.substring(5).trim();
                   onStream(data);
                 } catch (error) {
-                  console.error('Error processing stream data:', error);
+                  console.error('处理流数据时出错:', error);
                 }
               }
-              // Handle direct JSON format without 'data:' prefix
+              // 处理不带 'data:' 前缀的直接 JSON 格式
               else if (trimmedLine.includes('{') && trimmedLine.includes('}')) {
                 try {
-                  // Try to parse as JSON to validate
+                  // 尝试解析为 JSON 以验证
                   try {
                     JSON.parse(trimmedLine);
                     onStream(trimmedLine);
                   } catch {
-                    // If it looks like JSON but isn't valid, it might be a partial chunk
-                    // We'll still process it as the client might be able to handle it
+                    // 如果看起来像 JSON 但无效，可能是部分块
                     console.warn(
-                      'Received invalid JSON in stream, but processing anyway:',
+                      '在流中收到无效的 JSON，但仍在处理:',
                       trimmedLine,
                     );
                     onStream(trimmedLine);
                   }
                 } catch (error) {
-                  console.error('Error processing direct JSON data:', error);
+                  console.error('处理直接 JSON 数据时出错:', error);
                 }
               }
-              // Handle any other format that might contain useful data
+              // 处理可能包含有用数据的任何其他格式
               else if (trimmedLine.length > 0) {
-                // Pass through any non-empty content that doesn't match other formats
+                // 传递任何不匹配其他格式的非空内容
                 onStream(trimmedLine);
               }
             }
@@ -416,23 +521,22 @@ class Request {
         },
       });
 
-      // Set up the initial connection timeout
+      // 设置初始连接超时
       if (config.timeout) {
         timeoutId = setTimeout(() => {
-          // If we haven't received any data by the timeout, abort the request
+          // 如果在超时前没有收到任何数据，中止请求
           if (!hasReceivedData) {
-            console.error('Request timed out waiting for initial response');
-            // Use the AbortController to cancel the request
+            console.error('等待初始响应超时');
             controller.abort();
-            reject(new Error('Request timed out waiting for initial response'));
+            reject(new Error('等待初始响应超时'));
           }
-        }, config.timeout);
+        }, config.timeout) as unknown as number;
       }
 
-      // Handle request completion
+      // 处理请求完成
       axiosRequest
         .then((response) => {
-          // When the stream is complete, resolve with the full response
+          // 当流完成时，解析完整响应
           if (timeoutId) {
             clearTimeout(timeoutId);
           }
@@ -448,6 +552,6 @@ class Request {
   }
 }
 
-// Create and export a singleton instance
+// 创建并导出单例实例
 const request = new Request();
 export default request;

@@ -15,8 +15,8 @@ import {
 } from 'antd-mobile';
 // 不再需要图标导入
 // import { LockOutline, UserOutline } from 'antd-mobile-icons';
-import { useAuth } from '../../contexts/AuthContext';
-import LoadingScreen from '../../components/common/LoadingScreen';
+import { useAuth } from '@/contexts/AuthContext';
+import LoadingScreen from '@/components/common/LoadingScreen';
 
 const LoginPage: React.FC = () => {
   const { login, isAuthenticated, isLoading } = useAuth();
@@ -62,7 +62,7 @@ const LoginPage: React.FC = () => {
       });
       navigate('/');
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('登录失败:', error);
       Dialog.alert({
         content: '登录失败，请检查邮箱和密码是否正确',
         confirmText: '确定',

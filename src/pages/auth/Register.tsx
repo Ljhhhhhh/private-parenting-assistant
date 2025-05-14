@@ -15,8 +15,8 @@ import {
 } from 'antd-mobile';
 // 不再需要图标导入
 // import { LockOutline, UserOutline, MessageOutline } from 'antd-mobile-icons';
-import { useAuth } from '../../contexts/AuthContext';
-import LoadingScreen from '../../components/common/LoadingScreen';
+import { useAuth } from '@/contexts/AuthContext';
+import LoadingScreen from '@/components/common/LoadingScreen';
 
 const RegisterPage: React.FC = () => {
   const { register, isAuthenticated, isLoading } = useAuth();
@@ -63,7 +63,7 @@ const RegisterPage: React.FC = () => {
       });
       navigate('/');
     } catch (error) {
-      console.error('Registration failed:', error);
+      console.error('注册失败:', error);
       Dialog.alert({
         content: '注册失败，请检查邮箱是否已被注册或网络连接',
         confirmText: '确定',
