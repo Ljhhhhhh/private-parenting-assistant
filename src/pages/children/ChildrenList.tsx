@@ -13,20 +13,20 @@ import {
   Image,
 } from 'antd-mobile';
 import { AddOutline } from 'antd-mobile-icons';
-import { childrenApi } from '../../api';
-import { ChildPublic } from '../../types/api';
+import { getAllChildren, deleteChild } from '../../api/children';
+import { ChildResponseDto } from '../../types/models';
 import dayjs from 'dayjs';
 
 const ChildrenListPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [children, setChildren] = useState<ChildPublic[]>([]);
+  const [children, setChildren] = useState<ChildResponseDto[]>([]);
 
   const fetchChildren = async () => {
     try {
       setLoading(true);
-      const response = await childrenApi.getChildren();
-      setChildren(response.data);
+      const response = await getAllChildren();
+      setChildren(response);
     } catch (error) {
       console.error('Failed to fetch children:', error);
       Dialog.alert({
@@ -46,18 +46,18 @@ const ChildrenListPage: React.FC = () => {
     navigate('/children/create');
   };
 
-  const handleViewChild = (childId: string) => {
+  const handleViewChild = (childId: number) => {
     navigate(`/children/${childId}`);
   };
 
-  const handleDeleteChild = async (childId: string) => {
+  const handleDeleteChild = async (childId: number) => {
     Dialog.confirm({
       content: '确定要删除这个宝宝档案吗？',
       confirmText: '删除',
       cancelText: '取消',
       onConfirm: async () => {
         try {
-          await childrenApi.deleteChild(childId);
+          await deleteChild(childId);
           Toast.show({
             icon: 'success',
             content: '删除成功',
@@ -88,17 +88,17 @@ const ChildrenListPage: React.FC = () => {
     }
   };
 
-  const getGenderText = (gender: string) => {
+  const getGenderText = (gender: string | undefined) => {
     return gender === 'male' ? '男宝宝' : '女宝宝';
   };
 
-  const getGenderColor = (gender: string) => {
+  const getGenderColor = (gender: string | undefined) => {
     return gender === 'male'
       ? 'bg-blue-100 text-blue-600'
       : 'bg-pink-100 text-pink-600';
   };
 
-  const getAvatarPlaceholder = (gender: string) => {
+  const getAvatarPlaceholder = (gender: string | undefined) => {
     return gender === 'male' ? '/boy-avatar.svg' : '/girl-avatar.svg';
   };
 
@@ -114,12 +114,12 @@ const ChildrenListPage: React.FC = () => {
 
       <div className="flex-1 p-4">
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-full">
+          <div className="flex flex-col justify-center items-center h-full">
             <DotLoading color="primary" />
             <span className="mt-2 text-gray-500">加载中...</span>
           </div>
         ) : children.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full">
+          <div className="flex flex-col justify-center items-center h-full">
             <Empty description="暂无宝宝档案" imageStyle={{ width: 128 }} />
             <div className="mt-4 space-y-2">
               <Button color="primary" onClick={handleCreateChild}>
@@ -161,8 +161,8 @@ const ChildrenListPage: React.FC = () => {
                         height={40}
                         placeholder=""
                         fallback={
-                          <div className="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-full">
-                            {child.name.charAt(0)}
+                          <div className="flex justify-center items-center w-10 h-10 bg-gray-200 rounded-full">
+                            {child.nickname.charAt(0)}
                           </div>
                         }
                       />
@@ -177,13 +177,13 @@ const ChildrenListPage: React.FC = () => {
                           {getGenderText(child.gender)}
                         </span>
                         <span className="ml-2 text-xs text-gray-500">
-                          {calculateAge(child.birthday)}
+                          {calculateAge(child.dateOfBirth)}
                         </span>
                       </div>
                     }
                     arrow={true}
                   >
-                    {child.name}
+                    {child.nickname}
                   </List.Item>
                 </SwipeAction>
               ))}

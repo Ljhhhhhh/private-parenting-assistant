@@ -13,8 +13,8 @@ import {
   DatePicker,
   Space,
 } from 'antd-mobile';
-import { childrenApi } from '../../api';
-import { ChildCreate } from '../../types/api';
+import { createChild } from '../../api/children';
+import { CreateChildDto } from '../../types/models';
 import dayjs from 'dayjs';
 
 const CreateChildPage: React.FC = () => {
@@ -35,20 +35,20 @@ const CreateChildPage: React.FC = () => {
 
     try {
       setLoading(true);
-      
-      const childData: ChildCreate = {
-        name: values.name,
+
+      const childData: CreateChildDto = {
+        nickname: values.name,
         gender: values.gender,
-        birthday: dayjs(birthDate).format('YYYY-MM-DD'),
+        dateOfBirth: dayjs(birthDate).format('YYYY-MM-DD'),
       };
-      
-      await childrenApi.createChild(childData);
-      
+
+      await createChild(childData);
+
       Toast.show({
         icon: 'success',
         content: '档案创建成功',
       });
-      
+
       // 创建成功后跳转到首页
       navigate('/');
     } catch (error) {
@@ -129,7 +129,7 @@ const CreateChildPage: React.FC = () => {
             rules={[{ required: true, message: '请选择宝宝出生日期' }]}
           >
             <div
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
               onClick={() => setDatePickerVisible(true)}
             >
               <span className={birthDate ? 'text-black' : 'text-gray-400'}>
@@ -151,7 +151,7 @@ const CreateChildPage: React.FC = () => {
           onConfirm={handleDateConfirm}
         />
 
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg animate-fade-in">
+        <div className="p-4 mt-6 bg-gray-50 rounded-lg animate-fade-in">
           <h3 className="text-sm font-medium text-gray-700">温馨提示</h3>
           <p className="mt-1 text-xs text-gray-500">
             创建宝宝档案后，您可以记录宝宝的成长数据，获取个性化的育儿建议和指导。
@@ -159,7 +159,7 @@ const CreateChildPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="p-4 text-center text-xs text-gray-400 animate-fade-in">
+      <div className="p-4 text-xs text-center text-gray-400 animate-fade-in">
         <p>我们重视您的隐私，所有数据都将被安全加密存储</p>
       </div>
       <SafeArea position="bottom" />

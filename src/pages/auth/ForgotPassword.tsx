@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Form,
@@ -16,27 +16,44 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 
 const ForgotPasswordPage: React.FC = () => {
-  const { forgotPassword } = useAuth();
+  const { sendResetPasswordCode } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [emailSent, setEmailSent] = useState(false);
   const [email, setEmail] = useState('');
+  const [countdown, setCountdown] = useState<number | null>(null);
+
+  // 处理倒计时
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (countdown !== null && countdown > 0) {
+      timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+    } else if (countdown === 0) {
+      setCountdown(null);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [countdown]);
 
   const onFinish = async (values: { email: string }) => {
     try {
       setLoading(true);
-      await forgotPassword(values.email);
+      await sendResetPasswordCode(values.email);
       setEmail(values.email);
       setEmailSent(true);
+      setCountdown(60);
       Toast.show({
         icon: 'success',
-        content: '重置密码邮件已发送',
+        content: '验证码已发送',
       });
     } catch (error) {
-      console.error('密码找回失败:', error);
+      console.error('发送验证码失败:', error);
       Dialog.alert({
-        content: '发送重置密码邮件失败，请检查邮箱是否正确或网络连接',
+        content: '发送验证码失败，请检查邮箱是否正确或网络连接',
         confirmText: '确定',
       });
     } finally {
@@ -54,26 +71,30 @@ const ForgotPasswordPage: React.FC = () => {
       </NavBar>
       <SafeArea position="top" />
 
-      <div className="flex-1 p-6 flex flex-col justify-center">
+      <div className="flex flex-col flex-1 justify-center p-6">
         {emailSent ? (
           <div className="animate-fade-in">
             <Result
               status="success"
-              title="重置密码邮件已发送"
+              title="验证码已发送"
               description={
-                <div className="text-center text-gray-500 mt-2">
-                  <p>我们已将重置密码的链接发送至：</p>
-                  <p className="font-medium mt-1">{email}</p>
-                  <p className="mt-4">
-                    请检查您的邮箱，并点击邮件中的链接重置密码。
-                  </p>
+                <div className="mt-2 text-center text-gray-500">
+                  <p>我们已将验证码发送至：</p>
+                  <p className="mt-1 font-medium">{email}</p>
+                  <p className="mt-4">请前往重置密码页面输入验证码和新密码。</p>
                   <p className="mt-2">
-                    如果没有收到邮件，请检查垠垃圾邮件文件夹。
+                    如果没有收到验证码，请检查垃圾邮件文件夹或重新获取。
                   </p>
                 </div>
               }
             />
-            <div className="mt-8 flex justify-center">
+            <div className="flex justify-center mt-8 space-x-4">
+              <Button
+                color="primary"
+                onClick={() => navigate('/reset-password')}
+              >
+                去重置密码
+              </Button>
               <Button
                 color="primary"
                 fill="outline"
@@ -102,10 +123,10 @@ const ForgotPasswordPage: React.FC = () => {
                   }
                 />
               </AutoCenter>
-              <h1 className="text-2xl font-bold text-center mt-4 text-primary-600">
+              <h1 className="mt-4 text-2xl font-bold text-center text-primary-600">
                 忘记密码
               </h1>
-              <p className="text-gray-500 text-center mt-2">
+              <p className="mt-2 text-center text-gray-500">
                 请输入您的邮箱，我们将发送重置密码的链接
               </p>
             </div>
@@ -145,9 +166,9 @@ const ForgotPasswordPage: React.FC = () => {
               </Form.Item>
             </Form>
 
-            <div className="mt-6 text-center text-sm animate-fade-in">
+            <div className="mt-6 text-sm text-center animate-fade-in">
               <span className="text-gray-500">想起密码了？</span>{' '}
-              <Link to="/login" className="text-primary-600 font-medium">
+              <Link to="/login" className="font-medium text-primary-600">
                 返回登录
               </Link>
             </div>
@@ -155,7 +176,7 @@ const ForgotPasswordPage: React.FC = () => {
         )}
       </div>
 
-      <div className="p-4 text-center text-xs text-gray-400 animate-fade-in">
+      <div className="p-4 text-xs text-center text-gray-400 animate-fade-in">
         <p>如需帮助，请联系客服支持</p>
       </div>
       <SafeArea position="bottom" />

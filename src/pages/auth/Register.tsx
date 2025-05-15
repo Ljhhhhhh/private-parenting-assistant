@@ -13,17 +13,17 @@ import {
   Dialog,
   Checkbox,
 } from 'antd-mobile';
-// 不再需要图标导入
-// import { LockOutline, UserOutline, MessageOutline } from 'antd-mobile-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingScreen from '@/components/common/LoadingScreen';
 
 const RegisterPage: React.FC = () => {
-  const { register, isAuthenticated, isLoading } = useAuth();
+  const { register, isAuthenticated, isLoading, sendRegisterCode } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [codeSending, setCodeSending] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   // 如果已经登录，直接跳转到首页
   useEffect(() => {
@@ -32,11 +32,55 @@ const RegisterPage: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
+  // 处理倒计时
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (countdown !== null && countdown > 0) {
+      timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+    } else if (countdown === 0) {
+      setCountdown(null);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [countdown]);
+
+  const handleSendCode = async () => {
+    try {
+      const email = form.getFieldValue('email');
+      if (!email) {
+        Dialog.alert({
+          content: '请输入邮箱地址',
+          confirmText: '确定',
+        });
+        return;
+      }
+
+      setCodeSending(true);
+      await sendRegisterCode(email);
+      setCountdown(60);
+      Toast.show({
+        icon: 'success',
+        content: '验证码已发送',
+      });
+    } catch (error) {
+      console.error('发送验证码失败:', error);
+      Dialog.alert({
+        content: '发送验证码失败，请稍后重试',
+        confirmText: '确定',
+      });
+    } finally {
+      setCodeSending(false);
+    }
+  };
+
   const onFinish = async (values: {
     email: string;
     password: string;
     confirmPassword: string;
-    fullName?: string;
+    verificationCode: string;
   }) => {
     if (values.password !== values.confirmPassword) {
       Dialog.alert({
@@ -54,9 +98,17 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
+    if (!values.verificationCode) {
+      Dialog.alert({
+        content: '请输入验证码',
+        confirmText: '确定',
+      });
+      return;
+    }
+
     try {
       setLoading(true);
-      await register(values.email, values.password, values.fullName);
+      await register(values.email, values.password, values.verificationCode);
       Toast.show({
         icon: 'success',
         content: '注册成功',
@@ -65,7 +117,7 @@ const RegisterPage: React.FC = () => {
     } catch (error) {
       console.error('注册失败:', error);
       Dialog.alert({
-        content: '注册失败，请检查邮箱是否已被注册或网络连接',
+        content: '注册失败，请检查邮箱或验证码是否正确',
         confirmText: '确定',
       });
     } finally {
@@ -86,7 +138,7 @@ const RegisterPage: React.FC = () => {
     <div className="flex flex-col min-h-screen bg-white">
       <SafeArea position="top" />
 
-      <div className="flex flex-col justify-center flex-1 p-6">
+      <div className="flex flex-col flex-1 justify-center p-6">
         <div className="mb-8 animate-fade-in">
           <AutoCenter>
             <Image
@@ -143,14 +195,34 @@ const RegisterPage: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            name="fullName"
-            label="姓名"
-            rules={[{ required: false, message: '请输入姓名' }]}
+            name="verificationCode"
+            label="验证码"
+            rules={[{ required: true, message: '请输入验证码' }]}
+            extra={
+              <div className="flex justify-end">
+                <Button
+                  color="primary"
+                  fill="none"
+                  size="small"
+                  loading={codeSending}
+                  disabled={
+                    codeSending || (countdown !== null && countdown > 0)
+                  }
+                  onClick={handleSendCode}
+                >
+                  {countdown !== null && countdown > 0 ? (
+                    <span className="text-gray-400">{countdown}秒后重试</span>
+                  ) : (
+                    '获取验证码'
+                  )}
+                </Button>
+              </div>
+            }
           >
             <Input
-              placeholder="请输入姓名（选填）"
+              placeholder="请输入验证码"
               clearable
-              autoComplete="name"
+              autoComplete="one-time-code"
             />
           </Form.Item>
 
@@ -186,7 +258,7 @@ const RegisterPage: React.FC = () => {
             />
           </Form.Item>
 
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex justify-between items-center mt-4">
             <Checkbox checked={agreeTerms} onChange={handleAgreeChange}>
               <span className="text-sm text-gray-600">我已阅读并同意</span>
             </Checkbox>

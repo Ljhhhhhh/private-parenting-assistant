@@ -13,8 +13,8 @@ import {
   DatePicker,
   Space,
 } from 'antd-mobile';
-import { childrenApi } from '../../api';
-import { ChildUpdate, ChildPublic } from '../../types/api';
+import { getChildById, updateChild } from '../../api/children';
+import { UpdateChildDto } from '../../types/models'; // ChildResponseDto
 import dayjs from 'dayjs';
 
 const EditChildPage: React.FC = () => {
@@ -25,24 +25,24 @@ const EditChildPage: React.FC = () => {
   const [form] = Form.useForm();
   const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [datePickerVisible, setDatePickerVisible] = useState(false);
-  const [child, setChild] = useState<ChildPublic | null>(null);
+  // const [child, setChild] = useState<ChildResponseDto | null>(null);
 
   const fetchChild = async () => {
     if (!id) return;
-    
+
     try {
       setInitialLoading(true);
-      const response = await childrenApi.getChildById(id);
-      setChild(response);
-      
+      const response = await getChildById(Number(id));
+      // setChild(response);
+
       // 设置表单初始值
       form.setFieldsValue({
-        name: response.name,
+        name: response.nickname,
         gender: response.gender,
       });
-      
+
       // 设置出生日期
-      setBirthDate(new Date(response.birthday));
+      setBirthDate(new Date(response.dateOfBirth));
     } catch (error) {
       console.error('Failed to fetch child:', error);
       Dialog.alert({
@@ -70,20 +70,20 @@ const EditChildPage: React.FC = () => {
 
     try {
       setLoading(true);
-      
-      const childData: ChildUpdate = {
-        name: values.name,
+
+      const childData: UpdateChildDto = {
+        nickname: values.name,
         gender: values.gender,
-        birthday: dayjs(birthDate).format('YYYY-MM-DD'),
+        dateOfBirth: dayjs(birthDate).format('YYYY-MM-DD'),
       };
-      
-      await childrenApi.updateChild(id, childData);
-      
+
+      await updateChild(Number(id), childData);
+
       Toast.show({
         icon: 'success',
         content: '档案更新成功',
       });
-      
+
       // 更新成功后返回详情页
       navigate(`/children/${id}`);
     } catch (error) {
@@ -105,11 +105,14 @@ const EditChildPage: React.FC = () => {
   if (initialLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-white">
-        <NavBar className="border-b border-gray-200" onBack={() => navigate(-1)}>
+        <NavBar
+          className="border-b border-gray-200"
+          onBack={() => navigate(-1)}
+        >
           编辑宝宝档案
         </NavBar>
         <SafeArea position="top" />
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex flex-1 justify-center items-center">
           <DotLoading color="primary" />
           <span className="ml-2">加载中...</span>
         </div>
@@ -129,9 +132,7 @@ const EditChildPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-center text-primary-600">
             编辑宝宝档案
           </h1>
-          <p className="mt-2 text-center text-gray-500">
-            更新宝宝的基本信息
-          </p>
+          <p className="mt-2 text-center text-gray-500">更新宝宝的基本信息</p>
         </div>
 
         <Form
@@ -179,7 +180,7 @@ const EditChildPage: React.FC = () => {
             rules={[{ required: true, message: '请选择宝宝出生日期' }]}
           >
             <div
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
               onClick={() => setDatePickerVisible(true)}
             >
               <span className={birthDate ? 'text-black' : 'text-gray-400'}>
@@ -201,7 +202,7 @@ const EditChildPage: React.FC = () => {
           onConfirm={handleDateConfirm}
         />
 
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg animate-fade-in">
+        <div className="p-4 mt-6 bg-gray-50 rounded-lg animate-fade-in">
           <h3 className="text-sm font-medium text-gray-700">温馨提示</h3>
           <p className="mt-1 text-xs text-gray-500">
             更新宝宝档案信息后，我们将根据最新信息为您提供更精准的育儿建议。

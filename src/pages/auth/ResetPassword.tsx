@@ -16,32 +16,75 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 
 const ResetPasswordPage: React.FC = () => {
-  const { resetPassword } = useAuth();
+  const { resetPassword, sendResetPasswordCode } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
+  const [codeSending, setCodeSending] = useState(false);
   const [form] = Form.useForm();
   const [resetSuccess, setResetSuccess] = useState(false);
-  const [token, setToken] = useState('');
+  const [email, setEmail] = useState('');
+  const [countdown, setCountdown] = useState<number | null>(null);
 
-  // 从 URL 中获取重置密码的 token
+  // 处理倒计时
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (countdown !== null && countdown > 0) {
+      timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+    } else if (countdown === 0) {
+      setCountdown(null);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [countdown]);
+  
+  // 从 URL 中获取邮箱参数
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    const tokenParam = searchParams.get('token');
-    if (tokenParam) {
-      setToken(tokenParam);
-    } else {
-      Dialog.alert({
-        content: '无效的重置链接，请重新获取',
-        confirmText: '确定',
-        onConfirm: () => navigate('/forgot-password'),
-      });
+    const emailParam = searchParams.get('email');
+    if (emailParam) {
+      setEmail(emailParam);
+      form.setFieldsValue({ email: emailParam });
     }
-  }, [location.search, navigate]);
+  }, [location.search, form]);
+
+  const handleSendCode = async () => {
+    try {
+      const email = form.getFieldValue('email');
+      if (!email) {
+        Dialog.alert({
+          content: '请输入邮箱地址',
+          confirmText: '确定',
+        });
+        return;
+      }
+
+      setCodeSending(true);
+      await sendResetPasswordCode(email);
+      setCountdown(60);
+      Toast.show({
+        icon: 'success',
+        content: '验证码已发送',
+      });
+    } catch (error) {
+      console.error('发送验证码失败:', error);
+      Dialog.alert({
+        content: '发送验证码失败，请稍后重试',
+        confirmText: '确定',
+      });
+    } finally {
+      setCodeSending(false);
+    }
+  };
 
   const onFinish = async (values: {
+    email: string;
     password: string;
     confirmPassword: string;
+    verificationCode: string;
   }) => {
     if (values.password !== values.confirmPassword) {
       Dialog.alert({
@@ -51,9 +94,17 @@ const ResetPasswordPage: React.FC = () => {
       return;
     }
 
+    if (!values.verificationCode) {
+      Dialog.alert({
+        content: '请输入验证码',
+        confirmText: '确定',
+      });
+      return;
+    }
+
     try {
       setLoading(true);
-      await resetPassword(token, values.password);
+      await resetPassword(values.email, values.password, values.verificationCode);
       setResetSuccess(true);
       Toast.show({
         icon: 'success',
@@ -62,7 +113,7 @@ const ResetPasswordPage: React.FC = () => {
     } catch (error) {
       console.error('密码重置失败:', error);
       Dialog.alert({
-        content: '密码重置失败，请检查链接是否有效或网络连接',
+        content: '密码重置失败，请检查验证码是否正确或网络连接',
         confirmText: '确定',
       });
     } finally {
@@ -134,7 +185,7 @@ const ResetPasswordPage: React.FC = () => {
                   color="primary"
                   size="large"
                   loading={loading}
-                  disabled={loading || !token}
+                  disabled={loading}
                   className="mt-8 rounded-lg"
                 >
                   {loading ? <DotLoading color="white" /> : '重置密码'}
@@ -142,6 +193,52 @@ const ResetPasswordPage: React.FC = () => {
               }
               className="animate-slide-up"
             >
+              <Form.Item
+                name="email"
+                label="邮箱"
+                rules={[
+                  { required: true, message: '请输入邮箱' },
+                  { type: 'email', message: '请输入有效的邮箱地址' },
+                ]}
+              >
+                <Input 
+                  placeholder="请输入邮箱" 
+                  clearable 
+                  autoComplete="email" 
+                  disabled={!!email}
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="verificationCode"
+                label="验证码"
+                rules={[{ required: true, message: '请输入验证码' }]}
+                extra={
+                  <div className="flex justify-end">
+                    <Button
+                      color="primary"
+                      fill="none"
+                      size="small"
+                      loading={codeSending}
+                      disabled={codeSending || (countdown !== null && countdown > 0)}
+                      onClick={handleSendCode}
+                    >
+                      {countdown !== null && countdown > 0 ? (
+                        <span className="text-gray-400">{countdown}秒后重试</span>
+                      ) : (
+                        '获取验证码'
+                      )}
+                    </Button>
+                  </div>
+                }
+              >
+                <Input
+                  placeholder="请输入验证码"
+                  clearable
+                  autoComplete="one-time-code"
+                />
+              </Form.Item>
+
               <Form.Item
                 name="password"
                 label="新密码"

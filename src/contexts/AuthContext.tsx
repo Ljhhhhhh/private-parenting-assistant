@@ -5,10 +5,26 @@ import React, {
   useEffect,
   ReactNode,
 } from 'react';
-import { register as registerApi, getUserProfile } from '@/api/auth';
-import { UserPublic } from '@/types/api';
+import {
+  register as registerApi,
+  getUserProfile,
+  sendRegisterVerificationCode,
+  sendResetPasswordVerificationCode,
+  resetPassword as resetPasswordApi,
+} from '@/api/auth';
 import request from '@/utils/request';
-import { RegisterDto } from '@/types/models';
+import {
+  RegisterDto,
+  SendVerificationCodeDto,
+  ResetPasswordDto,
+} from '@/types/models';
+
+// 临时使用，后续应该从 models.ts 中导入
+interface UserPublic {
+  email: string;
+  id: string;
+  [key: string]: any;
+}
 
 interface AuthContextType {
   user: UserPublic | null;
@@ -18,11 +34,16 @@ interface AuthContextType {
   register: (
     email: string,
     password: string,
-    fullName?: string,
+    verificationCode: string,
   ) => Promise<void>;
   logout: () => void;
-  forgotPassword: (email: string) => Promise<void>;
-  resetPassword: (token: string, newPassword: string) => Promise<void>;
+  sendRegisterCode: (email: string) => Promise<void>;
+  sendResetPasswordCode: (email: string) => Promise<void>;
+  resetPassword: (
+    email: string,
+    newPassword: string,
+    verificationCode: string,
+  ) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -70,10 +91,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (email: string, password: string) => {
+  const register = async (
+    email: string,
+    password: string,
+    verificationCode: string,
+  ) => {
     setIsLoading(true);
     try {
-      const registerData: RegisterDto = { email, password };
+      const registerData: RegisterDto = { email, password, verificationCode };
 
       // 注册用户
       await registerApi(registerData);
@@ -94,20 +119,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
   };
 
-  const forgotPassword = async (email: string) => {
+  const sendRegisterCode = async (email: string) => {
     try {
-      // 发送找回密码请求
-      await request.post('/auth/forgot-password', { email });
+      const data: SendVerificationCodeDto = { email };
+      await sendRegisterVerificationCode(data);
     } catch (error) {
-      console.error('密码找回失败:', error);
+      console.error('发送注册验证码失败:', error);
       throw error;
     }
   };
 
-  const resetPassword = async (token: string, newPassword: string) => {
+  const sendResetPasswordCode = async (email: string) => {
     try {
-      // 重置密码
-      await request.post('/auth/reset-password', { token, newPassword });
+      const data: SendVerificationCodeDto = { email };
+      await sendResetPasswordVerificationCode(data);
+    } catch (error) {
+      console.error('发送重置密码验证码失败:', error);
+      throw error;
+    }
+  };
+
+  const resetPassword = async (
+    email: string,
+    newPassword: string,
+    verificationCode: string,
+  ) => {
+    try {
+      const data: ResetPasswordDto = { email, newPassword, verificationCode };
+      await resetPasswordApi(data);
     } catch (error) {
       console.error('密码重置失败:', error);
       throw error;
@@ -121,7 +160,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
-    forgotPassword,
+    sendRegisterCode,
+    sendResetPasswordCode,
     resetPassword,
   };
 

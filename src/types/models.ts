@@ -9,6 +9,8 @@ export interface RegisterDto {
   email: string;
   /** 用户密码，长度至少8位，包含大小写字母和数字 */
   password: string;
+  /** 邮箱验证码，6位数字 */
+  verificationCode: string;
 }
 
 export interface LoginDto {
@@ -23,6 +25,20 @@ export interface TokenDto {
   accessToken: string;
   /** JWT Refresh Token */
   refreshToken: string;
+}
+
+export interface SendVerificationCodeDto {
+  /** 用户的邮箱地址 */
+  email: string;
+}
+
+export interface ResetPasswordDto {
+  /** 用户的邮箱地址 */
+  email: string;
+  /** 新密码，长度至少8位，包含大小写字母和数字 */
+  newPassword: string;
+  /** 邮箱验证码，6位数字 */
+  verificationCode: string;
 }
 
 // 儿童相关类型

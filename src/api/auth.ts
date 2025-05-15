@@ -2,7 +2,7 @@
  * 认证相关API
  */
 import request from '@/utils/request';
-import { RegisterDto, LoginDto, TokenDto } from '@/types/models';
+import { RegisterDto, LoginDto, TokenDto, SendVerificationCodeDto, ResetPasswordDto } from '@/types/models';
 
 /**
  * 用户注册
@@ -45,4 +45,29 @@ export const logout = () => {
   request.logout();
 };
 
-// TODO: 实现密码重置
+/**
+ * 发送注册验证码
+ * @param data 包含邮箱地址的对象
+ * @returns 发送结果
+ */
+export const sendRegisterVerificationCode = (data: SendVerificationCodeDto) => {
+  return request.post<any>('/auth/send-verification-code/register', data);
+};
+
+/**
+ * 发送重置密码验证码
+ * @param data 包含邮箱地址的对象
+ * @returns 发送结果
+ */
+export const sendResetPasswordVerificationCode = (data: SendVerificationCodeDto) => {
+  return request.post<any>('/auth/send-verification-code/reset-password', data);
+};
+
+/**
+ * 重置密码
+ * @param data 重置密码所需信息
+ * @returns 重置结果
+ */
+export const resetPassword = (data: ResetPasswordDto) => {
+  return request.post<any>('/auth/reset-password', data);
+};
