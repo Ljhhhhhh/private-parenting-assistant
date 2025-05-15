@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Toast } from 'antd-mobile';
-import { childrenApi } from '../../../api';
-import { ChildPublic } from '../../../types/api';
+import { getAllChildren } from '../../../api/children';
+import { ChildResponseDto } from '../../../types/models';
 
 /**
  * 管理儿童数据的自定义Hook
@@ -10,28 +10,28 @@ import { ChildPublic } from '../../../types/api';
  */
 export const useChildrenData = (initialChildId?: string) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const [children, setChildren] = useState<ChildPublic[]>([]);
-  const [selectedChildId, setSelectedChildId] = useState<string | undefined>(initialChildId);
-  const [selectedChild, setSelectedChild] = useState<ChildPublic | null>(null);
+  const [children, setChildren] = useState<ChildResponseDto[]>([]);
+  const [selectedChildId, setSelectedChildId] = useState<number | undefined>(initialChildId ? Number(initialChildId) : undefined);
+  const [selectedChild, setSelectedChild] = useState<ChildResponseDto | null>(null);
   const [showChildPrompt, setShowChildPrompt] = useState<boolean>(false);
 
   // 获取儿童列表
   const fetchChildren = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await childrenApi.getChildren();
-      setChildren(response.data);
+      const response = await getAllChildren();
+      setChildren(response);
 
       // 如果有选定的儿童ID，找到对应的儿童信息
       if (selectedChildId) {
-        const child = response.data.find((c) => c.id === selectedChildId);
+        const child = response.find((c: ChildResponseDto) => c.id === selectedChildId);
         if (child) {
           setSelectedChild(child);
         }
       }
 
       // 如果没有儿童信息，显示提示
-      if (response.data.length === 0) {
+      if (response.length === 0) {
         setShowChildPrompt(true);
       }
     } catch (error) {
@@ -48,7 +48,7 @@ export const useChildrenData = (initialChildId?: string) => {
   // 当选择的儿童ID变化时，更新选择的儿童信息
   useEffect(() => {
     if (selectedChildId && children.length > 0) {
-      const child = children.find((c) => c.id === selectedChildId);
+      const child = children.find((c: ChildResponseDto) => c.id === selectedChildId);
       setSelectedChild(child || null);
     } else {
       setSelectedChild(null);
@@ -56,7 +56,7 @@ export const useChildrenData = (initialChildId?: string) => {
   }, [selectedChildId, children]);
 
   // 选择儿童
-  const handleSelectChild = (childId: string) => {
+  const handleSelectChild = (childId: number) => {
     setSelectedChildId(childId);
   };
 

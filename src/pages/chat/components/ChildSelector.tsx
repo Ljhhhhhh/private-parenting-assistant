@@ -30,7 +30,7 @@ const ChildSelector: React.FC = () => {
         onClick={() => setShowDropdown(!showDropdown)}
       >
         {selectedChild ? (
-          <span className="mr-1">{selectedChild.name}</span>
+          <span className="mr-1">{selectedChild.nickname}</span>
         ) : (
           <span className="mr-1 text-gray-400">选择宝宝</span>
         )}
@@ -50,7 +50,7 @@ const ChildSelector: React.FC = () => {
                       : ''
                   }`}
                   onClick={() => {
-                    handleSelectChild(child.id);
+                    handleSelectChild(Number(child.id));
                     setShowDropdown(false);
                   }}
                 >
@@ -58,9 +58,9 @@ const ChildSelector: React.FC = () => {
                     {child.gender === 'male' ? '👦' : '👧'}
                   </div>
                   <div>
-                    <div className="font-medium">{child.name}</div>
+                    <div className="font-medium">{child.nickname}</div>
                     <div className="text-xs text-gray-500">
-                      {calculateAge(child.birthday)}
+                      {calculateAge(child.dateOfBirth)}
                     </div>
                   </div>
                 </div>

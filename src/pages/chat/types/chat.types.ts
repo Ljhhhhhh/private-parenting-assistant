@@ -1,4 +1,4 @@
-import { ChildPublic, ChatHistoryPublic } from '../../../types/api';
+import { ChildResponseDto } from '../../../types/models';
 
 // 定义快速回复项类型
 export interface QuickReplyItem {
@@ -12,7 +12,11 @@ export interface ChatMessage {
   type: string;
   content: {
     text: string;
-    data?: any;
+    data?: {
+      sources?: string[];
+      model?: string;
+      chatId?: number;
+    };
   };
   position?: 'left' | 'right';
   createdAt?: number;
@@ -21,7 +25,7 @@ export interface ChatMessage {
     avatar?: string;
     name?: string;
   };
-  sessionId?: string;
+  chatId?: number;
 }
 
 // 定义聊天上下文类型
@@ -29,25 +33,25 @@ export interface ChatContextType {
   // 状态
   loading: boolean;
   sendingMessage: boolean;
-  sessionId: string | undefined;
-  selectedChildId: string | undefined;
-  children: ChildPublic[];
-  selectedChild: ChildPublic | null;
+  chatId: number | undefined;
+  selectedChildId: number | undefined;
+  children: ChildResponseDto[];
+  selectedChild: ChildResponseDto | null;
   showChildPrompt: boolean;
-  sessions: string[];
+  sessions: number[];
   messages: ChatMessage[];
   
   // 操作
-  setSessionId: (sessionId: string | undefined) => void;
-  setSelectedChildId: (childId: string | undefined) => void;
+  setChatId: (chatId: number | undefined) => void;
+  setSelectedChildId: (childId: number | undefined) => void;
   setShowChildPrompt: (show: boolean) => void;
   handleSend: (type: string, content: string) => Promise<void>;
   handleQuickReplyClick: (reply: QuickReplyItem) => void;
   handleNewSession: () => void;
-  handleSwitchSession: (session: string) => void;
+  handleSwitchSession: (chatId: number) => void;
   handleDeleteSession: () => void;
   handleCreateChild: () => void;
-  handleSelectChild: (childId: string) => void;
+  handleSelectChild: (childId: number) => void;
   handleGoToChildrenList: () => void;
   appendMsg: (msg: ChatMessage) => string;
   updateMsg: (msgId: string, msg: ChatMessage) => void;

@@ -1,34 +1,33 @@
 import { useState, useCallback } from 'react';
 import { Toast } from 'antd-mobile';
 import { useMessages } from '@chatui/core';
-import { chatApi } from '../../../api';
-import { formatChatHistories } from '../utils/messageFormatters';
+import { chat, getChatHistory } from '../../../api/chat';
+import {
+  formatChatHistories,
+  parseStreamResponse,
+} from '../utils/messageFormatters';
+import { ChatRequestDto } from '../../../types/models';
 
 /**
  * 管理聊天消息的自定义Hook
  * @returns 消息数据和相关操作
  */
-export const useChatMessages = (
-  sessionId?: string,
-  selectedChildId?: string,
-) => {
+export const useChatMessages = (chatId?: number, selectedChildId?: number) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [sendingMessage, setSendingMessage] = useState<boolean>(false);
   const { messages, appendMsg, resetList, updateMsg } = useMessages([]);
 
   // 获取聊天历史
   const fetchChatHistory = useCallback(async () => {
-    if (!sessionId) return;
+    if (!chatId) return;
 
     try {
       setLoading(true);
-      const response = await chatApi.getChatHistories(
-        sessionId,
-        selectedChildId,
-      );
+      // 使用新的API获取聊天历史
+      const response = await getChatHistory(selectedChildId || 0, 10, 0);
 
       // 转换历史消息格式
-      const historyMessages = formatChatHistories(response.data);
+      const historyMessages = formatChatHistories(response);
 
       // 重置消息列表并添加历史消息
       resetList(historyMessages);
@@ -41,13 +40,13 @@ export const useChatMessages = (
     } finally {
       setLoading(false);
     }
-  }, [sessionId, selectedChildId, resetList]);
+  }, [chatId, selectedChildId, resetList]);
 
   // 处理发送消息
   const handleSend = async (
     type: string,
     content: string,
-    onNewSession?: (sessionId: string) => void,
+    onNewChat?: (chatId: number) => void,
   ) => {
     // 验证消息类型和内容，防止重复发送
     if (type !== 'text' || !content.trim() || sendingMessage) return;
@@ -70,55 +69,65 @@ export const useChatMessages = (
       setSendingMessage(true);
 
       // 创建请求数据
-      const requestData = {
-        question: content,
-        session_id: sessionId,
-        child_id: selectedChildId,
+      const requestData: ChatRequestDto = {
+        message: content,
+        childId: selectedChildId,
       };
 
       // 创建一个对象来存储完整的响应数据
-      const responseData = {
-        token: '',
-        sources: [] as string[],
-        model: '',
-        session_id: sessionId,
-      };
+      let responseText = '';
+      let responseChatId: number | undefined;
 
       // 使用流式处理发送消息
-      await chatApi.sendChatMessage(requestData, (chunk: string) => {
+      const onStreamCallback = (chunk: string) => {
         try {
-          // 解析 JSON 数据
-          const parsedData = JSON.parse(chunk);
+          // 解析流式响应
+          const parsedData = parseStreamResponse(chunk);
 
-          if (parsedData.token) {
+          if (parsedData.type === 'content' && parsedData.content) {
             // 处理消息内容
-            responseData.token += parsedData.token;
+            responseText += parsedData.content;
 
             // 实时更新AI消息
             updateMsg(aiMsgId, {
               type: 'text',
               content: {
-                text: responseData.token || '思考中...',
-                data: {
-                  sources: responseData.sources,
-                  model: responseData.model,
-                },
+                text: responseText || '思考中...',
               },
               position: 'left',
             });
-          } else if (parsedData.sources) {
-            // 处理引用源
-            responseData.sources = parsedData;
+          } else if (parsedData.type === 'done' && parsedData.chatId) {
+            // 处理完成状态，更新聊天ID
+            responseChatId = parsedData.chatId;
+
+            // 更新消息中的chatId
+            updateMsg(aiMsgId, {
+              type: 'text',
+              content: {
+                text: responseText,
+                data: {
+                  chatId: responseChatId,
+                },
+              },
+              position: 'left',
+              chatId: responseChatId,
+            });
+
+            // 如果是新聊天，更新聊天ID并通知父组件
+            if (!chatId && responseChatId && onNewChat) {
+              onNewChat(responseChatId);
+            }
+          } else if (parsedData.type === 'error') {
+            // 处理错误
+            throw new Error(parsedData.error || '未知错误');
           }
         } catch (error) {
-          console.error('Error parsing JSON data:', error);
+          console.error('Error parsing stream response:', error);
         }
-      });
+      };
 
-      // 如果是新会话，更新会话ID并刷新会话列表
-      if (!sessionId && responseData.session_id && onNewSession) {
-        onNewSession(responseData.session_id);
-      }
+      // 发送聊天消息
+      await chat(requestData, onStreamCallback);
     } catch (error) {
       console.error('Failed to send message:', error);
 

@@ -8,7 +8,7 @@ import { useOutsideClick } from '../hooks/useOutsideClick';
  */
 const SessionSelector: React.FC = () => {
   const { 
-    sessionId, 
+    chatId, 
     sessions, 
     handleNewSession, 
     handleSwitchSession 
@@ -34,7 +34,7 @@ const SessionSelector: React.FC = () => {
         <div className="absolute left-0 z-10 p-2 mt-2 bg-white rounded-lg shadow-lg w-44">
           <div
             className={`p-2 rounded-md cursor-pointer ${
-              !sessionId ? 'bg-primary-50 text-primary-600' : ''
+              !chatId ? 'bg-primary-50 text-primary-600' : ''
             }`}
             onClick={() => {
               handleNewSession();
@@ -47,14 +47,14 @@ const SessionSelector: React.FC = () => {
             <div
               key={session}
               className={`p-2 rounded-md cursor-pointer ${
-                sessionId === session ? 'bg-primary-50 text-primary-600' : ''
+                chatId === session ? 'bg-primary-50 text-primary-600' : ''
               }`}
               onClick={() => {
                 handleSwitchSession(session);
                 setShowDropdown(false);
               }}
             >
-              会话 {session.substring(0, 8)}...
+              会话 {session.toString().substring(0, 8)}...
             </div>
           ))}
         </div>

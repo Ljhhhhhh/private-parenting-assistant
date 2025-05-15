@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { Space } from 'antd-mobile';
-import { 
-  MoreOutline, 
-  SetOutline, 
-  DeleteOutline, 
-  UserAddOutline 
+import {
+  MoreOutline,
+  SetOutline,
+  DeleteOutline,
+  UserAddOutline,
 } from 'antd-mobile-icons';
 import { useChatContext } from '../contexts/ChatContext';
 import { useOutsideClick } from '../hooks/useOutsideClick';
@@ -13,11 +13,11 @@ import { useOutsideClick } from '../hooks/useOutsideClick';
  * 更多选项菜单组件
  */
 const MoreOptionsMenu: React.FC = () => {
-  const { sessionId, handleDeleteSession, handleCreateChild } = useChatContext();
-  
+  const { chatId, handleDeleteSession, handleCreateChild } = useChatContext();
+
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  
+
   // 使用自定义hook处理点击外部关闭菜单
   useOutsideClick(menuRef, showMenu, () => setShowMenu(false));
 
@@ -45,10 +45,10 @@ const MoreOptionsMenu: React.FC = () => {
             </div>
             <div
               className={`p-2 flex items-center cursor-pointer hover:bg-gray-100 rounded-md ${
-                !sessionId ? 'text-gray-300' : ''
+                !chatId ? 'text-gray-300' : ''
               }`}
               onClick={() => {
-                if (sessionId) {
+                if (chatId) {
                   handleDeleteSession();
                   setShowMenu(false);
                 }

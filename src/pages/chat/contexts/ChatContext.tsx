@@ -1,11 +1,10 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useChildrenData } from '../hooks/useChildrenData';
 import { useChatSessions } from '../hooks/useChatSessions';
 import { useChatMessages } from '../hooks/useChatMessages';
 import { ChatContextType, QuickReplyItem } from '../types/chat.types';
-import { useEffect } from 'react';
 
 // 创建上下文
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -38,13 +37,13 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
   const {
     sessions,
-    sessionId,
-    setSessionId,
+    chatId,
+    setChatId,
     fetchSessions,
     handleNewSession,
     handleSwitchSession,
     handleDeleteSession,
-  } = useChatSessions();
+  } = useChatSessions(selectedChildId);
 
   const {
     messages,
@@ -55,7 +54,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     resetList,
     fetchChatHistory,
     handleSend: sendMessage,
-  } = useChatMessages(sessionId, selectedChildId);
+  } = useChatMessages(chatId, selectedChildId);
 
   // 初始化
   useEffect(() => {
@@ -65,14 +64,14 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     }
   }, [isAuthenticated, fetchChildren, fetchSessions]);
 
-  // 当会话ID变化时，获取聊天历史
+  // 当聊天ID变化时，获取聊天历史
   useEffect(() => {
-    if (sessionId) {
+    if (chatId) {
       fetchChatHistory();
     } else {
       resetList([]);
     }
-  }, [sessionId, fetchChatHistory, resetList]);
+  }, [chatId, fetchChatHistory, resetList]);
 
   // 处理发送消息
   const handleSend = async (type: string, content: string) => {
@@ -82,8 +81,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     }
 
     // 发送消息
-    await sendMessage(type, content, (newSessionId) => {
-      setSessionId(newSessionId);
+    await sendMessage(type, content, (newChatId) => {
+      setChatId(newChatId);
       fetchSessions();
     });
   };
@@ -107,7 +106,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const contextValue: ChatContextType = {
     loading,
     sendingMessage,
-    sessionId,
+    chatId,
     selectedChildId,
     children: childrenData,
     selectedChild,
@@ -115,7 +114,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     sessions,
     messages,
 
-    setSessionId,
+    setChatId,
     setSelectedChildId,
     setShowChildPrompt,
     handleSend,
