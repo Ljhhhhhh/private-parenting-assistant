@@ -1,12 +1,7 @@
 import React from 'react';
 import { TabBar as AntTabBar, SafeArea } from 'antd-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  AppOutline,
-  MessageOutline,
-  UnorderedListOutline,
-  UserOutline,
-} from 'antd-mobile-icons';
+import { Icon } from '@iconify/react';
 
 const TabBar: React.FC = () => {
   const navigate = useNavigate();
@@ -17,22 +12,22 @@ const TabBar: React.FC = () => {
     {
       key: '/',
       title: '首页',
-      icon: <AppOutline />,
+      icon: <Icon icon="mdi:apps-box" />,
     },
     {
       key: '/chat',
       title: '智能问答',
-      icon: <MessageOutline />,
+      icon: <Icon icon="mdi:message-outline" />,
     },
     {
       key: '/records',
       title: '记录',
-      icon: <UnorderedListOutline />,
+      icon: <Icon icon="mdi:format-list-bulleted" />,
     },
     {
       key: '/profile',
       title: '我的',
-      icon: <UserOutline />,
+      icon: <Icon icon="mdi:account-outline" />,
     },
   ];
 

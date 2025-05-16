@@ -84,7 +84,7 @@ const App: React.FC = () => {
                 }
               />
               <Route
-                path="/record"
+                path="/records"
                 element={
                   <ProtectedRoute>
                     <div className="pb-12">

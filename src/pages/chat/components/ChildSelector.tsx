@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Button } from 'antd-mobile';
-import { DownOutline } from 'antd-mobile-icons';
+import { Icon } from '@iconify/react';
 import { useChatContext } from '../contexts/ChatContext';
 import { useOutsideClick } from '../hooks/useOutsideClick';
 import { calculateAge } from '../utils/ageCalculator';
@@ -34,7 +34,7 @@ const ChildSelector: React.FC = () => {
         ) : (
           <span className="mr-1 text-gray-400">选择宝宝</span>
         )}
-        <DownOutline fontSize={12} />
+        <Icon icon="mdi:chevron-down" width={12} />
       </div>
 
       {showDropdown && (

@@ -1,0 +1,68 @@
+.record-item {
+  margin-bottom: 12px;
+}
+
+.record-item-content {
+  display: flex;
+  align-items: flex-start;
+  padding: 4px;
+}
+
+.record-icon-container {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  color: white;
+}
+
+.record-color-primary {
+  background-color: var(--adm-color-primary);
+}
+
+.record-color-warning {
+  background-color: var(--adm-color-warning);
+}
+
+.record-color-success {
+  background-color: var(--adm-color-success);
+}
+
+.record-color-default {
+  background-color: var(--adm-color-text);
+}
+
+.record-content {
+  flex: 1;
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.record-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.record-time {
+  font-size: 14px;
+  color: var(--adm-color-weak);
+}
+
+.record-summary {
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: var(--adm-color-weak);
+}
+
+.record-date {
+  font-size: 12px;
+  color: var(--adm-color-light);
+}

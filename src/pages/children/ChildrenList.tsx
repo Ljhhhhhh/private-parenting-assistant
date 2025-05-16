@@ -12,7 +12,7 @@ import {
   SwipeAction,
   Image,
 } from 'antd-mobile';
-import { AddOutline } from 'antd-mobile-icons';
+import { Icon } from '@iconify/react';
 import { getAllChildren, deleteChild } from '../../api/children';
 import { ChildResponseDto } from '../../types/models';
 import dayjs from 'dayjs';
@@ -191,7 +191,7 @@ const ChildrenListPage: React.FC = () => {
 
             <div className="p-4 mt-4">
               <Button block color="primary" onClick={handleCreateChild}>
-                <AddOutline />
+                <Icon icon="mdi:plus" />
                 添加宝宝档案
               </Button>
               <p className="mt-2 text-xs text-center text-gray-500">

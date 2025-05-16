@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { DownOutline } from 'antd-mobile-icons';
+import { Icon } from '@iconify/react';
 import { useChatContext } from '../contexts/ChatContext';
 import { useOutsideClick } from '../hooks/useOutsideClick';
 
@@ -27,7 +27,7 @@ const SessionSelector: React.FC = () => {
         onClick={() => setShowDropdown(!showDropdown)}
       >
         <span className="mr-1">智能问答</span>
-        <DownOutline fontSize={12} />
+        <Icon icon="mdi:chevron-down" width={12} />
       </div>
 
       {showDropdown && (

@@ -1,6 +1,13 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, ViewStyle, useColorScheme } from 'react-native';
-import Colors from '../constants/Colors';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+  useColorScheme,
+} from 'react-native';
+import Colors from '../../../project 2/constants/Colors';
 import { Circle } from 'lucide-react-native';
 
 interface RecordButtonProps {
@@ -11,12 +18,12 @@ interface RecordButtonProps {
   style?: ViewStyle;
 }
 
-export default function RecordButton({ 
-  title, 
-  icon, 
-  onPress, 
+export default function RecordButton({
+  title,
+  icon,
+  onPress,
   color,
-  style
+  style,
 }: RecordButtonProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];

@@ -1,11 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Space } from 'antd-mobile';
-import {
-  MoreOutline,
-  SetOutline,
-  DeleteOutline,
-  UserAddOutline,
-} from 'antd-mobile-icons';
+import { Icon } from '@iconify/react';
 import { useChatContext } from '../contexts/ChatContext';
 import { useOutsideClick } from '../hooks/useOutsideClick';
 
@@ -27,7 +22,7 @@ const MoreOptionsMenu: React.FC = () => {
         className="p-1 ml-2 cursor-pointer"
         onClick={() => setShowMenu(!showMenu)}
       >
-        <MoreOutline fontSize={24} />
+        <Icon icon="mdi:dots-horizontal" width={24} />
       </div>
 
       {showMenu && (
@@ -40,7 +35,7 @@ const MoreOptionsMenu: React.FC = () => {
                 setShowMenu(false);
               }}
             >
-              <SetOutline className="mr-2" />
+              <Icon icon="mdi:cog-outline" className="mr-2" />
               <span>设置</span>
             </div>
             <div
@@ -54,7 +49,7 @@ const MoreOptionsMenu: React.FC = () => {
                 }
               }}
             >
-              <DeleteOutline className="mr-2" />
+              <Icon icon="mdi:delete-outline" className="mr-2" />
               <span>删除会话</span>
             </div>
             <div
@@ -64,7 +59,7 @@ const MoreOptionsMenu: React.FC = () => {
                 setShowMenu(false);
               }}
             >
-              <UserAddOutline className="mr-2" />
+              <Icon icon="mdi:account-plus-outline" className="mr-2" />
               <span>添加宝宝档案</span>
             </div>
           </Space>

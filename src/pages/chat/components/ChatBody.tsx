@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Result, Skeleton } from 'antd-mobile';
-import { UserOutline } from 'antd-mobile-icons';
+import { Icon } from '@iconify/react';
 import Chat from '@chatui/core';
 import { useChatContext } from '../contexts/ChatContext';
 import MessageItem from './MessageItem';
@@ -67,7 +67,7 @@ const ChatBody: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <Result
-          icon={<UserOutline style={{ fontSize: 48, color: '#ccc' }} />}
+          icon={<Icon icon="mdi:account-outline" style={{ fontSize: 48, color: '#ccc' }} />}
           title="开始提问，获取育儿建议"
         />
         <div className="max-w-xs mt-4 text-sm text-center text-gray-500">

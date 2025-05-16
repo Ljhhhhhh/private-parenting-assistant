@@ -1,62 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { useColorScheme } from 'react-native';
-import Colors from '@/constants/Colors';
-import TextInput from '@/components/TextInput';
-import Button from '@/components/Button';
+import { Form, Input, Radio, Button, Space, Divider } from 'antd-mobile';
 import { CreateRecordDto, RecordResponseDto, RecordType } from '@/types/models';
+
+import './RecordForm.css'; // 假设我们会创建一个对应的 CSS 文件
 
 // 睡眠记录表单
 const SleepRecordForm: React.FC<{
   details: Record<string, any>;
   setDetails: (details: Record<string, any>) => void;
-  colors: any;
-}> = ({ details, setDetails, colors }) => {
+}> = ({ details, setDetails }) => {
   return (
-    <View style={styles.detailsForm}>
-      <Text style={[styles.detailsTitle, { color: colors.text }]}>
-        睡眠详情
-      </Text>
-      <TextInput
-        label="时长（小时）"
-        placeholder="输入睡眠时长"
-        value={details.duration as string}
-        onChangeText={(text) =>
-          setDetails({ ...details, duration: text })
-        }
-        keyboardType="numeric"
-      />
-      <View style={styles.select}>
-        <Text style={[styles.label, { color: colors.text }]}>
-          睡眠质量
-        </Text>
-        <View style={styles.buttonGroup}>
-          {['good', 'fair', 'poor'].map((quality) => (
-            <TouchableOpacity
-              key={quality}
-              style={[
-                styles.selectButton,
-                details.quality === quality && {
-                  backgroundColor: colors.primary,
-                },
-              ]}
-              onPress={() =>
-                setDetails({ ...details, quality })
-              }
-            >
-              <Text
-                style={[
-                  styles.selectButtonText,
-                  details.quality === quality && { color: '#fff' },
-                ]}
-              >
-                {quality === 'good' ? '良好' : quality === 'fair' ? '一般' : '较差'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-    </View>
+    <div className="details-form">
+      <h3 className="details-title">睡眠详情</h3>
+
+      <Form.Item label="时长（小时）">
+        <Input
+          placeholder="输入睡眠时长"
+          value={details.duration as string}
+          onChange={(value: string) =>
+            setDetails({ ...details, duration: value })
+          }
+          type="number"
+        />
+      </Form.Item>
+
+      <Form.Item label="睡眠质量">
+        <Radio.Group
+          value={details.quality || 'fair'}
+          onChange={(value: string) =>
+            setDetails({ ...details, quality: value })
+          }
+        >
+          <Space direction="horizontal" wrap>
+            <Radio value="good">良好</Radio>
+            <Radio value="fair">一般</Radio>
+            <Radio value="poor">较差</Radio>
+          </Space>
+        </Radio.Group>
+      </Form.Item>
+    </div>
   );
 };
 
@@ -64,80 +46,51 @@ const SleepRecordForm: React.FC<{
 const FeedingRecordForm: React.FC<{
   details: Record<string, any>;
   setDetails: (details: Record<string, any>) => void;
-  colors: any;
-}> = ({ details, setDetails, colors }) => {
+}> = ({ details, setDetails }) => {
   return (
-    <View style={styles.detailsForm}>
-      <Text style={[styles.detailsTitle, { color: colors.text }]}>
-        喂食详情
-      </Text>
-      <View style={styles.row}>
-        <TextInput
-          label="数量"
-          placeholder="输入数量"
-          value={details.amount as string}
-          onChangeText={(text) =>
-            setDetails({ ...details, amount: text })
-          }
-          keyboardType="numeric"
-          containerStyle={styles.input}
-        />
-        <View style={styles.select}>
-          <Text style={[styles.label, { color: colors.text }]}>单位</Text>
-          <View style={styles.buttonGroup}>
-            {['oz', 'ml'].map((unit) => (
-              <TouchableOpacity
-                key={unit}
-                style={[
-                  styles.selectButton,
-                  details.unit === unit && {
-                    backgroundColor: colors.primary,
-                  },
-                ]}
-                onPress={() =>
-                  setDetails({ ...details, unit })
-                }
-              >
-                <Text
-                  style={[
-                    styles.selectButtonText,
-                    details.unit === unit && { color: '#fff' },
-                  ]}
-                >
-                  {unit.toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      </View>
-      <View style={styles.select}>
-        <Text style={[styles.label, { color: colors.text }]}>类型</Text>
-        <View style={styles.buttonGroup}>
-          {['formula', 'breast milk', 'solid food'].map((type) => (
-            <TouchableOpacity
-              key={type}
-              style={[
-                styles.selectButton,
-                details.type === type && {
-                  backgroundColor: colors.primary,
-                },
-              ]}
-              onPress={() => setDetails({ ...details, type })}
-            >
-              <Text
-                style={[
-                  styles.selectButtonText,
-                  details.type === type && { color: '#fff' },
-                ]}
-              >
-                {type === 'formula' ? '配方奶' : type === 'breast milk' ? '母乳' : '固体食物'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-    </View>
+    <div className="details-form">
+      <h3 className="details-title">喂食详情</h3>
+
+      <div className="form-row">
+        <Form.Item label="数量" className="form-item-flex">
+          <Input
+            placeholder="输入数量"
+            value={details.amount as string}
+            onChange={(value: string) =>
+              setDetails({ ...details, amount: value })
+            }
+            type="number"
+          />
+        </Form.Item>
+
+        <Form.Item label="单位" className="form-item-flex">
+          <Radio.Group
+            value={details.unit || 'ml'}
+            onChange={(value: string) =>
+              setDetails({ ...details, unit: value })
+            }
+          >
+            <Space direction="horizontal">
+              <Radio value="oz">OZ</Radio>
+              <Radio value="ml">ML</Radio>
+            </Space>
+          </Radio.Group>
+        </Form.Item>
+      </div>
+
+      <Form.Item label="类型">
+        <Radio.Group
+          value={details.type || 'formula'}
+          onChange={(value: string) => setDetails({ ...details, type: value })}
+        >
+          <Space direction="horizontal" wrap>
+            <Radio value="formula">配方奶</Radio>
+            <Radio value="breast milk">母乳</Radio>
+            <Radio value="solid food">固体食物</Radio>
+          </Space>
+        </Radio.Group>
+      </Form.Item>
+    </div>
   );
 };
 
@@ -145,72 +98,39 @@ const FeedingRecordForm: React.FC<{
 const DiaperRecordForm: React.FC<{
   details: Record<string, any>;
   setDetails: (details: Record<string, any>) => void;
-  colors: any;
-}> = ({ details, setDetails, colors }) => {
+}> = ({ details, setDetails }) => {
   return (
-    <View style={styles.detailsForm}>
-      <Text style={[styles.detailsTitle, { color: colors.text }]}>
-        尿布详情
-      </Text>
-      <View style={styles.select}>
-        <Text style={[styles.label, { color: colors.text }]}>类型</Text>
-        <View style={styles.buttonGroup}>
-          {['wet', 'dirty', 'both'].map((type) => (
-            <TouchableOpacity
-              key={type}
-              style={[
-                styles.selectButton,
-                details.type === type && {
-                  backgroundColor: colors.primary,
-                },
-              ]}
-              onPress={() => setDetails({ ...details, type })}
-            >
-              <Text
-                style={[
-                  styles.selectButtonText,
-                  details.type === type && { color: '#fff' },
-                ]}
-              >
-                {type === 'wet' ? '尿湿' : type === 'dirty' ? '便便' : '两者都有'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      <View style={styles.select}>
-        <Text style={[styles.label, { color: colors.text }]}>
-          状态
-        </Text>
-        <View style={styles.buttonGroup}>
-          {['normal', 'loose', 'hard'].map((consistency) => (
-            <TouchableOpacity
-              key={consistency}
-              style={[
-                styles.selectButton,
-                details.consistency === consistency && {
-                  backgroundColor: colors.primary,
-                },
-              ]}
-              onPress={() =>
-                setDetails({ ...details, consistency })
-              }
-            >
-              <Text
-                style={[
-                  styles.selectButtonText,
-                  details.consistency === consistency && {
-                    color: '#fff',
-                  },
-                ]}
-              >
-                {consistency === 'normal' ? '正常' : consistency === 'loose' ? '稀软' : '硬结'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-    </View>
+    <div className="details-form">
+      <h3 className="details-title">尿布详情</h3>
+
+      <Form.Item label="类型">
+        <Radio.Group
+          value={details.type || 'wet'}
+          onChange={(value: string) => setDetails({ ...details, type: value })}
+        >
+          <Space direction="horizontal" wrap>
+            <Radio value="wet">尿湿</Radio>
+            <Radio value="dirty">便便</Radio>
+            <Radio value="both">两者都有</Radio>
+          </Space>
+        </Radio.Group>
+      </Form.Item>
+
+      <Form.Item label="状态">
+        <Radio.Group
+          value={details.consistency || 'normal'}
+          onChange={(value: string) =>
+            setDetails({ ...details, consistency: value })
+          }
+        >
+          <Space direction="horizontal" wrap>
+            <Radio value="normal">正常</Radio>
+            <Radio value="loose">稀软</Radio>
+            <Radio value="hard">硬结</Radio>
+          </Space>
+        </Radio.Group>
+      </Form.Item>
+    </div>
   );
 };
 
@@ -218,24 +138,22 @@ const DiaperRecordForm: React.FC<{
 const NoteRecordForm: React.FC<{
   details: Record<string, any>;
   setDetails: (details: Record<string, any>) => void;
-  colors: any;
-}> = ({ details, setDetails, colors }) => {
+}> = ({ details, setDetails }) => {
   return (
-    <View style={styles.detailsForm}>
-      <Text style={[styles.detailsTitle, { color: colors.text }]}>
-        笔记详情
-      </Text>
-      <TextInput
-        label="内容"
-        placeholder="输入笔记内容"
-        value={details.content as string}
-        onChangeText={(text) =>
-          setDetails({ ...details, content: text })
-        }
-        multiline
-        containerStyle={styles.noteInput}
-      />
-    </View>
+    <div className="details-form">
+      <h3 className="details-title">笔记详情</h3>
+
+      <Form.Item label="内容">
+        <Input.TextArea
+          placeholder="输入笔记内容"
+          value={details.content as string}
+          onChange={(value: string) =>
+            setDetails({ ...details, content: value })
+          }
+          rows={4}
+        />
+      </Form.Item>
+    </div>
   );
 };
 
@@ -256,9 +174,6 @@ export const RecordForm: React.FC<RecordFormProps> = ({
 }) => {
   const [details, setDetails] = useState<Record<string, any>>({});
   const [noteText, setNoteText] = useState('');
-  
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
 
   useEffect(() => {
     if (initialRecord) {
@@ -275,13 +190,13 @@ export const RecordForm: React.FC<RecordFormProps> = ({
 
     switch (recordType) {
       case 'Feeding':
-        return <FeedingRecordForm details={details} setDetails={setDetails} colors={colors} />;
+        return <FeedingRecordForm details={details} setDetails={setDetails} />;
       case 'Sleep':
-        return <SleepRecordForm details={details} setDetails={setDetails} colors={colors} />;
+        return <SleepRecordForm details={details} setDetails={setDetails} />;
       case 'Diaper':
-        return <DiaperRecordForm details={details} setDetails={setDetails} colors={colors} />;
+        return <DiaperRecordForm details={details} setDetails={setDetails} />;
       case 'Note':
-        return <NoteRecordForm details={details} setDetails={setDetails} colors={colors} />;
+        return <NoteRecordForm details={details} setDetails={setDetails} />;
       default:
         return null;
     }
@@ -292,7 +207,7 @@ export const RecordForm: React.FC<RecordFormProps> = ({
 
     // 如果是笔记类型，确保将noteText保存到details中
     if (recordType === 'Note' && !details.content) {
-      setDetails({...details, content: noteText});
+      setDetails({ ...details, content: noteText });
     }
 
     // 构建记录数据
@@ -302,7 +217,7 @@ export const RecordForm: React.FC<RecordFormProps> = ({
       recordTimestamp: new Date().toISOString(),
       details: {
         ...details,
-        note: noteText
+        note: noteText,
       },
     };
 
@@ -310,94 +225,77 @@ export const RecordForm: React.FC<RecordFormProps> = ({
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {getDetailsForm()}
+    <div className="record-form-container">
+      <Form layout="horizontal">
+        {getDetailsForm()}
 
-      <TextInput
-        placeholder={
-          recordType === 'Note'
-            ? "记录孩子的情况..."
-            : '额外备注（可选）'
-        }
-        value={noteText}
-        onChangeText={setNoteText}
-        multiline
-        containerStyle={styles.noteInput}
-      />
+        {recordType !== 'Note' && (
+          <Form.Item label="备注" className="note-input">
+            <Input.TextArea
+              placeholder="额外备注（可选）"
+              value={noteText}
+              onChange={(value: string) => setNoteText(value)}
+              rows={3}
+            />
+          </Form.Item>
+        )}
 
-      <View style={styles.buttons}>
-        <Button
-          title="取消"
-          onPress={onCancel}
-          variant="outline"
-          style={styles.button}
-        />
-        <Button
-          title="保存"
-          onPress={handleSubmit}
-          style={styles.button}
-        />
-      </View>
-    </ScrollView>
+        <Divider />
+
+        <div className="form-buttons">
+          <Space justify="between" style={{ width: '100%' }}>
+            <Button color="default" fill="outline" onClick={onCancel}>
+              取消
+            </Button>
+            <Button color="primary" onClick={handleSubmit}>
+              保存
+            </Button>
+          </Space>
+        </div>
+      </Form>
+    </div>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  detailsForm: {
-    marginBottom: 16,
-  },
-  detailsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 16,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  input: {
-    flex: 1,
-  },
-  select: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  selectButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#f1f5f9',
-  },
-  selectButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#64748b',
-  },
-  noteInput: {
-    marginBottom: 16,
-  },
-  buttons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  button: {
-    flex: 1,
-    marginHorizontal: 4,
-  },
-});
+// 以下是建议创建的 RecordForm.css 文件内容
+/*
+.record-form-container {
+  padding: 16px;
+  background-color: var(--adm-color-background);
+}
+
+.details-form {
+  margin-bottom: 16px;
+}
+
+.details-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--adm-color-text);
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-item-flex {
+  flex: 1;
+  min-width: 120px;
+}
+
+.note-input {
+  margin-bottom: 16px;
+}
+
+.form-buttons {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+}
+*/
 
 export default RecordForm;
