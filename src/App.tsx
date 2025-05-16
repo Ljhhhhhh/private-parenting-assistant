@@ -1,108 +1,23 @@
-import React from 'react';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from 'react-router-dom';
-import { ConfigProvider } from 'antd-mobile';
-import { AuthProvider } from './contexts/AuthContext';
-import { MessageProvider } from './contexts/MessageContext';
-import {
-  LoginPage,
-  RegisterPage,
-  ForgotPasswordPage,
-  ResetPasswordPage,
-} from './pages/auth/index.ts';
-import {
-  CreateChildPage,
-  ChildrenListPage,
-  ChildDetailPage,
-  EditChildPage,
-} from './pages/children/index.ts';
-import { RecordPage } from './pages/record/index.ts';
-import { ChatPage } from './pages/chat/index.ts';
-import ProtectedRoute from './components/auth/AntProtectedRoute';
-import TabBar from './components/layout/TabBar';
+import { Suspense } from 'react';
+import { Routes } from 'react-router-dom';
+import { SafeArea, DotLoading } from 'antd-mobile';
 
-const App: React.FC = () => {
+// 加载状态组件
+const Loading = () => (
+  <div className="flex h-screen w-full items-center justify-center">
+    <DotLoading color="primary" />
+  </div>
+);
+
+const App = () => {
   return (
-    <ConfigProvider>
-      <MessageProvider>
-        <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-
-              {/* 儿童档案相关路由 */}
-              <Route
-                path="/children"
-                element={
-                  <ProtectedRoute>
-                    <ChildrenListPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/children/create"
-                element={
-                  <ProtectedRoute>
-                    <CreateChildPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/children/:id"
-                element={
-                  <ProtectedRoute>
-                    <ChildDetailPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/children/:id/edit"
-                element={
-                  <ProtectedRoute>
-                    <EditChildPage />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* 聊天页面 */}
-              <Route
-                path="/chat"
-                element={
-                  <ProtectedRoute>
-                    <div className="pb-12">
-                      <ChatPage />
-                      <TabBar />
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/records"
-                element={
-                  <ProtectedRoute>
-                    <div className="pb-12">
-                      <RecordPage />
-                      <TabBar />
-                    </div>
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* 默认路由 */}
-              <Route path="/" element={<Navigate to="/chat" replace />} />
-              <Route path="*" element={<Navigate to="/chat" replace />} />
-            </Routes>
-          </Router>
-        </AuthProvider>
-      </MessageProvider>
-    </ConfigProvider>
+    <div className="App">
+      <SafeArea position="top" />
+      <Suspense fallback={<Loading />}>
+        <Routes></Routes>
+      </Suspense>
+      <SafeArea position="bottom" />
+    </div>
   );
 };
 

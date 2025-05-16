@@ -1,0 +1,3 @@
+@echo off
+echo 正在启动育儿助手应用...
+pnpm dev
