@@ -56,10 +56,10 @@ const LoginPage: React.FC = () => {
       }
 
       await login(values.email, values.password);
-      Toast.show({
-        icon: 'success',
-        content: '登录成功',
-      });
+      // Toast.show({
+      //   icon: 'success',
+      //   content: '登录成功',
+      // });
       navigate('/');
     } catch (error) {
       console.error('登录失败:', error);
@@ -88,7 +88,7 @@ const LoginPage: React.FC = () => {
       </NavBar> */}
       <SafeArea position="top" />
 
-      <div className="flex flex-col justify-center flex-1 p-6">
+      <div className="flex flex-col flex-1 justify-center p-6">
         <div className="mb-8 animate-fade-in">
           <AutoCenter>
             <Image
@@ -155,7 +155,7 @@ const LoginPage: React.FC = () => {
             />
           </Form.Item>
 
-          <div className="flex items-center justify-between mt-2">
+          <div className="flex justify-between items-center mt-2">
             <Checkbox
               checked={rememberPassword}
               onChange={handleRememberChange}

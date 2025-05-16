@@ -37,6 +37,7 @@ const TabBar: React.FC = () => {
   ];
 
   const handleTabChange = (key: string) => {
+    console.log(key, 'handleTabChange');
     navigate(key);
   };
 
@@ -51,7 +52,7 @@ const TabBar: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white">
+    <div className="fixed right-0 bottom-0 left-0 bg-white border-t border-gray-200">
       <AntTabBar activeKey={getActiveKey()} onChange={handleTabChange}>
         {tabs.map((tab) => (
           <AntTabBar.Item key={tab.key} icon={tab.icon} title={tab.title} />

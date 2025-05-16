@@ -1,8 +1,14 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  AxiosError,
+} from 'axios';
 import { TokenDto } from '@/types/models';
 
 // 定义请求选项接口，扩展 AxiosRequestConfig
-export interface RequestOptions extends Omit<AxiosRequestConfig, 'url' | 'method' | 'baseURL'> {
+export interface RequestOptions
+  extends Omit<AxiosRequestConfig, 'url' | 'method' | 'baseURL'> {
   method?: string;
   headers?: Record<string, string>;
   data?: unknown;
@@ -39,7 +45,8 @@ class Request {
   private defaultHeaders: Record<string, string>;
 
   constructor(
-    baseUrl: string = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010',
+    baseUrl: string = import.meta.env.VITE_API_BASE_URL ||
+      'http://localhost:3010',
     defaultHeaders: Record<string, string> = {},
     timeout: number = 10000,
   ) {
@@ -54,12 +61,12 @@ class Request {
       baseURL: this.baseUrl,
       timeout,
       headers: this.defaultHeaders,
-      withCredentials: true,
+      withCredentials: false,
     });
 
     // 初始化拦截器
     this.setupInterceptors();
-    
+
     // 从本地存储加载 token
     this.loadTokenFromStorage();
   }
@@ -71,7 +78,11 @@ class Request {
     // 请求拦截器
     this.instance.interceptors.request.use(
       (config) => {
-        // 在发送请求前可以做一些处理
+        // 从本地存储获取 token 并添加到请求头
+        const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+        if (accessToken && config.headers) {
+          config.headers['Authorization'] = `Bearer ${accessToken}`;
+        }
         return config;
       },
       (error) => {
@@ -100,7 +111,7 @@ class Request {
               // 尝试刷新 token
               const originalRequest = error.config as AxiosRequestConfig;
               const refreshed = await this.refreshToken();
-              
+
               if (refreshed) {
                 // 重新发送之前失败的请求
                 return this.instance(originalRequest);
@@ -253,7 +264,10 @@ class Request {
    * @returns Token 对象
    */
   async login(email: string, password: string): Promise<TokenDto> {
-    const response = await this.post<TokenDto>('/auth/login', { email, password });
+    const response = await this.post<TokenDto>('/auth/login', {
+      email,
+      password,
+    });
     this.saveTokens(response);
     return response;
   }
@@ -271,7 +285,10 @@ class Request {
    * @param options 请求选项
    * @returns 响应 Promise
    */
-  async request<T = unknown>(url: string, options: RequestOptions = {}): Promise<T> {
+  async request<T = unknown>(
+    url: string,
+    options: RequestOptions = {},
+  ): Promise<T> {
     const config: AxiosRequestConfig = {
       url,
       method: options.method || 'GET',

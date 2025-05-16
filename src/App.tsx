@@ -20,6 +20,7 @@ import {
   ChildDetailPage,
   EditChildPage,
 } from './pages/children/index.ts';
+import { RecordPage } from './pages/record/index.ts';
 import { ChatPage } from './pages/chat/index.ts';
 import ProtectedRoute from './components/auth/AntProtectedRoute';
 import TabBar from './components/layout/TabBar';
@@ -77,6 +78,17 @@ const App: React.FC = () => {
                   <ProtectedRoute>
                     <div className="pb-12">
                       <ChatPage />
+                      <TabBar />
+                    </div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/record"
+                element={
+                  <ProtectedRoute>
+                    <div className="pb-12">
+                      <RecordPage />
                       <TabBar />
                     </div>
                   </ProtectedRoute>
