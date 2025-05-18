@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
   checked?: boolean;
+  defaultChecked?: boolean;
   indeterminate?: boolean;
   disabled?: boolean;
   label?: React.ReactNode;
@@ -9,7 +10,8 @@ interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Checkbox: React.FC<CheckboxProps> = ({
-  checked = false,
+  checked: controlledChecked,
+  defaultChecked = false,
   indeterminate = false,
   disabled = false,
   label,
@@ -17,13 +19,42 @@ const Checkbox: React.FC<CheckboxProps> = ({
   onChange,
   ...rest
 }) => {
+  // 使用内部状态跟踪复选框状态（用于非受控模式）
+  const [internalChecked, setInternalChecked] = useState(defaultChecked);
+
+  // 判断是否为受控组件
+  const isControlled = controlledChecked !== undefined;
+  // 当前复选框的实际checked状态
+  const checked = isControlled ? controlledChecked : internalChecked;
+
   const ref = React.useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
+  // 当受控值改变时更新
+  useEffect(() => {
+    if (isControlled && ref.current) {
+      ref.current.checked = controlledChecked;
+    }
+  }, [controlledChecked, isControlled]);
+
+  // 设置indeterminate属性（半选状态）
+  useEffect(() => {
     if (ref.current) {
       ref.current.indeterminate = indeterminate;
     }
   }, [indeterminate]);
+
+  // 处理复选框变化
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // 非受控模式下，更新内部状态
+    if (!isControlled) {
+      setInternalChecked(e.target.checked);
+    }
+
+    // 调用外部传入的onChange回调
+    if (onChange) {
+      onChange(e);
+    }
+  };
 
   return (
     <label
@@ -42,10 +73,10 @@ const Checkbox: React.FC<CheckboxProps> = ({
             disabled:bg-gray-200 disabled:border-gray-300"
           checked={checked}
           disabled={disabled}
-          onChange={onChange}
+          onChange={handleChange}
           {...rest}
         />
-        <span className="absolute left-0 top-0 w-5 h-5 flex items-center justify-center pointer-events-none">
+        <span className="absolute top-0 left-0 flex items-center justify-center w-5 h-5 pointer-events-none">
           {checked && !indeterminate && (
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path
