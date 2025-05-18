@@ -232,3 +232,10 @@ export interface UpdateTextChunkDto {
   /** 新的元数据 */
   metadata?: Record<string, any>;
 }
+
+// 添加LoginResponseDto接口
+export interface LoginResponseDto {
+  accessToken: string;
+  refreshToken?: string;
+  expiresIn?: number;
+}

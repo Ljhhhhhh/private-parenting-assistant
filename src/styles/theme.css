@@ -1,0 +1,167 @@
+/**
+ * 育儿助手全局主题样式
+ */
+
+:root {
+  /* 主色调 */
+  --color-primary: #4a90e2;
+  --color-primary-dark: #3a7bc8;
+  --color-primary-light: #7aadee;
+
+  /* 辅助色 */
+  --color-secondary: #f8bbd0;
+  --color-secondary-dark: #e091b1;
+  --color-secondary-light: #ffdce8;
+
+  /* 强调色 */
+  --color-accent: #ff9800;
+  --color-accent-dark: #e08600;
+  --color-accent-light: #ffbb52;
+
+  /* 功能色 */
+  --color-success: #4caf50;
+  --color-warning: #ffc107;
+  --color-error: #ff5252;
+  --color-info: #2196f3;
+
+  /* 中性色 */
+  --color-text-primary: #333333;
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #999999;
+  --color-border: #cccccc;
+  --color-background: #f5f7fa;
+
+  /* 布局 */
+  --max-width-container: 600px;
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 16px;
+  --border-radius-xl: 20px;
+
+  /* 阴影 */
+  --shadow-card: 0px 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-dialog: 0px 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-float: 0px 4px 8px rgba(0, 0, 0, 0.2);
+
+  /* 动效 */
+  --transition-normal: all 0.3s ease;
+  --transition-fast: all 0.2s ease;
+}
+
+/* 深色主题变量 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 主色调 - 深色模式下略微提亮 */
+    --color-primary: #5d9fec;
+    --color-primary-dark: #4a90e2;
+    --color-primary-light: #8cbcf2;
+
+    /* 辅助色 - 深色模式下略微提亮 */
+    --color-secondary: #ffccdd;
+    --color-secondary-dark: #f8bbd0;
+    --color-secondary-light: #ffe8f0;
+
+    /* 强调色 - 深色模式下略微提亮 */
+    --color-accent: #ffa726;
+    --color-accent-dark: #ff9800;
+    --color-accent-light: #ffc77d;
+
+    /* 功能色 - 深色模式下略微调整 */
+    --color-success: #66bb6a;
+    --color-warning: #ffca28;
+    --color-error: #ff5c5c;
+    --color-info: #42a5f5;
+
+    /* 中性色 - 深色模式 */
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #cccccc;
+    --color-text-tertiary: #999999;
+    --color-border: #444444;
+    --color-background: #121212;
+  }
+}
+
+/* 全局基础样式 */
+html {
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+  margin: 0;
+  padding: 0;
+}
+
+/* 响应式容器 */
+.container {
+  width: 100%;
+  max-width: var(--max-width-container);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* 设置安全区域 */
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 辅助样式 */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-break {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* 无障碍焦点样式 */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -33%);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

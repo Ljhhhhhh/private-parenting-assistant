@@ -1,0 +1,25 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 项目结构总览
+
+本项目为基于 React + TypeScript + Vite 的育儿助手应用，目录结构如下：
+
+- [src/](mdc:src)  主源码目录，包含所有前端业务代码
+  - [components/](mdc:src/components)  复用型 UI 组件目录
+  - [api/](mdc:src/api)  所有与后端交互的 API 封装
+  - [contexts/](mdc:src/contexts)  React Context 全局状态管理
+  - [types/](mdc:src/types)  TypeScript 类型定义
+  - [utils/](mdc:src/utils)  工具函数与请求封装
+  - [assets/](mdc:src/assets)  静态资源（如图片、SVG）
+  - [index.css](mdc:src/index.css)  全局样式入口，含 Tailwind 与自定义样式
+  - [App.tsx](mdc:src/App.tsx)  应用主入口组件，负责全局布局与路由
+  - [main.tsx](mdc:src/main.tsx)  应用启动入口，挂载 React 根节点
+- [public/](mdc:public)  公共静态资源目录，存放 favicon、logo、默认头像等
+- [tailwind.config.js](mdc:tailwind.config.js)  Tailwind CSS 主题定制配置
+- [package.json](mdc:package.json)  依赖与脚本配置
+- [README.md](mdc:README.md)  项目说明文档
+
+> 详细的设计规范请参考 [design.mdc](mdc:design.mdc)

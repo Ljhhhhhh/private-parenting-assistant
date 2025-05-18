@@ -3,8 +3,9 @@ import axios, {
   AxiosRequestConfig,
   AxiosResponse,
   AxiosError,
+  InternalAxiosRequestConfig,
 } from 'axios';
-import { TokenDto } from '@/types/models';
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/const';
 
 // 定义请求选项接口，扩展 AxiosRequestConfig
 export interface RequestOptions
@@ -35,9 +36,17 @@ export interface ApiResponse<T = any> {
   config: AxiosRequestConfig;
 }
 
-// 存储 Token 的键名
-const ACCESS_TOKEN_KEY = 'access_token';
-const REFRESH_TOKEN_KEY = 'refresh_token';
+// 记录是否正在刷新token
+let isRefreshingToken = false;
+// 等待token刷新的请求队列
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+// 拓展AxiosRequestConfig类型，添加_retry属性
+declare module 'axios' {
+  export interface InternalAxiosRequestConfig {
+    _retry?: boolean;
+  }
+}
 
 class Request {
   private instance: AxiosInstance;
@@ -66,9 +75,6 @@ class Request {
 
     // 初始化拦截器
     this.setupInterceptors();
-
-    // 从本地存储加载 token
-    this.loadTokenFromStorage();
   }
 
   /**
@@ -78,10 +84,20 @@ class Request {
     // 请求拦截器
     this.instance.interceptors.request.use(
       (config) => {
-        // 从本地存储获取 token 并添加到请求头
-        const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-        if (accessToken && config.headers) {
-          config.headers['Authorization'] = `Bearer ${accessToken}`;
+        // 检查当前请求头是否已有Authorization - 如果没有则尝试从localStorage获取
+        if (!config.headers.Authorization && typeof window !== 'undefined') {
+          // 从localStorage中获取token (Zustand persist自动存储的)
+          const userAuthStorage = localStorage.getItem('user-auth-storage');
+          if (userAuthStorage) {
+            try {
+              const { state } = JSON.parse(userAuthStorage);
+              if (state && state.token) {
+                config.headers.Authorization = `Bearer ${state.token}`;
+              }
+            } catch (e) {
+              console.error('解析localStorage中的token失败:', e);
+            }
+          }
         }
         return config;
       },
@@ -105,23 +121,124 @@ class Request {
           apiError.status = error.response.status;
           apiError.data = error.response.data;
 
-          // 处理 401 未授权错误，尝试刷新 token
+          // 处理 401 未授权错误
           if (error.response.status === 401) {
-            try {
-              // 尝试刷新 token
-              const originalRequest = error.config as AxiosRequestConfig;
-              const refreshed = await this.refreshToken();
-
-              if (refreshed) {
-                // 重新发送之前失败的请求
-                return this.instance(originalRequest);
-              }
-            } catch (refreshError) {
-              console.error('刷新 token 失败:', refreshError);
-              // 刷新 token 失败，清除所有 token 并重定向到登录页
-              this.clearTokens();
-              // 可以在这里添加重定向到登录页的逻辑
+            // 获取原始请求配置
+            const originalRequest = error.config as InternalAxiosRequestConfig;
+            if (!originalRequest) {
               window.location.href = '/login';
+              return Promise.reject(error);
+            }
+
+            // 确保请求没有被重试过，防止死循环
+            if (!originalRequest._retry) {
+              // 如果已经在刷新token，则将请求加入队列
+              if (isRefreshingToken) {
+                return new Promise((resolve) => {
+                  refreshSubscribers.push((token) => {
+                    originalRequest.headers.Authorization = `Bearer ${token}`;
+                    resolve(this.instance(originalRequest));
+                  });
+                });
+              }
+
+              // 标记正在刷新token
+              isRefreshingToken = true;
+              originalRequest._retry = true;
+
+              // 从localStorage获取refreshToken
+              try {
+                const userAuthStorage =
+                  localStorage.getItem('user-auth-storage');
+                if (!userAuthStorage) {
+                  throw new Error('No refresh token available');
+                }
+
+                const { state } = JSON.parse(userAuthStorage);
+                const refreshToken = state?.[REFRESH_TOKEN_KEY.split('.')[1]];
+
+                if (!refreshToken) {
+                  throw new Error('No refresh token found');
+                }
+
+                // 尝试使用refreshToken获取新的accessToken
+                // 需要使用基础axios发起请求，避免触发拦截器
+                return axios
+                  .post(
+                    `${this.baseUrl}/auth/refresh-token`,
+                    { refreshToken },
+                    { headers: { 'Content-Type': 'application/json' } },
+                  )
+                  .then((response) => {
+                    const { accessToken } = response.data;
+
+                    // 保存新的token到localStorage (由于Zustand持久化依赖localStorage)
+                    const updatedState = {
+                      ...state,
+                      [ACCESS_TOKEN_KEY.split('.')[1]]: accessToken,
+                    };
+                    localStorage.setItem(
+                      'user-auth-storage',
+                      JSON.stringify({ state: updatedState }),
+                    );
+
+                    // 更新实例默认headers
+                    this.setAuthToken(accessToken);
+
+                    // 更新原始请求中的Authorization
+                    originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+
+                    // 执行队列中的请求
+                    refreshSubscribers.forEach((callback) =>
+                      callback(accessToken),
+                    );
+                    refreshSubscribers = [];
+
+                    // 重置标记
+                    isRefreshingToken = false;
+
+                    // 尝试同步更新Zustand store (如果已加载)
+                    try {
+                      if (
+                        window &&
+                        typeof (window as any).useUserStore !== 'undefined'
+                      ) {
+                        const userStore = (window as any).useUserStore;
+                        userStore
+                          .getState()
+                          .setUser(
+                            userStore.getState().user || { id: '', email: '' },
+                            accessToken,
+                          );
+                      }
+                    } catch (e) {
+                      console.error('同步token到store失败:', e);
+                    }
+
+                    // 重新发起原始请求
+                    return this.instance(originalRequest);
+                  })
+                  .catch((refreshError) => {
+                    console.error('刷新令牌失败:', refreshError);
+                    isRefreshingToken = false;
+                    refreshSubscribers = [];
+
+                    // 刷新token失败，重定向到登录页
+                    if (typeof window !== 'undefined') {
+                      window.location.href = '/login';
+                    }
+                    return Promise.reject(refreshError);
+                  });
+              } catch (error) {
+                console.error('处理刷新token失败:', error);
+                isRefreshingToken = false;
+
+                // 处理失败，重定向到登录页
+                if (typeof window !== 'undefined') {
+                  window.location.href = '/login';
+                }
+                return Promise.reject(error);
+              }
             }
           }
 
@@ -149,70 +266,6 @@ class Request {
         return Promise.reject(apiError);
       },
     );
-  }
-
-  /**
-   * 从本地存储加载 token
-   */
-  private loadTokenFromStorage(): void {
-    const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-    if (accessToken) {
-      this.setAuthToken(accessToken);
-    }
-  }
-
-  /**
-   * 保存 token 到本地存储
-   * @param tokens Token 对象
-   */
-  private saveTokens(tokens: TokenDto): void {
-    localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
-    this.setAuthToken(tokens.accessToken);
-  }
-
-  /**
-   * 清除所有 token
-   */
-  private clearTokens(): void {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    this.clearAuthToken();
-  }
-
-  /**
-   * 刷新 token
-   * @returns 是否成功刷新 token
-   */
-  private async refreshToken(): Promise<boolean> {
-    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-    if (!refreshToken) {
-      return false;
-    }
-
-    try {
-      // 创建一个新的 axios 实例来刷新 token，避免进入拦截器循环
-      const response = await axios.post<TokenDto>(
-        `${this.baseUrl}/auth/refresh`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${refreshToken}`,
-          },
-        },
-      );
-
-      if (response.data) {
-        this.saveTokens(response.data);
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error('刷新 token 失败:', error);
-      this.clearTokens();
-      return false;
-    }
   }
 
   /**
@@ -255,28 +308,6 @@ class Request {
     Object.entries(this.defaultHeaders).forEach(([key, value]) => {
       this.instance.defaults.headers.common[key] = value;
     });
-  }
-
-  /**
-   * 登录并保存 token
-   * @param email 邮箱
-   * @param password 密码
-   * @returns Token 对象
-   */
-  async login(email: string, password: string): Promise<TokenDto> {
-    const response = await this.post<TokenDto>('/auth/login', {
-      email,
-      password,
-    });
-    this.saveTokens(response);
-    return response;
-  }
-
-  /**
-   * 登出并清除 token
-   */
-  logout(): void {
-    this.clearTokens();
   }
 
   /**
@@ -501,36 +532,13 @@ class Request {
               if (!trimmedLine) continue; // 跳过空行
 
               // 处理 SSE 格式 (data: {...})
-              if (line.startsWith('data:')) {
-                try {
-                  const data = line.substring(5).trim();
+              if (trimmedLine.startsWith('data:')) {
+                const data = trimmedLine.slice(5).trim();
+                if (data) {
                   onStream(data);
-                } catch (error) {
-                  console.error('处理流数据时出错:', error);
                 }
-              }
-              // 处理不带 'data:' 前缀的直接 JSON 格式
-              else if (trimmedLine.includes('{') && trimmedLine.includes('}')) {
-                try {
-                  // 尝试解析为 JSON 以验证
-                  try {
-                    JSON.parse(trimmedLine);
-                    onStream(trimmedLine);
-                  } catch {
-                    // 如果看起来像 JSON 但无效，可能是部分块
-                    console.warn(
-                      '在流中收到无效的 JSON，但仍在处理:',
-                      trimmedLine,
-                    );
-                    onStream(trimmedLine);
-                  }
-                } catch (error) {
-                  console.error('处理直接 JSON 数据时出错:', error);
-                }
-              }
-              // 处理可能包含有用数据的任何其他格式
-              else if (trimmedLine.length > 0) {
-                // 传递任何不匹配其他格式的非空内容
+              } else {
+                // 为非标准格式的响应提供回退
                 onStream(trimmedLine);
               }
             }
@@ -538,37 +546,31 @@ class Request {
         },
       });
 
-      // 设置初始连接超时
-      if (config.timeout) {
-        timeoutId = setTimeout(() => {
-          // 如果在超时前没有收到任何数据，中止请求
+      // 设置活动超时
+      if (options.timeout) {
+        timeoutId = window.setTimeout(() => {
           if (!hasReceivedData) {
-            console.error('等待初始响应超时');
             controller.abort();
-            reject(new Error('等待初始响应超时'));
+            reject(new Error('流请求超时'));
           }
-        }, config.timeout) as unknown as number;
+        }, options.timeout);
       }
 
       // 处理请求完成
       axiosRequest
         .then((response) => {
-          // 当流完成时，解析完整响应
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
-          resolve(response.data as T);
+          resetActivityTimer();
+          resolve(response as T);
         })
         .catch((error) => {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
+          resetActivityTimer();
           reject(error);
         });
     });
   }
 }
 
-// 创建并导出单例实例
+// 创建全局 HTTP 客户端实例
 const request = new Request();
+
 export default request;

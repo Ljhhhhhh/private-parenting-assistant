@@ -3,10 +3,8 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
-
-// 全局样式导入
-import 'antd-mobile/es/global';
-import '@chatui/core/dist/index.css';
+// 导入存储
+import './stores';
 
 // 应用上下文
 import { AppContextProvider } from './contexts/AppContext';

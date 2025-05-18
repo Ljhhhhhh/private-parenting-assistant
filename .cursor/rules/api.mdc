@@ -1,0 +1,19 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# API 封装规则
+
+所有与后端交互的接口均封装于 [src/api/](mdc:src/api) 目录下，统一使用自定义 request 工具进行请求。
+
+- [auth.ts](mdc:src/api/auth.ts)：认证相关 API，包括注册、登录、登出、验证码、重置密码等。
+- [children.ts](mdc:src/api/children.ts)：儿童信息管理 API，支持增删改查。
+- [records.ts](mdc:src/api/records.ts)：日常记录（如喂养、睡眠、排便等）相关 API。
+- [chat.ts](mdc:src/api/chat.ts)：聊天与智能问答相关 API，支持同步/流式对话、历史、建议、反馈等。
+- [chatApi.ts](mdc:src/api/chatApi.ts)：基于 axios 的底层聊天 API 封装，含请求/响应拦截器。
+- [preprocessing.ts](mdc:src/api/preprocessing.ts)：预处理相关 API。
+- [vector.ts](mdc:src/api/vector.ts)：向量数据库相关 API。
+- [index.ts](mdc:src/api/index.ts)：API 统一导出入口。
+
+> 各 API 文件均直接导出函数，参数和返回值类型定义见 [models.ts](mdc:src/types/models.ts)。

@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 全局状态管理规则
+
+[src/contexts/](mdc:src/contexts) 目录用于存放全局 React Context：
+
+- [AppContext.tsx](mdc:src/contexts/AppContext.tsx)：应用全局上下文，管理主题（明/暗）、设备信息、全局加载状态等。通过 `useAppContext` Hook 获取和操作。
+- [AuthContext.tsx](mdc:src/contexts/AuthContext.tsx)：认证上下文，管理用户登录状态、用户信息、注册/登录/登出等操作。通过 `useAuth` Hook 获取和操作。
+
+> 推荐在应用入口（如 main.tsx）包裹 Provider，页面/组件中通过自定义 Hook 获取全局状态。

@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 类型定义规则
+
+所有后端接口参数、响应、业务模型类型均集中定义于 [src/types/models.ts](mdc:src/types/models.ts)。
+
+- 认证、儿童、记录、聊天、向量数据库等所有核心数据结构均有详细注释。
+- 推荐在开发 API、组件 props、全局状态等场景直接引用此处类型，保证类型一致性。

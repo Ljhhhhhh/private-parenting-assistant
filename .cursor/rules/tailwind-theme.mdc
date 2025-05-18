@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Tailwind CSS 主题定制规则
+
+本项目使用 [tailwind.config.js](mdc:tailwind.config.js) 进行主题扩展和定制：
+
+- colors：自定义 gray、primary、secondary 等色板，便于实现设计规范中的主色、辅助色。
+- fontFamily：默认字体为 AlibabaPuHuiTi，兼容系统无衬线字体。
+- screens：自定义断点，适配多端响应式设计。
+- safelist：保证部分常用颜色类在生产环境不会被裁剪。
+
+> 所有全局样式入口见 [index.css](mdc:src/index.css)，如需扩展主题请优先修改 tailwind.config.js。

@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 工具函数与请求封装规则
+
+[src/utils/](mdc:src/utils) 目录包含全局工具函数和请求封装：
+
+- [request.ts](mdc:src/utils/request.ts)：全局 HTTP 请求封装，基于 axios，支持 token 自动管理、错误处理、流式请求等。所有 API 均依赖此模块。
+- [index.ts](mdc:src/utils/index.ts)：通用工具函数集合。
+
+> 推荐所有网络请求均通过 request.ts 进行，避免直接使用 axios。
