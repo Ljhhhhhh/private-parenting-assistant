@@ -29,7 +29,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
 
   const ref = React.useRef<HTMLInputElement>(null);
 
-  // 当受控值改变时更新
+  // 当受控值改变时更新内部状态
   useEffect(() => {
     if (isControlled && ref.current) {
       ref.current.checked = controlledChecked;
@@ -53,6 +53,11 @@ const Checkbox: React.FC<CheckboxProps> = ({
     // 调用外部传入的onChange回调
     if (onChange) {
       onChange(e);
+    } else if (isControlled) {
+      // 如果是受控组件但没有提供onChange处理器，创建一个空的处理器
+      // 防止React警告："You provided a `checked` prop without an `onChange` handler"
+      e.preventDefault();
+      console.warn('Checkbox组件是受控组件，但未提供onChange处理器');
     }
   };
 
