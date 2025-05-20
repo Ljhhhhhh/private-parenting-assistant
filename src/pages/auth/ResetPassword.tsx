@@ -1,8 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Toast } from '@/components/ui';
 import type { FormInstance } from '@/components/ui';
 import { useUserStore } from '@/stores/user';
+import { Icon } from '@iconify/react';
 
 const ResetPassword: React.FC = () => {
   const formRef = useRef<FormInstance | null>(null);
@@ -16,6 +17,32 @@ const ResetPassword: React.FC = () => {
   } | null>(null);
   const navigate = useNavigate();
   const { sendResetPasswordCode, resetPassword } = useUserStore();
+
+  // 创建动态波浪背景效果
+  useEffect(() => {
+    const createWaveEffect = () => {
+      const container = document.getElementById('wave-container');
+      if (!container) return;
+      
+      // 清除现有元素
+      container.innerHTML = '';
+      
+      // 创建波浪元素
+      for (let i = 0; i < 3; i++) {
+        const wave = document.createElement('div');
+        wave.className = 'wave';
+        wave.style.animationDelay = `${i * 0.5}s`;
+        container.appendChild(wave);
+      }
+    };
+    
+    createWaveEffect();
+    
+    return () => {
+      const container = document.getElementById('wave-container');
+      if (container) container.innerHTML = '';
+    };
+  }, []);
 
   // 验证码倒计时
   const handleSendCode = async () => {
@@ -77,204 +104,157 @@ const ResetPassword: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-[#E8F0FE] to-[#FFF0F5] relative overflow-hidden">
-      {/* 气泡动画容器 */}
+    <div className="min-h-screen w-full flex flex-col items-center justify-center relative bg-gradient-to-b from-[#E8F0FE] to-[#FFF0F5] px-4">
+      {/* 波浪背景 */}
       <div
-        id="bubble-container"
-        className="absolute inset-0 overflow-hidden pointer-events-none"
+        id="wave-container"
+        className="absolute bottom-0 left-0 w-full overflow-hidden pointer-events-none z-0 h-40"
       />
+      
+      {/* 主内容区域 */}
+      <div className="w-full max-w-md z-10 relative">
+        {/* Logo和标题 */}
+        <div className="flex flex-col items-center mb-8">
+          <div
+            className="w-20 h-20 rounded-full bg-gradient-to-r from-[#4A90E2] to-[#7AADEE] flex items-center justify-center mb-4 shadow-lg"
+          >
+            <Icon 
+              icon="mdi:lock-reset" 
+              width="40" 
+              height="40" 
+              color="white" 
+            />
+          </div>
+          <h1 className="text-2xl font-bold text-[#333333] mb-1">重置密码</h1>
+          <p className="text-[#666666] text-center max-w-xs">
+            别担心，我们会帮您找回账号访问权限
+          </p>
+        </div>
+        
+        {/* 重置密码表单 */}
+        <div className="bg-white/80 backdrop-blur-md rounded-[24px] p-6 shadow-xl border border-white/50">
+          <h2 className="text-xl font-semibold text-[#333333] mb-6">找回密码</h2>
 
-      {/* 主内容卡片 */}
-      <div className="relative z-10 mx-4 mt-12">
-        {/* 表单卡片 - 使用半透明效果与背景协调 */}
-        <div className="relative overflow-hidden rounded-[24px] backdrop-blur-md bg-white/80 shadow-lg border border-white/50">
-          <div className="relative p-8">
-            <h1 className="text-[28px] leading-[36px] font-semibold text-[#333] mb-8 text-center">
-              重置密码
-            </h1>
-            <p className="text-[#555] text-base mb-8 text-center">
-              别担心，我们会帮您找回账号访问权限
-            </p>
-
-            <Form form={formRef} layout="vertical" onFinish={handleFinish}>
-              {/* 邮箱输入 */}
-              <div>
-                <label className="block text-[#555] text-base mb-2 font-medium">
-                  邮箱
-                </label>
-                <Form.Item
-                  name="email"
-                  rules={[
-                    { required: true, message: '请输入邮箱' },
-                    { type: 'email', message: '邮箱格式不正确' },
-                  ]}
-                >
-                  <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4A90E2] z-10">
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path
-                          d="M20 4H4C2.9 4 2.01 4.9 2.01 6L2 18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                    </div>
-                    <Input
-                      placeholder="请输入邮箱"
-                      className="rounded-[12px] h-[52px] pl-12 pr-4 text-base bg-white/70 border-[#E8F0FE] focus:border-[#4A90E2] focus:bg-white/90 transition-all duration-300"
-                      clearable
-                      type="email"
-                    />
-                  </div>
-                </Form.Item>
-              </div>
-
-              {/* 验证码输入 */}
-              <div>
-                <label className="block text-[#555] text-base mb-2 font-medium">
-                  验证码
-                </label>
-                <Form.Item
-                  name="verificationCode"
-                  rules={[
-                    { required: true, message: '请输入验证码' },
-                    { len: 6, message: '验证码为6位数字' },
-                  ]}
-                >
-                  <div className="relative flex">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4A90E2] z-10">
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path
-                          d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                    </div>
-                    <Input
-                      placeholder="请输入验证码"
-                      className="rounded-[12px] h-[52px] pl-12 pr-4 text-base bg-white/70 border-[#E8F0FE] focus:border-[#4A90E2] focus:bg-white/90 transition-all duration-300 flex-1"
-                      clearable
-                      type="number"
-                      maxLength={6}
-                    />
-                    <Button
-                      className="ml-2 rounded-[12px] min-w-[120px] bg-gradient-to-r from-[#4A90E2] to-[#7AADEE] text-white h-[52px] border-none"
-                      onClick={handleSendCode}
-                      loading={codeLoading}
-                      disabled={countdown > 0}
-                      type="button"
-                    >
-                      {countdown > 0 ? `${countdown}s后重发` : '发送验证码'}
-                    </Button>
-                  </div>
-                </Form.Item>
-              </div>
-
-              {/* 新密码输入 */}
-              <div>
-                <label className="block text-[#555] text-base mb-2 font-medium">
-                  新密码
-                </label>
-                <Form.Item
-                  name="newPassword"
-                  rules={[
-                    { required: true, message: '请输入新密码' },
-                    {
-                      pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/,
-                      message: '密码需8位以上，含大小写字母和数字',
-                    },
-                  ]}
-                >
-                  <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4A90E2] z-10">
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path
-                          d="M18 8H17V6C17 3.24 14.76 1 12 1C9.24 1 7 3.24 7 6V8H6C4.9 8 4 8.9 4 10V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V10C20 8.9 19.1 8 18 8ZM12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17ZM15 8H9V6C9 4.34 10.34 3 12 3C13.66 3 15 4.34 15 6V8Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                    </div>
-                    <Input
-                      placeholder="请输入新密码"
-                      className="rounded-[12px] h-[52px] pl-12 pr-4 text-base bg-white/70 border-[#E8F0FE] focus:border-[#4A90E2] focus:bg-white/90 transition-all duration-300"
-                      clearable
-                      type="password"
-                    />
-                  </div>
-                </Form.Item>
-              </div>
-
-              {/* 重置按钮 */}
-              <Button
-                block
-                type="submit"
-                loading={loading}
-                className="h-[56px] rounded-[16px] text-white text-base font-medium bg-gradient-to-r from-[#4A90E2] to-[#7AADEE] border-none shadow-lg shadow-[#4A90E2]/20 hover:shadow-xl hover:shadow-[#4A90E2]/30 transition-all duration-300 flex items-center justify-center mt-8"
-                onClick={() => {
-                  // 触发表单验证，确保在按钮点击时进行验证
-                  formRef.current?.validateFields().catch(() => {
-                    // 验证失败时显示提示
-                    setToast({ type: 'fail', content: '请完成所有必填项' });
-                  });
-                }}
+          <Form form={formRef} layout="vertical" onFinish={handleFinish}>
+            {/* 邮箱输入 */}
+            <div>
+              <label className="block text-[#555] text-base mb-2 font-medium">
+                邮箱
+              </label>
+              <Form.Item
+                name="email"
+                rules={[
+                  { required: true, message: '请输入邮箱' },
+                  { type: 'email', message: '邮箱格式不正确' },
+                ]}
               >
-                重置密码
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="ml-1"
-                >
-                  <path
-                    d="M13 5l7 7-7 7M5 12h15"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4A90E2] z-10">
+                    <Icon icon="mdi:email-outline" width="24" height="24" />
+                  </div>
+                  <Input
+                    placeholder="请输入邮箱"
+                    className="rounded-[12px] h-[52px] pl-12 pr-4 text-base bg-white/70 border-[#E8F0FE] focus:border-[#4A90E2] focus:bg-white/90 transition-all duration-300"
+                    clearable
+                    type="email"
                   />
-                </svg>
-              </Button>
-            </Form>
-
-            {/* 返回登录链接 */}
-            <div className="flex justify-center mt-8 text-[14px]">
-              <Link
-                to="/login"
-                className="text-[#4A90E2] font-medium flex items-center"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="mr-1"
-                >
-                  <path
-                    d="M19 12H5M5 12L12 19M5 12L12 5"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                返回登录
-              </Link>
+                </div>
+              </Form.Item>
             </div>
+
+            {/* 验证码输入 */}
+            <div>
+              <label className="block text-[#555] text-base mb-2 font-medium">
+                验证码
+              </label>
+              <Form.Item
+                name="verificationCode"
+                rules={[
+                  { required: true, message: '请输入验证码' },
+                  { len: 6, message: '验证码为6位数字' },
+                ]}
+              >
+                <div className="relative flex">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4A90E2] z-10">
+                    <Icon icon="mdi:shield-check-outline" width="24" height="24" />
+                  </div>
+                  <Input
+                    placeholder="请输入验证码"
+                    className="rounded-[12px] h-[52px] pl-12 pr-4 text-base bg-white/70 border-[#E8F0FE] focus:border-[#4A90E2] focus:bg-white/90 transition-all duration-300 flex-1"
+                    clearable
+                    type="number"
+                    maxLength={6}
+                  />
+                  <Button
+                    className="ml-2 rounded-[12px] min-w-[120px] bg-gradient-to-r from-[#4A90E2] to-[#7AADEE] text-white h-[52px] border-none"
+                    onClick={handleSendCode}
+                    loading={codeLoading}
+                    disabled={countdown > 0}
+                    type="button"
+                  >
+                    {countdown > 0 ? `${countdown}s后重发` : '发送验证码'}
+                  </Button>
+                </div>
+              </Form.Item>
+            </div>
+
+            {/* 新密码输入 */}
+            <div>
+              <label className="block text-[#555] text-base mb-2 font-medium">
+                新密码
+              </label>
+              <Form.Item
+                name="newPassword"
+                rules={[
+                  { required: true, message: '请输入新密码' },
+                  {
+                    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/,
+                    message: '密码需8位以上，含大小写字母和数字',
+                  },
+                ]}
+              >
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4A90E2] z-10">
+                    <Icon icon="mdi:lock-outline" width="24" height="24" />
+                  </div>
+                  <Input
+                    placeholder="请输入新密码"
+                    className="rounded-[12px] h-[52px] pl-12 pr-4 text-base bg-white/70 border-[#E8F0FE] focus:border-[#4A90E2] focus:bg-white/90 transition-all duration-300"
+                    clearable
+                    type="password"
+                  />
+                </div>
+              </Form.Item>
+            </div>
+
+            {/* 重置按钮 */}
+            <Button
+              block
+              type="submit"
+              loading={loading}
+              className="h-[56px] rounded-[16px] text-white text-base font-medium bg-gradient-to-r from-[#4A90E2] to-[#7AADEE] border-none shadow-lg shadow-[#4A90E2]/20 hover:shadow-xl hover:shadow-[#4A90E2]/30 transition-all duration-300 flex items-center justify-center mt-8"
+              onClick={() => {
+                // 触发表单验证，确保在按钮点击时进行验证
+                formRef.current?.validateFields().catch(() => {
+                  // 验证失败时显示提示
+                  setToast({ type: 'fail', content: '请完成所有必填项' });
+                });
+              }}
+            >
+              重置密码
+              <Icon icon="mdi:arrow-right" width="20" height="20" className="ml-1" />
+            </Button>
+          </Form>
+
+          {/* 返回登录链接 */}
+          <div className="flex justify-center mt-8 text-[14px]">
+            <Link
+              to="/login"
+              className="text-[#4A90E2] font-medium flex items-center"
+            >
+              <Icon icon="mdi:arrow-left" width="16" height="16" className="mr-1" />
+              返回登录
+            </Link>
           </div>
         </div>
       </div>
@@ -292,33 +272,42 @@ const ResetPassword: React.FC = () => {
       <style
         dangerouslySetInnerHTML={{
           __html: `
-          @keyframes bubble-rise {
+          @keyframes wave {
             0% {
-              transform: translateY(100vh) scale(0);
-              opacity: 0;
+              transform: translateX(-50%) translateY(0) scaleY(1);
             }
-            20% {
-              opacity: 0.6;
-            }
-            80% {
-              opacity: 0.6;
+            50% {
+              transform: translateX(-25%) translateY(-10px) scaleY(0.9);
             }
             100% {
-              transform: translateY(-100px) scale(1);
-              opacity: 0;
+              transform: translateX(0) translateY(0) scaleY(1);
             }
           }
           
-          .bubble {
+          .wave {
             position: absolute;
-            bottom: -100px;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(74, 144, 226, 0.3));
-            border-radius: 50%;
-            animation: bubble-rise linear forwards;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(2px);
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, rgba(74, 144, 226, 0.2));
+            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+            animation: wave 15s infinite linear;
+            transform-origin: center bottom;
           }
-        `,
+          
+          .wave:nth-child(2) {
+            height: 80%;
+            background: linear-gradient(to bottom, transparent, rgba(248, 187, 208, 0.2));
+            animation-duration: 18s;
+          }
+          
+          .wave:nth-child(3) {
+            height: 60%;
+            background: linear-gradient(to bottom, transparent, rgba(255, 152, 0, 0.1));
+            animation-duration: 20s;
+          }
+          `
         }}
       />
     </div>
