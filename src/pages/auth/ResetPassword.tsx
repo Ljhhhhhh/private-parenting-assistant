@@ -104,7 +104,7 @@ const ResetPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center relative bg-gradient-to-b from-[#E8F0FE] to-[#FFF0F5] px-4">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center relative bg-gradient-to-b from-[#FFF0E6] to-[#FFF0F5] px-4">
       {/* 波浪背景 */}
       <div
         id="wave-container"
@@ -116,7 +116,7 @@ const ResetPassword: React.FC = () => {
         {/* Logo和标题 */}
         <div className="flex flex-col items-center mb-8">
           <div
-            className="w-20 h-20 rounded-full bg-gradient-to-r from-[#4A90E2] to-[#7AADEE] flex items-center justify-center mb-4 shadow-lg"
+            className="w-20 h-20 rounded-full bg-primary flex items-center justify-center mb-4 shadow-lg"
           >
             <Icon 
               icon="mdi:lock-reset" 
@@ -125,20 +125,20 @@ const ResetPassword: React.FC = () => {
               color="white" 
             />
           </div>
-          <h1 className="text-2xl font-bold text-[#333333] mb-1">重置密码</h1>
-          <p className="text-[#666666] text-center max-w-xs">
+          <h1 className="text-h1 font-semibold text-primary-dark mb-1">重置密码</h1>
+          <p className="text-gray-600 text-center max-w-xs text-base">
             别担心，我们会帮您找回账号访问权限
           </p>
         </div>
         
         {/* 重置密码表单 */}
-        <div className="bg-white/80 backdrop-blur-md rounded-[24px] p-6 shadow-xl border border-white/50">
-          <h2 className="text-xl font-semibold text-[#333333] mb-6">找回密码</h2>
+        <div className="bg-white backdrop-blur-md rounded-dialog p-6 shadow-card border border-gray-300/20">
+          <h2 className="text-h2 font-semibold text-gray-700 mb-6">找回密码</h2>
 
           <Form form={formRef} layout="vertical" onFinish={handleFinish}>
             {/* 邮箱输入 */}
             <div>
-              <label className="block text-[#555] text-base mb-2 font-medium">
+              <label className="block text-gray-600 text-base mb-2 font-medium">
                 邮箱
               </label>
               <Form.Item
@@ -149,12 +149,12 @@ const ResetPassword: React.FC = () => {
                 ]}
               >
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4A90E2] z-10">
-                    <Icon icon="mdi:email-outline" width="24" height="24" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">
+                    <Icon icon="mdi:email-outline" width="20" height="20" />
                   </div>
                   <Input
                     placeholder="请输入邮箱"
-                    className="rounded-[12px] h-[52px] pl-12 pr-4 text-base bg-white/70 border-[#E8F0FE] focus:border-[#4A90E2] focus:bg-white/90 transition-all duration-300"
+                    className="w-full h-[48px] pl-12 pr-4 text-base-lg border border-gray-300 rounded-input focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-normal bg-white/70 focus:bg-white/90"
                     clearable
                     type="email"
                   />
@@ -164,7 +164,7 @@ const ResetPassword: React.FC = () => {
 
             {/* 验证码输入 */}
             <div>
-              <label className="block text-[#555] text-base mb-2 font-medium">
+              <label className="block text-gray-600 text-base mb-2 font-medium">
                 验证码
               </label>
               <Form.Item
@@ -175,18 +175,18 @@ const ResetPassword: React.FC = () => {
                 ]}
               >
                 <div className="relative flex">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4A90E2] z-10">
-                    <Icon icon="mdi:shield-check-outline" width="24" height="24" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">
+                    <Icon icon="mdi:shield-check-outline" width="20" height="20" />
                   </div>
                   <Input
                     placeholder="请输入验证码"
-                    className="rounded-[12px] h-[52px] pl-12 pr-4 text-base bg-white/70 border-[#E8F0FE] focus:border-[#4A90E2] focus:bg-white/90 transition-all duration-300 flex-1"
+                    className="w-full h-[48px] pl-12 pr-4 text-base-lg border border-gray-300 rounded-input focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-normal bg-white/70 focus:bg-white/90 flex-1"
                     clearable
                     type="number"
                     maxLength={6}
                   />
                   <Button
-                    className="ml-2 rounded-[12px] min-w-[120px] bg-gradient-to-r from-[#4A90E2] to-[#7AADEE] text-white h-[52px] border-none"
+                    className="ml-2 rounded-btn min-w-[120px] bg-gradient-to-r from-primary to-primary-light text-white h-[48px] border-none"
                     onClick={handleSendCode}
                     loading={codeLoading}
                     disabled={countdown > 0}
@@ -200,7 +200,7 @@ const ResetPassword: React.FC = () => {
 
             {/* 新密码输入 */}
             <div>
-              <label className="block text-[#555] text-base mb-2 font-medium">
+              <label className="block text-gray-600 text-base mb-2 font-medium">
                 新密码
               </label>
               <Form.Item
@@ -214,12 +214,12 @@ const ResetPassword: React.FC = () => {
                 ]}
               >
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4A90E2] z-10">
-                    <Icon icon="mdi:lock-outline" width="24" height="24" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">
+                    <Icon icon="mdi:lock-outline" width="20" height="20" />
                   </div>
                   <Input
                     placeholder="请输入新密码"
-                    className="rounded-[12px] h-[52px] pl-12 pr-4 text-base bg-white/70 border-[#E8F0FE] focus:border-[#4A90E2] focus:bg-white/90 transition-all duration-300"
+                    className="w-full h-[48px] pl-12 pr-4 text-base-lg border border-gray-300 rounded-input focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-normal bg-white/70 focus:bg-white/90"
                     clearable
                     type="password"
                   />
@@ -232,7 +232,7 @@ const ResetPassword: React.FC = () => {
               block
               type="submit"
               loading={loading}
-              className="h-[56px] rounded-[16px] text-white text-base font-medium bg-gradient-to-r from-[#4A90E2] to-[#7AADEE] border-none shadow-lg shadow-[#4A90E2]/20 hover:shadow-xl hover:shadow-[#4A90E2]/30 transition-all duration-300 flex items-center justify-center mt-8"
+              className="relative w-full h-[48px] px-4 py-2 text-white bg-gradient-to-r from-primary to-primary-light rounded-btn shadow-btn hover:shadow-xl hover:shadow-primary/30 transition-all duration-normal overflow-hidden group mt-8"
               onClick={() => {
                 // 触发表单验证，确保在按钮点击时进行验证
                 formRef.current?.validateFields().catch(() => {
@@ -241,16 +241,22 @@ const ResetPassword: React.FC = () => {
                 });
               }}
             >
-              重置密码
-              <Icon icon="mdi:arrow-right" width="20" height="20" className="ml-1" />
+              <span className="relative z-10 flex items-center justify-center text-base-lg font-medium">
+                重置密码
+                <Icon icon="mdi:arrow-right" width="18" height="18" className="ml-2 transition-transform duration-normal group-hover:translate-x-1" />
+              </span>
+              <div
+                className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary-dark to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-normal"
+                style={{ filter: 'blur(10px)', transform: 'scale(1.2)' }}
+              ></div>
             </Button>
           </Form>
 
           {/* 返回登录链接 */}
-          <div className="flex justify-center mt-8 text-[14px]">
+          <div className="text-center mt-6">
             <Link
               to="/login"
-              className="text-[#4A90E2] font-medium flex items-center"
+              className="text-sm font-medium text-text-link hover:text-primary-dark transition-colors flex items-center justify-center"
             >
               <Icon icon="mdi:arrow-left" width="16" height="16" className="mr-1" />
               返回登录

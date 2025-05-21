@@ -65,7 +65,7 @@ const Login: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center relative bg-gradient-to-b from-[#E8F0FE] to-[#FFF0F5] px-4">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center relative bg-gradient-to-b from-[#FFF0E6] to-[#FFF0F5] px-4">
       {/* 波浪背景 */}
       <div
         id="wave-container"
@@ -78,35 +78,37 @@ const Login: React.FC = () => {
         <div className="flex flex-col items-center mb-8">
           <div
             ref={logoRef}
-            className="w-20 h-20 rounded-full bg-gradient-to-r from-[#4A90E2] to-[#7AADEE] flex items-center justify-center mb-4 shadow-lg"
+            className="w-20 h-20 rounded-full bg-primary flex items-center justify-center mb-4 shadow-lg"
           >
-            <Icon 
-              icon="mdi:baby-face-outline" 
-              width="40" 
-              height="40" 
-              color="white" 
+            <Icon
+              icon="mdi:baby-face-outline"
+              width="40"
+              height="40"
+              color="white"
             />
           </div>
-          <h1 className="text-2xl font-bold text-[#333333] mb-1">AI育儿助手</h1>
-          <p className="text-[#666666] text-center max-w-xs">
+          <h1 className="text-h1 font-semibold text-primary-dark mb-1">
+            AI育儿助手
+          </h1>
+          <p className="text-gray-600 text-center max-w-xs text-base">
             您的贴心育儿伙伴，随时随地获取专业指导
           </p>
         </div>
 
         {/* 登录表单 */}
-        <div className="bg-white/80 backdrop-blur-md rounded-[24px] p-6 shadow-xl border border-white/50">
-          <h2 className="text-xl font-semibold text-[#333333] mb-6">欢迎回来</h2>
+        <div className="bg-white backdrop-blur-md rounded-dialog p-6 shadow-card border border-gray-300/20">
+          <h2 className="text-h2 font-semibold text-gray-700 mb-6">欢迎回来</h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-[#666666] mb-1"
+                className="block text-sm font-medium text-gray-600 mb-2"
               >
                 邮箱
               </label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4A90E2] z-10">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">
                   <Icon icon="mdi:email-outline" width="20" height="20" />
                 </div>
                 <Input
@@ -116,7 +118,7 @@ const Login: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="请输入邮箱"
                   clearable
-                  className="w-full h-[52px] pl-12 pr-4 text-base border border-[#E8F0FE] rounded-[12px] focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent transition-all duration-200 bg-white/70 focus:bg-white/90"
+                  className="w-full h-[48px] pl-12 pr-4 text-base-lg border border-gray-300 rounded-input focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-normal bg-white/70 focus:bg-white/90"
                 />
               </div>
             </div>
@@ -124,12 +126,12 @@ const Login: React.FC = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-[#666666] mb-1"
+                className="block text-sm font-medium text-gray-600 mb-2"
               >
                 密码
               </label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4A90E2] z-10">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">
                   <Icon icon="mdi:lock-outline" width="20" height="20" />
                 </div>
                 <Input
@@ -139,7 +141,7 @@ const Login: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="请输入密码"
                   clearable
-                  className="w-full h-[52px] pl-12 pr-4 text-base border border-[#E8F0FE] rounded-[12px] focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent transition-all duration-200 bg-white/70 focus:bg-white/90"
+                  className="w-full h-[48px] pl-12 pr-4 text-base-lg border border-gray-300 rounded-input focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-normal bg-white/70 focus:bg-white/90"
                 />
               </div>
             </div>
@@ -149,20 +151,20 @@ const Login: React.FC = () => {
                 <Checkbox
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
-                  className="text-[#4A90E2] focus:ring-[#4A90E2]"
+                  className="text-primary focus:ring-primary"
                 />
-                <span className="ml-2 text-sm text-[#666666]">记住我</span>
+                <span className="ml-2 text-sm text-gray-600">记住我</span>
               </div>
               <Link
                 to="/reset-password"
-                className="text-sm font-medium text-[#4A90E2] hover:text-[#3A7BC8] transition-colors"
+                className="text-sm font-medium text-text-link hover:text-primary-dark transition-colors"
               >
                 忘记密码？
               </Link>
             </div>
 
             {error && (
-              <div className="p-3 text-sm text-[#FF5252] bg-red-50 rounded-lg">
+              <div className="p-3 text-sm text-error bg-red-50 rounded-input">
                 {error}
               </div>
             )}
@@ -171,29 +173,29 @@ const Login: React.FC = () => {
               block
               type="submit"
               loading={loading}
-              className="relative w-full h-[56px] px-4 py-2 text-white bg-gradient-to-r from-[#4A90E2] to-[#7AADEE] rounded-[16px] shadow-lg shadow-[#4A90E2]/20 hover:shadow-xl hover:shadow-[#4A90E2]/30 transition-all duration-300 overflow-hidden group"
+              className="relative w-full h-[48px] px-4 py-2 text-white bg-gradient-to-r from-primary to-primary-light rounded-btn shadow-btn hover:shadow-xl hover:shadow-primary/30 transition-all duration-normal overflow-hidden group"
             >
-              <span className="relative z-10 flex items-center justify-center text-base font-medium">
+              <span className="relative z-10 flex items-center justify-center text-base-lg font-medium">
                 登录
-                <Icon 
-                  icon="mdi:arrow-right" 
-                  className="ml-2 transition-transform duration-300 group-hover:translate-x-1" 
-                  width="18" 
-                  height="18" 
+                <Icon
+                  icon="mdi:arrow-right"
+                  className="ml-2 transition-transform duration-normal group-hover:translate-x-1"
+                  width="18"
+                  height="18"
                 />
               </span>
               <div
-                className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-[#3A7BC8] to-[#7AADEE] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary-dark to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-normal"
                 style={{ filter: 'blur(10px)', transform: 'scale(1.2)' }}
               ></div>
             </Button>
           </form>
 
           <div className="text-center mt-6">
-            <span className="text-[#666666] text-sm">还没有账号？</span>
+            <span className="text-gray-600 text-sm">还没有账号？</span>
             <Link
               to="/register"
-              className="ml-1 text-sm font-medium text-[#4A90E2] hover:text-[#3A7BC8] transition-colors"
+              className="ml-1 text-sm font-medium text-text-link hover:text-primary-dark transition-colors"
             >
               立即注册
             </Link>
@@ -201,24 +203,24 @@ const Login: React.FC = () => {
         </div>
 
         {/* 底部特性介绍 */}
-        <div className="mt-8 grid grid-cols-3 gap-3">
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 text-center shadow-md">
-            <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-[#E8F0FE] flex items-center justify-center text-[#4A90E2]">
+        <div className="mt-8 grid grid-cols-3 gap-4">
+          <div className="bg-white/80 backdrop-blur-sm rounded-card p-3 text-center shadow-card">
+            <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-primary-light/20 flex items-center justify-center text-primary">
               <Icon icon="mdi:lightbulb-outline" width="16" height="16" />
             </div>
-            <p className="text-xs text-[#333333]">个性化建议</p>
+            <p className="text-sm text-gray-700">个性化</p>
           </div>
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 text-center shadow-md">
-            <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-[#E8F0FE] flex items-center justify-center text-[#4A90E2]">
+          <div className="bg-white/80 backdrop-blur-sm rounded-card p-3 text-center shadow-card">
+            <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-growth/20 flex items-center justify-center text-growth">
               <Icon icon="mdi:chart-line" width="16" height="16" />
             </div>
-            <p className="text-xs text-[#333333]">成长追踪</p>
+            <p className="text-sm text-gray-700">成长</p>
           </div>
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 text-center shadow-md">
-            <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-[#E8F0FE] flex items-center justify-center text-[#4A90E2]">
+          <div className="bg-white/80 backdrop-blur-sm rounded-card p-3 text-center shadow-card">
+            <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-orange-light/20 flex items-center justify-center text-orange">
               <Icon icon="mdi:book-open-variant" width="16" height="16" />
             </div>
-            <p className="text-xs text-[#333333]">知识库</p>
+            <p className="text-sm text-gray-700">智能</p>
           </div>
         </div>
       </div>

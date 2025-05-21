@@ -6,43 +6,43 @@ module.exports = {
       colors: {
         // 主色调
         primary: {
-          DEFAULT: '#4A90E2',
-          dark: '#3A7BC8',
-          light: '#7AADEE',
+          DEFAULT: '#FFB38A',
+          dark: '#FF9F73',
+          light: '#FFC9A8',
         },
         // 辅助色
         pink: {
           DEFAULT: '#F8BBD0',
-          dark: '#E091B1',
-          light: '#FFDCE8',
+          dark: '#F6A8C3',
+          light: '#FAD1E0',
         },
         // 强调色
         orange: {
-          DEFAULT: '#FF9800',
-          dark: '#E08600',
-          light: '#FFBB52',
+          DEFAULT: '#FFDA63',
+          dark: '#FFD040',
+          light: '#FFE58C',
         },
         // 功能色
-        success: '#4CAF50',
-        warning: '#FFC107',
-        error: '#FF5252',
-        info: '#2196F3',
+        success: '#66BB6A',
+        warning: '#FFA726',
+        error: '#EF5350',
+        info: '#56C0E0',
         // 语义色彩
-        feed: '#4A90E2', // 喂养记录
-        sleep: '#9C27B0', // 睡眠记录
-        diaper: '#8D6E63', // 排便记录
-        growth: '#4CAF50', // 成长测量
-        photo: '#FF9800', // 照片记录
+        feed: '#FFC9A8', // 喂养记录
+        sleep: '#C5CAE9', // 睡眠记录
+        diaper: '#BCAAA4', // 排便记录
+        growth: '#81C784', // 成长测量
+        photo: '#FFE58C', // 照片记录
         // 灰阶与中性色 - 标准Tailwind命名（数字越小越浅，越大越深）
         gray: {
-          50: '#FFFFFF', // 卡片背景
-          100: '#F5F7FA', // 页面背景
-          200: '#EEEEEE', // 浅色背景
-          300: '#CCCCCC', // 分割线、边框
-          400: '#AAAAAA', // 浅色文本
-          500: '#999999', // 辅助文本
-          600: '#666666', // 次要文本
-          700: '#333333', // 主要文本
+          50: '#FFFFFF', // 纯白（卡片背景）
+          100: '#FDFBF8', // 背景灰（页面背景 - 极浅暖白）
+          200: '#F5F5F5', // 浅色背景
+          300: '#E0E0E0', // 超浅灰（分割线、边框）
+          400: '#CCCCCC', // 浅色文本
+          500: '#999999', // 浅灰（辅助文本）
+          600: '#666666', // 中灰（次要文本）
+          700: '#333333', // 深灰（主要文本）
           800: '#222222', // 深色文本
           900: '#111111', // 最深文本
         },
@@ -52,27 +52,38 @@ module.exports = {
           secondary: '#666666', // 次要文本
           tertiary: '#999999', // 辅助文本
           white: '#FFFFFF', // 反色文本
-          link: '#4A90E2', // 链接文本
+          link: '#FF9F73', // 链接文本
           success: '#4CAF50', // 成功文本
           warning: '#FFC107', // 警告文本
           error: '#FF5252', // 错误文本
         },
         // 背景语义化颜色
         background: {
-          DEFAULT: '#F5F7FA', // 页面背景
+          DEFAULT: '#FDFBF8', // 页面背景（极浅暖白）
           card: '#FFFFFF', // 卡片背景
           active: '#F0F0F0', // 激活背景
           disabled: '#F5F5F5', // 禁用背景
         },
         // 渐变色（仅用于自定义class或插件）
         gradient: {
-          primary: ['#4A90E2', '#7AADEE'],
-          warm: ['#FF9800', '#FFBB52'],
-          soft: ['#F8BBD0', '#FFDCE8'],
+          primary: ['#FFB38A', '#FFC9A8'],
+          warm: ['#FFDA63', '#FFE58C'],
+          soft: ['#F8BBD0', '#FAD1E0'],
         },
       },
       fontFamily: {
-        sans: ['AlibabaPuHuiTi', 'system-ui', 'sans-serif'],
+        sans: [
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Oxygen',
+          'Ubuntu',
+          'Cantarell',
+          'Open Sans',
+          'Helvetica Neue',
+          'sans-serif',
+        ],
       },
       fontSize: {
         h1: ['24px', '32px'], // 大标题
