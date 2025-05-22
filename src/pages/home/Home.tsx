@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { EmptyState } from '@/components/ui';
+import { EmptyState, Button } from '@/components/ui';
 import { Icon } from '@iconify/react';
 import {
   SleepRecord,
   FeedingRecord,
   DiaperRecord,
   NoteRecord,
+  GrowthRecord,
 } from '@/components/record';
 import { getRecordsByChildId } from '@/api/records';
-import { getChildById } from '@/api/children';
+import { useChildrenStore } from '@/stores/children';
+import { useAppContext } from '@/contexts/useAppContext';
 import {
-  ChildResponseDto,
   SleepDetails,
   FeedingDetails,
   DiaperDetails,
   NoteDetails,
+  GrowthDetails,
   FeedingType,
 } from '@/types/models';
 
@@ -24,11 +26,18 @@ const Home: React.FC = () => {
   const [hasRecords, setHasRecords] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // 从AppContext获取应用状态
+  const { isAuthenticated, hasChildren, isLoading, refreshUserData } =
+    useAppContext();
+
+  // 从全局状态获取儿童信息
+  const { children, currentChild } = useChildrenStore();
+
   // 最近记录状态
   const [recentRecords, setRecentRecords] = useState<
     Array<{
       id: number;
-      type: 'sleep' | 'feeding' | 'diaper' | 'note';
+      type: 'sleep' | 'feeding' | 'diaper' | 'note' | 'growth';
       time: string;
       date: string;
       title: string;
@@ -40,34 +49,23 @@ const Home: React.FC = () => {
 
   // 记录弹窗状态
   const [activeModal, setActiveModal] = useState<
-    'sleep' | 'feeding' | 'diaper' | 'note' | null
+    'sleep' | 'feeding' | 'diaper' | 'note' | 'growth' | null
   >(null);
 
-  // 当前选中的儿童ID（实际项目中应该从状态管理或API获取）
-  const [currentChildId] = useState<number>(1); // 假设默认选中第一个孩子
-  // 当前儿童信息
-  const [currentChild, setCurrentChild] = useState<ChildResponseDto | null>(
-    null,
-  );
-
-  // 获取当前儿童信息
+  // 处理没有儿童的情况，引导用户创建儿童
   useEffect(() => {
-    const fetchChildInfo = async () => {
-      try {
-        const childData = await getChildById(currentChildId);
-        setCurrentChild(childData);
-      } catch (error) {
-        console.error('获取儿童信息失败:', error);
-      }
-    };
-
-    fetchChildInfo();
-  }, [currentChildId]);
+    if (isAuthenticated && !hasChildren && !isLoading) {
+      // 如果用户已登录但没有儿童，引导到添加儿童页面
+      navigate('/children/add');
+    }
+  }, [isAuthenticated, hasChildren, isLoading, navigate]);
 
   // 获取最近记录数据
   useEffect(() => {
-    fetchRecordList();
-  }, [currentChildId]);
+    if (currentChild) {
+      fetchRecordList();
+    }
+  }, [currentChild]); // 依赖于currentChild而不是currentChildId
 
   // 更新当前时间
   useEffect(() => {
@@ -128,7 +126,9 @@ const Home: React.FC = () => {
   };
 
   // 打开记录弹窗
-  const openRecordModal = (type: 'sleep' | 'feeding' | 'diaper' | 'note') => {
+  const openRecordModal = (
+    type: 'sleep' | 'feeding' | 'diaper' | 'note' | 'growth',
+  ) => {
     setActiveModal(type);
   };
 
@@ -137,11 +137,21 @@ const Home: React.FC = () => {
     setActiveModal(null);
   };
 
+  // 添加记录成功回调 - 刷新用户数据并重新获取最新记录
+  const handleRecordSuccess = async () => {
+    // 刷新儿童数据
+    await refreshUserData();
+    // 获取最新记录
+    await fetchRecordList();
+  };
+
   // 记录成功回调 - 重新获取最新数据
   const fetchRecordList = async () => {
+    if (!currentChild) return;
+
     try {
       // 重新获取最新记录数据
-      const response = await getRecordsByChildId(currentChildId);
+      const response = await getRecordsByChildId(currentChild.id);
 
       // 将API返回的数据转换为前端需要的格式
       const formattedRecords = response.slice(0, 5).map((record) => {
@@ -150,7 +160,8 @@ const Home: React.FC = () => {
           | 'sleep'
           | 'feeding'
           | 'diaper'
-          | 'note';
+          | 'note'
+          | 'growth';
 
         // 格式化时间
         const recordDate = new Date(record.recordTimestamp);
@@ -173,46 +184,126 @@ const Home: React.FC = () => {
         let details = '';
         let icon = '';
         let color = '';
-        // TODO: 根据记录类型 @model RecordDetails 生成
+        // 预先声明类型变量，避免在 switch case 中声明
+        let sleepDetails: SleepDetails;
+        let feedingDetails: FeedingDetails;
+        let diaperDetails: DiaperDetails;
+        let noteDetails: NoteDetails;
+        let growthDetails: GrowthDetails;
 
         switch (recordType) {
           case 'sleep':
-            title = record.details.title || '睡眠记录';
-            details = record.details.duration
-              ? `睡眠时长: ${Math.floor(record.details.duration / 60)}小时${
-                  record.details.duration % 60
-                }分钟`
+            sleepDetails = record.details as SleepDetails;
+            title = '睡眠记录';
+            details = sleepDetails.sleepDuration
+              ? `睡眠时长: ${sleepDetails.sleepDuration}${
+                  sleepDetails.quality
+                    ? ` 质量: ${
+                        sleepDetails.quality === 1
+                          ? '较差'
+                          : sleepDetails.quality === 3
+                          ? '一般'
+                          : sleepDetails.quality === 5
+                          ? '良好'
+                          : sleepDetails.quality
+                      }`
+                    : ''
+                }`
               : '睡眠记录';
+            if (sleepDetails.notes) {
+              details += ` - ${sleepDetails.notes}`;
+            }
             icon = 'mdi:sleep';
             color = '#7986CB';
             break;
           case 'feeding':
-            title = record.details.title || '喂养记录';
-            details = record.details.amount
-              ? `${record.details.amount}${record.details.unit || 'ml'} ${
-                  record.details.foodType || ''
+            feedingDetails = record.details as FeedingDetails;
+            title = '喂养记录';
+            details = feedingDetails.amount
+              ? `${feedingDetails.amount}${feedingDetails.unit || 'ml'} ${
+                  feedingDetails.feedingType === FeedingType.MILK
+                    ? '奶'
+                    : feedingDetails.feedingType === FeedingType.COMPLEMENTARY
+                    ? '辅食'
+                    : feedingDetails.feedingType === FeedingType.MEAL
+                    ? '正餐'
+                    : ''
                 }`
               : '喂养记录';
+            if (feedingDetails.notes) {
+              details += ` - ${feedingDetails.notes}`;
+            }
             icon = 'mdi:food-apple';
             color = '#FF9F73';
             break;
           case 'diaper':
-            title = record.details.title || '尿布记录';
-            details = record.details.diaperType
-              ? record.details.diaperType === 'wet'
+            diaperDetails = record.details as DiaperDetails;
+            title = '尿布记录';
+            details =
+              diaperDetails.hasUrine && diaperDetails.hasStool
+                ? '尿湿+便便'
+                : diaperDetails.hasUrine
                 ? '尿湿'
-                : record.details.diaperType === 'dirty'
+                : diaperDetails.hasStool
                 ? '便便'
-                : '混合'
-              : '尿布记录';
+                : '尿布记录';
+            if (diaperDetails.stoolColor || diaperDetails.stoolConsistency) {
+              details += ` - ${diaperDetails.stoolColor || ''}${
+                diaperDetails.stoolConsistency
+                  ? ` ${diaperDetails.stoolConsistency}`
+                  : ''
+              }`;
+            }
+            if (diaperDetails.notes) {
+              details += ` - ${diaperDetails.notes}`;
+            }
             icon = 'mdi:baby-face-outline';
             color = '#8D6E63';
             break;
           case 'note':
-            title = record.details.title || '笔记记录';
-            details = record.details.content || '笔记记录';
+            noteDetails = record.details as NoteDetails;
+            title = '随手记';
+            details = noteDetails.content || '随手记';
+            if (noteDetails.tags && noteDetails.tags.length > 0) {
+              details += ` - 标签: ${noteDetails.tags.join(', ')}`;
+            }
             icon = 'mdi:note-text-outline';
             color = '#FFD040';
+            break;
+          case 'growth':
+            growthDetails = record.details as GrowthDetails;
+            title = '成长记录';
+            details = '';
+
+            // 添加身高信息（如果有）
+            if (growthDetails.height !== undefined) {
+              details += `身高: ${growthDetails.height}厘米`;
+            }
+
+            // 添加体重信息（如果有）
+            if (growthDetails.weight !== undefined) {
+              details += details ? ' | ' : '';
+              details += `体重: ${growthDetails.weight}千克`;
+            }
+
+            // 添加头围信息（如果有）
+            if (growthDetails.headCircumference !== undefined) {
+              details += details ? ' | ' : '';
+              details += `头围: ${growthDetails.headCircumference}厘米`;
+            }
+
+            // 如果没有任何测量数据，显示默认文本
+            if (!details) {
+              details = '成长记录';
+            }
+
+            // 添加备注（如果有）
+            if (growthDetails.notes) {
+              details += ` - ${growthDetails.notes}`;
+            }
+
+            icon = 'mdi:chart-line';
+            color = '#81C784';
             break;
         }
 
@@ -244,36 +335,50 @@ const Home: React.FC = () => {
       id: 'sleep',
       name: '睡眠',
       icon: 'mdi:sleep',
-      color: 'bg-[#C5CAE9]/30', // 睡眠记录 - 柔和薰衣草紫
-      textColor: 'text-[#7986CB]',
-      borderColor: 'border-[#C5CAE9]',
+      bgColor: 'bg-[#EEF0FB]',
+      iconColor: 'text-[#7986CB]',
+      borderColor: 'border-[#7986CB]/10',
+      hoverBgColor: 'bg-[#DFE3F5]',
       description: '记录宝宝的睡眠时间和质量',
     },
     {
       id: 'feeding',
       name: '喂养',
       icon: 'mdi:food-apple',
-      color: 'bg-[#FFC9A8]/30', // 喂养记录 - 浅蜜桃色
-      textColor: 'text-[#FF9F73]',
-      borderColor: 'border-[#FFC9A8]',
+      bgColor: 'bg-[#FFF4EE]',
+      iconColor: 'text-[#FF9F73]',
+      borderColor: 'border-[#FF9F73]/10',
+      hoverBgColor: 'bg-[#FFE9DE]',
       description: '记录宝宝的喂养情况和食量',
     },
     {
       id: 'diaper',
       name: '尿布',
       icon: 'mdi:baby-face-outline',
-      color: 'bg-[#BCAAA4]/30', // 排便记录 - 柔和棕
-      textColor: 'text-[#8D6E63]',
-      borderColor: 'border-[#BCAAA4]',
+      bgColor: 'bg-[#F5F0EE]',
+      iconColor: 'text-[#8D6E63]',
+      borderColor: 'border-[#8D6E63]/10',
+      hoverBgColor: 'bg-[#EBE5E2]',
       description: '记录宝宝的排泄情况和频率',
     },
     {
-      id: 'notes',
-      name: '笔记',
+      id: 'growth',
+      name: '成长',
+      icon: 'mdi:chart-line',
+      bgColor: 'bg-[#F0F8F0]',
+      iconColor: 'text-[#81C784]',
+      borderColor: 'border-[#81C784]/10',
+      hoverBgColor: 'bg-[#E3F1E3]',
+      description: '记录宝宝的身高、体重和头围',
+    },
+    {
+      id: 'note',
+      name: '随手记',
       icon: 'mdi:note-text-outline',
-      color: 'bg-[#FFE58C]/30', // 照片记录 - 浅活力黄
-      textColor: 'text-[#FFD040]',
-      borderColor: 'border-[#FFE58C]',
+      bgColor: 'bg-[#FFFAED]',
+      iconColor: 'text-[#FFD040]',
+      borderColor: 'border-[#FFD040]/10',
+      hoverBgColor: 'bg-[#FFF5DB]',
       description: '记录宝宝的成长点滴和特殊事件',
     },
   ];
@@ -312,8 +417,11 @@ const Home: React.FC = () => {
             </div>
 
             {/* 儿童信息展示 - 右侧紧凑版 */}
-            {currentChild && (
-              <div className="px-3 py-2 bg-white/80 backdrop-blur-sm rounded-xl border border-[#FFB38A]/20 shadow-sm hover:shadow-md transition-shadow duration-300">
+            {currentChild ? (
+              <div
+                className="px-3 py-2 bg-white/80 backdrop-blur-sm rounded-xl border border-[#FFB38A]/20 shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                onClick={() => navigate('/children')}
+              >
                 <div className="flex flex-col items-end">
                   <div className="flex items-center justify-end mb-0.5">
                     <div className="flex items-center justify-center w-4 h-4 rounded-full bg-gradient-to-r from-[#FFB38A]/20 to-[#FFD040]/20 mr-1">
@@ -339,13 +447,19 @@ const Home: React.FC = () => {
                   </div>
                 </div>
               </div>
-            )}
+            ) : children.length > 0 ? (
+              <div className="px-3 py-2 bg-white/80 backdrop-blur-sm rounded-xl border border-[#FFB38A]/20 shadow-sm hover:shadow-md transition-shadow duration-300">
+                <Button variant="text" onClick={() => navigate('/children')}>
+                  选择儿童
+                </Button>
+              </div>
+            ) : null}
           </div>
         </div>
 
         <div className="px-5 pt-2 pb-4">
           {/* 最近记录展示 */}
-          <div className="mb-8">
+          <div className="mb-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="flex items-center text-lg font-semibold text-[#333333]">
                 <Icon icon="mdi:history" className="mr-2 text-[#FFB38A]" />
@@ -433,38 +547,57 @@ const Home: React.FC = () => {
             )}
           </div>
 
-          {/* 快捷记录区 */}
+          {/* 快捷记录区 - 优化UX设计 */}
           <div className="mb-8">
-            <h2 className="flex items-center mb-5 text-lg font-semibold text-[#333333]">
-              <Icon icon="mdi:lightning-bolt" className="mr-2 text-[#FFB38A]" />
-              快捷记录
+            <h2 className="flex items-center justify-between mb-4">
+              <div className="flex items-center text-lg font-semibold text-[#333333]">
+                <Icon
+                  icon="mdi:lightning-bolt"
+                  className="mr-2 text-[#FFB38A]"
+                />
+                快捷记录
+              </div>
             </h2>
-            <div className="grid grid-cols-4 gap-4">
-              {recordTypes.map((type) => (
-                <div
-                  key={type.id}
-                  className="flex flex-col items-center transition-all duration-300 cursor-pointer group"
-                  onClick={() => openRecordModal(type.id as any)}
-                >
+
+            <div className="bg-white rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-[#F0F0F0] overflow-hidden">
+              {/* 水平滑动卡片设计 */}
+              <div className="flex overflow-x-auto py-4 px-4 hide-scrollbar">
+                {recordTypes.map((type) => (
                   <div
-                    className={`flex items-center justify-center w-16 h-16 mb-3 rounded-full ${type.color} border ${type.borderColor} shadow-[0_4px_10px_rgba(0,0,0,0.03)] group-hover:shadow-[0_6px_14px_rgba(0,0,0,0.08)] transition-all duration-300 group-hover:scale-110`}
+                    key={type.id}
+                    className="flex-shrink-0 mr-3 last:mr-0 cursor-pointer"
+                    onClick={() => openRecordModal(type.id as any)}
                   >
-                    <Icon
-                      icon={type.icon}
-                      className={`text-2xl ${type.textColor} transition-transform duration-300 group-hover:scale-110`}
-                    />
+                    {/* 精简卡片设计 */}
+                    <div
+                      className={`flex flex-col items-center px-3 py-3 ${type.bgColor} rounded-xl border ${type.borderColor} transition-all duration-200 hover:${type.hoverBgColor} hover:shadow-sm min-w-[64px]`}
+                    >
+                      {/* 图标 */}
+                      <div className="flex items-center justify-center w-8 h-8 mb-1">
+                        <Icon
+                          icon={type.icon}
+                          className={`text-xl ${type.iconColor}`}
+                        />
+                      </div>
+
+                      {/* 文字 */}
+                      <span
+                        className={`text-xs font-medium ${type.iconColor} text-center`}
+                      >
+                        {type.name}
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-sm font-medium text-[#333333] group-hover:text-[#FF9F73] transition-colors duration-300">
-                    {type.name}
-                  </span>
-                </div>
-              ))}
+                ))}
+              </div>
+
+              {/* 添加全局类来隐藏滑动条 */}
             </div>
           </div>
 
           {/* AI 助手入口 */}
           <div>
-            <h2 className="flex items-center mb-5 text-lg font-semibold text-[#333333]">
+            <h2 className="flex items-center mb-4 text-lg font-semibold text-[#333333]">
               <Icon icon="mdi:robot" className="mr-2 text-[#FFB38A]" />
               咨询萌芽
             </h2>
@@ -509,34 +642,41 @@ const Home: React.FC = () => {
         <div className="safe-bottom"></div>
       </div>
 
-      {/* 记录弹窗组件 */}
-      <SleepRecord
-        isOpen={activeModal === 'sleep'}
-        onClose={closeRecordModal}
-        childId={currentChildId}
-        onSuccess={fetchRecordList}
-      />
-
-      <FeedingRecord
-        isOpen={activeModal === 'feeding'}
-        onClose={closeRecordModal}
-        childId={currentChildId}
-        onSuccess={fetchRecordList}
-      />
-
-      <DiaperRecord
-        isOpen={activeModal === 'diaper'}
-        onClose={closeRecordModal}
-        childId={currentChildId}
-        onSuccess={fetchRecordList}
-      />
-
-      <NoteRecord
-        isOpen={activeModal === 'note'}
-        onClose={closeRecordModal}
-        childId={currentChildId}
-        onSuccess={fetchRecordList}
-      />
+      {/* 记录弹窗组件 - 使用isOpen属性控制显示 */}
+      {currentChild && (
+        <>
+          <SleepRecord
+            isOpen={activeModal === 'sleep'}
+            childId={currentChild.id}
+            onClose={closeRecordModal}
+            onSuccess={handleRecordSuccess}
+          />
+          <FeedingRecord
+            isOpen={activeModal === 'feeding'}
+            childId={currentChild.id}
+            onClose={closeRecordModal}
+            onSuccess={handleRecordSuccess}
+          />
+          <DiaperRecord
+            isOpen={activeModal === 'diaper'}
+            childId={currentChild.id}
+            onClose={closeRecordModal}
+            onSuccess={handleRecordSuccess}
+          />
+          <GrowthRecord
+            isOpen={activeModal === 'growth'}
+            childId={currentChild.id}
+            onClose={closeRecordModal}
+            onSuccess={handleRecordSuccess}
+          />
+          <NoteRecord
+            isOpen={activeModal === 'note'}
+            childId={currentChild.id}
+            onClose={closeRecordModal}
+            onSuccess={handleRecordSuccess}
+          />
+        </>
+      )}
     </div>
   );
 };

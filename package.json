@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@iconify/react": "^6.0.0",
     "axios": "^1.8.4",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
@@ -21,7 +22,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
-    "@iconify/react": "^6.0.0",
     "@types/node": "^22.15.18",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",

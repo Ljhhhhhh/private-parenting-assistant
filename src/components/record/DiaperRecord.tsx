@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import RecordModal from './RecordModal';
 import { createRecord } from '@/api/records';
-import { CreateRecordDto } from '@/types/models';
+import { CreateRecordDto, RecordType, DiaperDetails } from '@/types/models';
 
 interface DiaperRecordProps {
   isOpen: boolean;
@@ -25,11 +25,16 @@ const DiaperRecord: React.FC<DiaperRecordProps> = ({
     new Date().toISOString().slice(0, 16),
   );
 
-  // 尿布类型
-  const [diaperType, setDiaperType] = useState<'wet' | 'dirty' | 'both'>('wet');
+  // 尿布状态
+  const [hasUrine, setHasUrine] = useState<boolean>(true);
+  const [hasStool, setHasStool] = useState<boolean>(false);
 
-  // 状态
-  const [condition, setCondition] = useState<'normal' | 'abnormal'>('normal');
+  // 便便颜色和质地
+  const [stoolColor, setStoolColor] = useState<string>('');
+  const [stoolConsistency, setStoolConsistency] = useState<string>('');
+
+  // 皮疹状态
+  const [rashStatus, setRashStatus] = useState<string>('');
 
   // 备注
   const [notes, setNotes] = useState<string>('');
@@ -37,40 +42,67 @@ const DiaperRecord: React.FC<DiaperRecordProps> = ({
   // 提交状态
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // 尿布类型选项
-  const diaperTypeOptions = [
-    { value: 'wet', label: '尿尿', icon: 'mdi:water-outline' },
-    { value: 'dirty', label: '便便', icon: 'mdi:emoticon' },
-    { value: 'both', label: '混合', icon: 'mdi:water-plus' },
+  // 便便颜色选项
+  // const stoolColorOptions = [
+  //   { value: '黄色', label: '黄色', color: '#FFD700' },
+  //   { value: '绿色', label: '绿色', color: '#32CD32' },
+  //   { value: '褐色', label: '褐色', color: '#8B4513' },
+  //   { value: '黑色', label: '黑色', color: '#2F4F4F' },
+  //   { value: '白色', label: '白色', color: '#F5F5F5' },
+  // ];
+
+  // 便便质地选项
+  const stoolConsistencyOptions = [
+    { value: '软', label: '软' },
+    { value: '硬', label: '硬' },
+    { value: '水状', label: '水状' },
+    { value: '糊状', label: '糊状' },
   ];
 
-  // 状态选项
-  const conditionOptions = [
-    { value: 'normal', label: '正常', icon: 'mdi:check-circle-outline' },
-    { value: 'abnormal', label: '异常', icon: 'mdi:alert-circle-outline' },
-  ];
+  // 皮疹状态选项
+  // const rashStatusOptions = [
+  //   { value: '无', label: '无', icon: 'mdi:check-circle-outline' },
+  //   { value: '轻微', label: '轻微', icon: 'mdi:alert-circle-outline' },
+  //   { value: '严重', label: '严重', icon: 'mdi:alert-outline' },
+  // ];
 
   // 提交记录
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
 
+      const details: DiaperDetails = {
+        hasUrine,
+        hasStool,
+        notes: notes.trim(),
+      };
+
+      // 只有当有便便时才添加便便相关信息
+      if (hasStool) {
+        if (stoolColor) details.stoolColor = stoolColor;
+        if (stoolConsistency) details.stoolConsistency = stoolConsistency;
+      }
+
+      // 只有选择了皮疹状态时才添加
+      if (rashStatus && rashStatus !== '无') {
+        details.rashStatus = rashStatus;
+      }
+
       const recordData: CreateRecordDto = {
         childId,
-        recordType: 'Diaper',
+        recordType: RecordType.DIAPER,
         recordTimestamp: new Date(recordTime).toISOString(),
-        details: {
-          diaperType,
-          condition,
-          notes: notes.trim(),
-        },
+        details,
       };
 
       await createRecord(recordData);
 
       // 重置表单
-      setDiaperType('wet');
-      setCondition('normal');
+      setHasUrine(true);
+      setHasStool(false);
+      setStoolColor('');
+      setStoolConsistency('');
+      setRashStatus('');
       setNotes('');
 
       // 关闭弹窗
@@ -101,54 +133,117 @@ const DiaperRecord: React.FC<DiaperRecordProps> = ({
               type="datetime-local"
               value={recordTime}
               onChange={(e) => setRecordTime(e.target.value)}
-              className="w-full p-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BCAAA4] focus:ring-offset-0"
+              className="w-full p-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BCAAA4] focus:ring-offset-0"
               style={{ colorScheme: 'light' }}
             />
           </div>
         </div>
 
-        {/* 尿布类型 */}
+        {/* 尿布状态 */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-[#333333]">
-            尿布类型
+            尿布状态
           </label>
           <div className="flex space-x-3">
-            {diaperTypeOptions.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => setDiaperType(option.value as any)}
-                className={`flex-1 flex flex-col items-center justify-center p-3 border rounded-lg transition-colors ${
-                  diaperType === option.value
-                    ? 'bg-[#BCAAA4]/20 border-[#BCAAA4] text-[#8D6E63]'
-                    : 'border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5]'
+            <button
+              onClick={() => setHasUrine(!hasUrine)}
+              className={`flex-1 flex flex-col items-center justify-center p-3 border rounded-lg transition-colors ${
+                hasUrine
+                  ? 'bg-[#BCAAA4]/20 border-[#BCAAA4] text-[#8D6E63]'
+                  : 'border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5]'
+              }`}
+            >
+              <Icon
+                icon="mdi:water-outline"
+                className={`text-2xl mb-1 ${
+                  hasUrine ? 'text-[#8D6E63]' : 'text-[#999999]'
                 }`}
-              >
-                <Icon
-                  icon={option.icon}
-                  className={`text-2xl mb-1 ${
-                    diaperType === option.value
-                      ? 'text-[#8D6E63]'
-                      : 'text-[#999999]'
-                  }`}
-                />
-                <span>{option.label}</span>
-              </button>
-            ))}
+              />
+              <span>尿尿 {hasUrine ? '✓' : ''}</span>
+            </button>
+            <button
+              onClick={() => setHasStool(!hasStool)}
+              className={`flex-1 flex flex-col items-center justify-center p-3 border rounded-lg transition-colors ${
+                hasStool
+                  ? 'bg-[#BCAAA4]/20 border-[#BCAAA4] text-[#8D6E63]'
+                  : 'border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5]'
+              }`}
+            >
+              <Icon
+                icon="mdi:emoticon"
+                className={`text-2xl mb-1 ${
+                  hasStool ? 'text-[#8D6E63]' : 'text-[#999999]'
+                }`}
+              />
+              <span>便便 {hasStool ? '✓' : ''}</span>
+            </button>
           </div>
         </div>
 
-        {/* 状态 */}
-        <div className="space-y-2">
+        {/* 便便颜色 - 只在有便便时显示 */}
+        {/* {hasStool && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[#333333]">
+              便便颜色
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {stoolColorOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setStoolColor(option.value)}
+                  className={`px-3 py-1.5 rounded-full flex items-center transition-colors ${
+                    stoolColor === option.value
+                      ? 'bg-[#BCAAA4]/20 border border-[#BCAAA4] text-[#8D6E63]'
+                      : 'bg-[#F5F5F5] text-[#666666] hover:bg-[#E5E5E5]'
+                  }`}
+                >
+                  <div
+                    className="w-3 h-3 rounded-full mr-1"
+                    style={{ backgroundColor: option.color }}
+                  ></div>
+                  <span>{option.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )} */}
+
+        {/* 便便质地 - 只在有便便时显示 */}
+        {hasStool && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[#333333]">
+              便便质地
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {stoolConsistencyOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setStoolConsistency(option.value)}
+                  className={`px-3 py-1.5 rounded-full transition-colors ${
+                    stoolConsistency === option.value
+                      ? 'bg-[#BCAAA4]/20 border border-[#BCAAA4] text-[#8D6E63]'
+                      : 'bg-[#F5F5F5] text-[#666666] hover:bg-[#E5E5E5]'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 皮疹状态 */}
+        {/* <div className="space-y-2">
           <label className="block text-sm font-medium text-[#333333]">
-            状态
+            皮疹状态
           </label>
           <div className="flex space-x-3">
-            {conditionOptions.map((option) => (
+            {rashStatusOptions.map((option) => (
               <button
                 key={option.value}
-                onClick={() => setCondition(option.value as any)}
+                onClick={() => setRashStatus(option.value)}
                 className={`flex-1 flex flex-col items-center justify-center p-3 border rounded-lg transition-colors ${
-                  condition === option.value
+                  rashStatus === option.value
                     ? 'bg-[#BCAAA4]/20 border-[#BCAAA4] text-[#8D6E63]'
                     : 'border-[#E5E5E5] text-[#666666] hover:bg-[#F5F5F5]'
                 }`}
@@ -156,7 +251,7 @@ const DiaperRecord: React.FC<DiaperRecordProps> = ({
                 <Icon
                   icon={option.icon}
                   className={`text-2xl mb-1 ${
-                    condition === option.value
+                    rashStatus === option.value
                       ? 'text-[#8D6E63]'
                       : 'text-[#999999]'
                   }`}
@@ -165,7 +260,7 @@ const DiaperRecord: React.FC<DiaperRecordProps> = ({
               </button>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* 备注 */}
         <div className="space-y-2">
@@ -176,7 +271,7 @@ const DiaperRecord: React.FC<DiaperRecordProps> = ({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="添加备注..."
-            className="w-full p-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BCAAA4] focus:ring-offset-0 resize-none h-24"
+            className="w-full p-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#BCAAA4] focus:ring-offset-0 resize-none h-24"
           />
         </div>
 
