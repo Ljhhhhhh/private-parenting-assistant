@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button, Input, Checkbox } from '@/components/ui';
 import { useUserStore } from '@/stores/user';
 import { Icon } from '@iconify/react';
+import logoImage from '@/assets/logo.png';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -69,46 +70,46 @@ const Login: React.FC = () => {
       {/* 波浪背景 */}
       <div
         id="wave-container"
-        className="absolute bottom-0 left-0 w-full overflow-hidden pointer-events-none z-0 h-40"
+        className="overflow-hidden absolute bottom-0 left-0 z-0 w-full h-40 pointer-events-none"
       />
 
       {/* 主内容区域 */}
-      <div className="w-full max-w-md z-10 relative">
+      <div className="relative z-10 w-full max-w-md">
         {/* Logo和标题 */}
         <div className="flex flex-col items-center mb-8">
           <div
             ref={logoRef}
-            className="w-20 h-20 rounded-full bg-primary flex items-center justify-center mb-4 shadow-lg"
+            className="flex overflow-hidden justify-center items-center mb-4 w-24 h-24"
           >
-            <Icon
-              icon="mdi:baby-face-outline"
-              width="40"
-              height="40"
-              color="white"
+            <img
+              src={logoImage}
+              alt="萌芽育儿 Logo"
+              className="object-cover w-full h-full"
             />
           </div>
-          <h1 className="text-h1 font-semibold text-primary-dark mb-1">
-            AI育儿助手
+
+          <h1 className="mb-1 font-semibold text-h1 text-primary-dark">
+            萌芽育儿
           </h1>
-          <p className="text-gray-600 text-center max-w-xs text-base">
-            您的贴心育儿伙伴，随时随地获取专业指导
+          <p className="max-w-xs text-base text-center text-gray-600">
+            萌芽育儿秒回应，带娃从此不抓瞎
           </p>
         </div>
 
         {/* 登录表单 */}
-        <div className="bg-white backdrop-blur-md rounded-dialog p-6 shadow-card border border-gray-300/20">
-          <h2 className="text-h2 font-semibold text-gray-700 mb-6">欢迎回来</h2>
+        <div className="p-6 bg-white border backdrop-blur-md rounded-dialog shadow-card border-gray-300/20">
+          <h2 className="mb-6 font-semibold text-gray-700 text-h2">欢迎回来</h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-600 mb-2"
+                className="block mb-2 text-sm font-medium text-gray-600"
               >
                 邮箱
               </label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">
+                <div className="absolute left-4 top-1/2 z-10 -translate-y-1/2 text-primary">
                   <Icon icon="mdi:email-outline" width="20" height="20" />
                 </div>
                 <Input
@@ -126,12 +127,12 @@ const Login: React.FC = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-600 mb-2"
+                className="block mb-2 text-sm font-medium text-gray-600"
               >
                 密码
               </label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">
+                <div className="absolute left-4 top-1/2 z-10 -translate-y-1/2 text-primary">
                   <Icon icon="mdi:lock-outline" width="20" height="20" />
                 </div>
                 <Input
@@ -146,7 +147,7 @@ const Login: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex justify-between items-center">
               <div className="flex items-center">
                 <Checkbox
                   checked={remember}
@@ -157,14 +158,14 @@ const Login: React.FC = () => {
               </div>
               <Link
                 to="/reset-password"
-                className="text-sm font-medium text-text-link hover:text-primary-dark transition-colors"
+                className="text-sm font-medium transition-colors text-text-link hover:text-primary-dark"
               >
                 忘记密码？
               </Link>
             </div>
 
             {error && (
-              <div className="p-3 text-sm text-error bg-red-50 rounded-input">
+              <div className="p-3 text-sm bg-red-50 text-error rounded-input">
                 {error}
               </div>
             )}
@@ -175,7 +176,7 @@ const Login: React.FC = () => {
               loading={loading}
               className="relative w-full h-[48px] px-4 py-2 text-white bg-gradient-to-r from-primary to-primary-light rounded-btn shadow-btn hover:shadow-xl hover:shadow-primary/30 transition-all duration-normal overflow-hidden group"
             >
-              <span className="relative z-10 flex items-center justify-center text-base-lg font-medium">
+              <span className="flex relative z-10 justify-center items-center font-medium text-base-lg">
                 登录
                 <Icon
                   icon="mdi:arrow-right"
@@ -185,17 +186,17 @@ const Login: React.FC = () => {
                 />
               </span>
               <div
-                className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary-dark to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-normal"
+                className="absolute top-0 left-0 w-full h-full bg-gradient-to-r opacity-0 transition-opacity from-primary-dark to-primary group-hover:opacity-100 duration-normal"
                 style={{ filter: 'blur(10px)', transform: 'scale(1.2)' }}
               ></div>
             </Button>
           </form>
 
-          <div className="text-center mt-6">
-            <span className="text-gray-600 text-sm">还没有账号？</span>
+          <div className="mt-6 text-center">
+            <span className="text-sm text-gray-600">还没有账号？</span>
             <Link
               to="/register"
-              className="ml-1 text-sm font-medium text-text-link hover:text-primary-dark transition-colors"
+              className="ml-1 text-sm font-medium transition-colors text-text-link hover:text-primary-dark"
             >
               立即注册
             </Link>
@@ -203,24 +204,24 @@ const Login: React.FC = () => {
         </div>
 
         {/* 底部特性介绍 */}
-        <div className="mt-8 grid grid-cols-3 gap-4">
-          <div className="bg-white/80 backdrop-blur-sm rounded-card p-3 text-center shadow-card">
-            <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-primary-light/20 flex items-center justify-center text-primary">
+        <div className="grid grid-cols-3 gap-4 mt-8">
+          <div className="p-3 text-center backdrop-blur-sm bg-white/80 rounded-card shadow-card">
+            <div className="flex justify-center items-center mx-auto mb-2 w-8 h-8 rounded-full bg-primary-light/20 text-primary">
               <Icon icon="mdi:lightbulb-outline" width="16" height="16" />
             </div>
             <p className="text-sm text-gray-700">个性化</p>
           </div>
-          <div className="bg-white/80 backdrop-blur-sm rounded-card p-3 text-center shadow-card">
-            <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-growth/20 flex items-center justify-center text-growth">
+          <div className="p-3 text-center backdrop-blur-sm bg-white/80 rounded-card shadow-card">
+            <div className="flex justify-center items-center mx-auto mb-2 w-8 h-8 rounded-full bg-growth/20 text-growth">
               <Icon icon="mdi:chart-line" width="16" height="16" />
             </div>
-            <p className="text-sm text-gray-700">成长</p>
+            <p className="text-sm text-gray-700">秒回应</p>
           </div>
-          <div className="bg-white/80 backdrop-blur-sm rounded-card p-3 text-center shadow-card">
-            <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-orange-light/20 flex items-center justify-center text-orange">
+          <div className="p-3 text-center backdrop-blur-sm bg-white/80 rounded-card shadow-card">
+            <div className="flex justify-center items-center mx-auto mb-2 w-8 h-8 rounded-full bg-orange-light/20 text-orange">
               <Icon icon="mdi:book-open-variant" width="16" height="16" />
             </div>
-            <p className="text-sm text-gray-700">智能</p>
+            <p className="text-sm text-gray-700">随时记</p>
           </div>
         </div>
       </div>

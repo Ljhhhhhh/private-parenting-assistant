@@ -87,8 +87,70 @@ export interface UpdateChildDto {
   moreInfo?: string;
 }
 
-// 记录类型
-export type RecordType = 'Sleep' | 'Feeding' | 'Diaper' | 'Note';
+// 记录类型枚举
+export enum RecordType {
+  SLEEP = 'Sleep',
+  FEEDING = 'Feeding',
+  DIAPER = 'Diaper',
+  GROWTH = 'Growth',
+  NOTE = 'Note',
+}
+
+// 喂食类型枚举
+export enum FeedingType {
+  MILK = 'milk',
+  COMPLEMENTARY = 'complementary',
+  MEAL = 'meal',
+}
+
+// 睡眠记录详情
+export interface SleepDetails {
+  sleepDuration: string;
+  quality?: number;
+  environment?: string;
+  notes?: string;
+}
+
+// 喂食记录详情
+export interface FeedingDetails {
+  feedingType: FeedingType;
+  amount: number;
+  unit?: 'ml' | 'g';
+  reaction?: string;
+  notes?: string;
+}
+
+// 尿布记录详情
+export interface DiaperDetails {
+  hasUrine: boolean;
+  hasStool: boolean;
+  stoolColor?: string;
+  stoolConsistency?: string;
+  rashStatus?: string;
+  notes?: string;
+}
+
+// 笔记记录详情
+export interface NoteDetails {
+  content: string;
+  tags?: string[];
+}
+
+// 成长趋势记录详情
+export interface GrowthDetails {
+  height?: number;
+  weight?: number;
+  headCircumference?: number;
+  notes?: string;
+}
+
+// 记录详情联合类型
+type RecordDetails =
+  | SleepDetails
+  | FeedingDetails
+  | DiaperDetails
+  | NoteDetails
+  | GrowthDetails;
 
 export interface CreateRecordDto {
   /** 儿童ID */
@@ -98,7 +160,7 @@ export interface CreateRecordDto {
   /** 记录时间戳 */
   recordTimestamp: string;
   /** 记录详情 */
-  details: Record<string, any>;
+  details: RecordDetails;
 }
 
 export interface RecordResponseDto {
@@ -109,7 +171,7 @@ export interface RecordResponseDto {
   /** 记录类型 */
   recordType: RecordType;
   /** 记录详情 */
-  details: Record<string, any>;
+  details: RecordDetails;
   /** 记录时间戳 */
   recordTimestamp: string;
   /** 记录创建时间 */
@@ -124,7 +186,7 @@ export interface UpdateRecordDto {
   /** 记录时间戳 */
   recordTimestamp?: string;
   /** 记录详情 */
-  details?: Record<string, any>;
+  details?: Partial<RecordDetails>;
 }
 
 // 聊天相关类型

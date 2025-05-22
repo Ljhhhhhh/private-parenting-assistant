@@ -5,6 +5,7 @@ import type { FormInstance } from '@/components/ui';
 import { useUserStore } from '@/stores/user';
 import { useChildrenStore } from '@/stores/children';
 import { Icon } from '@iconify/react';
+import logoImage from '@/assets/logo.png';
 
 const Register: React.FC = () => {
   const formRef = useRef<FormInstance | null>(null);
@@ -25,10 +26,10 @@ const Register: React.FC = () => {
     const createWaveEffect = () => {
       const container = document.getElementById('wave-container');
       if (!container) return;
-      
+
       // 清除现有元素
       container.innerHTML = '';
-      
+
       // 创建波浪元素
       for (let i = 0; i < 3; i++) {
         const wave = document.createElement('div');
@@ -37,9 +38,9 @@ const Register: React.FC = () => {
         container.appendChild(wave);
       }
     };
-    
+
     createWaveEffect();
-    
+
     return () => {
       const container = document.getElementById('wave-container');
       if (container) container.innerHTML = '';
@@ -110,39 +111,36 @@ const Register: React.FC = () => {
       {/* 波浪背景 */}
       <div
         id="wave-container"
-        className="absolute bottom-0 left-0 w-full overflow-hidden pointer-events-none z-0 h-40"
+        className="overflow-hidden absolute bottom-0 left-0 z-0 w-full h-40 pointer-events-none"
       />
-      
+
       {/* 主内容区域 */}
-      <div className="w-full max-w-md z-10 relative">
+      <div className="relative z-10 w-full max-w-md">
         {/* Logo和标题 */}
         <div className="flex flex-col items-center mb-8">
-          <div
-            className="w-20 h-20 rounded-full bg-primary flex items-center justify-center mb-4 shadow-lg"
-          >
-            <Icon 
-              icon="mdi:baby-face-outline" 
-              width="40" 
-              height="40" 
-              color="white" 
+          <div className="flex overflow-hidden justify-center items-center mb-4 w-24 h-24">
+            <img
+              src={logoImage}
+              alt="萌芽育儿 Logo"
+              className="object-cover w-full h-full"
             />
           </div>
-          <h1 className="text-h1 font-semibold text-primary-dark mb-1">
-            AI育儿助手
+          <h1 className="mb-1 font-semibold text-h1 text-primary-dark">
+            萌芽育儿
           </h1>
-          <p className="text-gray-600 text-center max-w-xs text-base">
-            欢迎加入AI育儿助手，开启智能育儿之旅
+          <p className="max-w-xs text-base text-center text-gray-600">
+            萌芽育儿秒回应，带娃从此不抓瞎
           </p>
         </div>
-        
+
         {/* 注册表单 */}
-        <div className="bg-white backdrop-blur-md rounded-dialog p-6 shadow-card border border-gray-300/20">
-          <h2 className="text-h2 font-semibold text-gray-700 mb-6">创建账户</h2>
+        <div className="p-6 bg-white border backdrop-blur-md rounded-dialog shadow-card border-gray-300/20">
+          <h2 className="mb-6 font-semibold text-gray-700 text-h2">创建账户</h2>
 
           <Form form={formRef} layout="vertical" onFinish={handleFinish}>
             {/* 邮箱输入 */}
             <div>
-              <label className="block text-gray-600 text-base mb-2 font-medium">
+              <label className="block mb-2 text-base font-medium text-gray-600">
                 邮箱
               </label>
               <Form.Item
@@ -153,7 +151,7 @@ const Register: React.FC = () => {
                 ]}
               >
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">
+                  <div className="absolute left-4 top-1/2 z-10 -translate-y-1/2 text-primary">
                     <Icon icon="mdi:email-outline" width="20" height="20" />
                   </div>
                   <Input
@@ -168,7 +166,7 @@ const Register: React.FC = () => {
 
             {/* 密码输入 */}
             <div>
-              <label className="block text-gray-600 text-base mb-2 font-medium">
+              <label className="block mb-2 text-base font-medium text-gray-600">
                 密码
               </label>
               <Form.Item
@@ -182,7 +180,7 @@ const Register: React.FC = () => {
                 ]}
               >
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">
+                  <div className="absolute left-4 top-1/2 z-10 -translate-y-1/2 text-primary">
                     <Icon icon="mdi:lock-outline" width="20" height="20" />
                   </div>
                   <Input
@@ -197,7 +195,7 @@ const Register: React.FC = () => {
 
             {/* 验证码输入 */}
             <div>
-              <label className="block text-gray-600 text-base mb-2 font-medium">
+              <label className="block mb-2 text-base font-medium text-gray-600">
                 验证码
               </label>
               <Form.Item
@@ -207,9 +205,13 @@ const Register: React.FC = () => {
                   { len: 6, message: '验证码为6位数字' },
                 ]}
               >
-                <div className="relative flex">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">
-                    <Icon icon="mdi:shield-check-outline" width="20" height="20" />
+                <div className="flex relative">
+                  <div className="absolute left-4 top-1/2 z-10 -translate-y-1/2 text-primary">
+                    <Icon
+                      icon="mdi:shield-check-outline"
+                      width="20"
+                      height="20"
+                    />
                   </div>
                   <Input
                     placeholder="请输入验证码"
@@ -247,11 +249,11 @@ const Register: React.FC = () => {
                     );
                   }}
                 />
-                <span className="text-gray-600 text-sm ml-2">
+                <span className="ml-2 text-sm text-gray-600">
                   我已阅读并同意
                   <Link
                     to="/agreement"
-                    className="text-text-link inline-block ml-1"
+                    className="inline-block ml-1 text-text-link"
                   >
                     《用户协议与隐私政策》
                   </Link>
@@ -273,23 +275,28 @@ const Register: React.FC = () => {
                 });
               }}
             >
-              <span className="relative z-10 flex items-center justify-center text-base-lg font-medium">
+              <span className="flex relative z-10 justify-center items-center font-medium text-base-lg">
                 开始育儿之旅
-                <Icon icon="mdi:arrow-right" width="18" height="18" className="ml-2 transition-transform duration-normal group-hover:translate-x-1" />
+                <Icon
+                  icon="mdi:arrow-right"
+                  width="18"
+                  height="18"
+                  className="ml-2 transition-transform duration-normal group-hover:translate-x-1"
+                />
               </span>
               <div
-                className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary-dark to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-normal"
+                className="absolute top-0 left-0 w-full h-full bg-gradient-to-r opacity-0 transition-opacity from-primary-dark to-primary group-hover:opacity-100 duration-normal"
                 style={{ filter: 'blur(10px)', transform: 'scale(1.2)' }}
               ></div>
             </Button>
           </Form>
 
           {/* 已有账号提示 */}
-          <div className="text-center mt-6">
-            <span className="text-gray-600 text-sm">已有账号？</span>
-            <Link 
-              to="/login" 
-              className="ml-1 text-sm font-medium text-text-link hover:text-primary-dark transition-colors"
+          <div className="mt-6 text-center">
+            <span className="text-sm text-gray-600">已有账号？</span>
+            <Link
+              to="/login"
+              className="ml-1 text-sm font-medium transition-colors text-text-link hover:text-primary-dark"
             >
               去登录
             </Link>
@@ -345,7 +352,7 @@ const Register: React.FC = () => {
             background: linear-gradient(to bottom, transparent, rgba(255, 152, 0, 0.1));
             animation-duration: 20s;
           }
-          `
+          `,
         }}
       />
     </div>

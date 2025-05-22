@@ -19,6 +19,7 @@ import TabBar from './navigation/TabBar';
 // 导入数据展示组件
 import Tag from './data-display/Tag';
 import Progress from './data-display/Progress';
+import EmptyState from './EmptyState';
 
 // 导入布局组件
 import Card from './layout/Card';
@@ -49,6 +50,7 @@ export {
   // 数据展示组件
   Tag,
   Progress,
+  EmptyState,
 
   // 布局组件
   Card,
@@ -67,5 +69,5 @@ export const Feedback = {
   DotLoading,
 };
 export const Navigation = { NavBar, TabBar };
-export const DataDisplay = { Tag, Progress };
+export const DataDisplay = { Tag, Progress, EmptyState };
 export const Layout = { Card, SafeArea };
