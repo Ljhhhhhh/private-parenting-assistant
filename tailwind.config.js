@@ -107,6 +107,7 @@ module.exports = {
         6: '24px', // 大间距
         8: '32px', // 超大间距
         10: '40px', // 页面间距
+        safe: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', // 底部安全区域 + 额外边距
       },
       screens: {
         xs: '375px',
@@ -230,5 +231,10 @@ module.exports = {
     'dark:bg-gray-800',
     'dark:text-gray-100',
     'dark:text-white',
+    // 安全区域
+    'pb-safe',
+    'pt-safe',
+    'pl-safe',
+    'pr-safe',
   ],
 };

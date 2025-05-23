@@ -1,11 +1,13 @@
 import { useUserStore } from './user';
 import { useChildrenStore } from './children';
+import { useAppStore } from './app';
+import { storeOrchestrator } from './storeOrchestrator';
 
 // 导出所有store
-export { useUserStore, useChildrenStore };
+export { useUserStore, useChildrenStore, useAppStore };
 
-// 在开发环境下，将userStore暴露到window对象
-// 这样request.ts中的刷新token逻辑可以访问到userStore
-if (typeof window !== 'undefined') {
-  (window as any).useUserStore = useUserStore;
-}
+// 导出store协调器
+export { storeOrchestrator };
+
+// 导出store协调器的类型（如果需要的话）
+export type { StoreOrchestrator } from './storeOrchestrator';

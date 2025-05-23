@@ -224,6 +224,156 @@ export interface ChatStreamResponseDto {
   error?: string;
 }
 
+// 会话管理相关类型
+export interface CreateConversationDto {
+  /** 会话标题（可选，如果不提供则使用初始消息自动生成） */
+  title?: string;
+  /** 关联的孩子ID（可选） */
+  childId?: number;
+  /** 首条消息（可选） */
+  initialMessage?: string;
+}
+
+export interface UpdateConversationDto {
+  /** 新的会话标题（可选） */
+  title?: string;
+  /** 是否归档（可选） */
+  isArchived?: boolean;
+}
+
+export interface ConversationResponseDto {
+  /** 会话ID */
+  id: number;
+  /** 用户ID */
+  userId: number;
+  /** 关联的孩子ID（可选） */
+  childId?: number;
+  /** 会话标题 */
+  title?: string;
+  /** 创建时间 */
+  createdAt: string;
+  /** 更新时间 */
+  updatedAt: string;
+  /** 是否归档 */
+  isArchived: boolean;
+  /** 消息数量 */
+  messageCount: number;
+  /** 最新一条消息（可选） */
+  latestMessage?: ChatHistoryDto;
+}
+
+export interface ConversationDetailDto extends ConversationResponseDto {
+  /** 消息列表 */
+  messages: ChatHistoryDto[];
+}
+
+export interface ConversationMessageDto {
+  /** 用户消息 */
+  message: string;
+}
+
+// 聊天历史相关类型
+export interface ChatHistoryDto {
+  /** 聊天历史ID */
+  id: number;
+  /** 用户ID */
+  userId: number;
+  /** 关联的儿童ID */
+  childId?: number;
+  /** 关联的会话ID（可选） */
+  conversationId?: number;
+  /** 用户消息 */
+  userMessage: string;
+  /** AI回复 */
+  aiResponse?: string;
+  /** 上下文摘要 */
+  contextSummary: string[];
+  /** 反馈状态 */
+  feedback?: number;
+  /** 是否有用反馈 */
+  isHelpful?: boolean;
+  /** 请求时间 */
+  requestTimestamp: string;
+  /** 回复时间 */
+  responseTimestamp?: string;
+  /** 创建时间 */
+  createdAt: string;
+  /** 更新时间 */
+  updatedAt: string;
+}
+
+export interface ChatHistoryListDto {
+  /** 聊天历史列表 */
+  data: ChatHistoryDto[];
+  /** 总数 */
+  total: number;
+  /** 当前页 */
+  page: number;
+  /** 每页数量 */
+  limit: number;
+}
+
+// UI显示用的消息类型
+export interface ChatMessage {
+  /** 消息ID */
+  id: string;
+  /** 消息内容 */
+  content: string;
+  /** 是否为用户消息 */
+  isUser: boolean;
+  /** 时间戳 */
+  timestamp: Date;
+  /** 反馈状态 */
+  feedback?: 'helpful' | 'not-helpful';
+  /** 关联的聊天历史ID（用于API调用） */
+  chatHistoryId?: number;
+  /** 关联的会话ID（可选） */
+  conversationId?: number;
+}
+
+// 会话查询参数
+export interface ConversationQueryParams {
+  /** 筛选特定孩子的会话（可选） */
+  childId?: number;
+  /** 是否包含已归档会话，默认为false（可选） */
+  includeArchived?: boolean;
+  /** 返回的最大记录数，默认为10（可选） */
+  limit?: number;
+  /** 分页偏移量，默认为0（可选） */
+  offset?: number;
+}
+
+// 消息查询参数
+export interface MessageQueryParams {
+  /** 返回的最大记录数，默认为20（可选） */
+  limit?: number;
+  /** 分页偏移量，默认为0（可选） */
+  offset?: number;
+}
+
+// 聊天历史查询参数
+export interface ChatHistoryQueryParams {
+  /** 儿童ID */
+  childId: number;
+  /** 限制数量，默认为10 */
+  limit?: number;
+  /** 偏移量，默认为0 */
+  offset?: number;
+}
+
+// 问题建议查询参数
+export interface SuggestionsQueryParams {
+  /** 儿童ID */
+  childId: number;
+}
+
+// 标准API响应格式
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message?: string;
+  data?: T;
+}
+
 // 向量数据库相关类型
 export interface CreateTextChunkDto {
   /** 文本内容 */

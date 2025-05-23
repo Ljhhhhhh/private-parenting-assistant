@@ -7,15 +7,15 @@ import './styles/global.css'; // 引入全局样式
 // 导入存储
 import './stores';
 
-// 应用上下文
-import { AppContextProvider } from './contexts/AppContextProvider';
+// 应用初始化组件
+import { AppInitializer } from './components/AppInitializer';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AppContextProvider>
+    <AppInitializer>
       <BrowserRouter>
         <App />
       </BrowserRouter>
-    </AppContextProvider>
+    </AppInitializer>
   </React.StrictMode>,
 );

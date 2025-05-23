@@ -77,3 +77,35 @@ body {
   height: env(safe-area-inset-bottom);
   background-color: inherit;
 }
+
+/* 安全区域支持 */
+@layer utilities {
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+  }
+
+  .pt-safe {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+  }
+
+  .pl-safe {
+    padding-left: calc(env(safe-area-inset-left, 0px) + 1rem);
+  }
+
+  .pr-safe {
+    padding-right: calc(env(safe-area-inset-right, 0px) + 1rem);
+  }
+
+  .mb-safe {
+    margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+  }
+
+  /* 纯安全区域，不添加额外间距 */
+  .pb-safe-only {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .pt-safe-only {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}

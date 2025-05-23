@@ -10,8 +10,6 @@ import {
   logout as logoutApi,
   refreshToken as refreshTokenApi,
 } from '@/api/auth';
-import { getAllChildren } from '@/api/children';
-import { useChildrenStore } from './children';
 import {
   RegisterDto,
   SendVerificationCodeDto,
@@ -20,22 +18,35 @@ import {
 import request from '@/utils/request';
 
 interface UserState {
+  // 用户数据
   user: {
     id: string;
     email: string;
   } | null;
+
+  // 认证令牌
   token: string | null;
   refreshToken: string | null;
+
+  // 状态标识
   isLoading: boolean;
   isAuthenticated: boolean;
-  setUser: (user: { id: string; email: string }, token: string) => void;
+
+  // 私有方法：仅处理用户数据
+  setUser: (user: { id: string; email: string }) => void;
+  setTokens: (token: string, refreshToken?: string) => void;
   clearUser: () => void;
-  login: (email: string, password: string) => Promise<void>;
+
+  // 公共API方法
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; user?: any }>;
   register: (
     email: string,
     password: string,
     verificationCode: string,
-  ) => Promise<void>;
+  ) => Promise<{ success: boolean; user?: any }>;
   logout: () => Promise<void>;
   sendRegisterCode: (email: string) => Promise<void>;
   sendResetPasswordCode: (email: string) => Promise<void>;
@@ -44,25 +55,45 @@ interface UserState {
     newPassword: string,
     verificationCode: string,
   ) => Promise<void>;
-  checkAuth: () => Promise<void>;
+  checkAuth: () => Promise<{ success: boolean; user?: any }>;
   refreshAccessToken: (refreshToken: string) => Promise<string | null>;
+
+  // 初始化方法
+  initializeAuth: () => Promise<{ success: boolean; user?: any }>;
 }
 
 export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
+      // 初始状态
       user: null,
       token: null,
       refreshToken: null,
       isLoading: false,
       isAuthenticated: false,
-      setUser: (user, token) => {
-        set({ user, token, isAuthenticated: !!user });
-        // 如果有token，设置到请求头
+
+      // 设置用户信息
+      setUser: (user) => {
+        set({
+          user,
+          isAuthenticated: !!user,
+        });
+      },
+
+      // 设置令牌
+      setTokens: (token, refreshToken) => {
+        set({
+          token,
+          refreshToken: refreshToken || get().refreshToken,
+        });
+
+        // 设置请求头
         if (token) {
           request.setAuthToken(token);
         }
       },
+
+      // 清除用户数据
       clearUser: () => {
         set({
           user: null,
@@ -70,150 +101,185 @@ export const useUserStore = create<UserState>()(
           refreshToken: null,
           isAuthenticated: false,
         });
-        // 清除认证token
         request.clearAuthToken();
       },
 
+      // 刷新访问令牌
       refreshAccessToken: async (refreshToken) => {
         try {
           const response = await refreshTokenApi(refreshToken);
           const newToken = response.accessToken;
 
-          // 更新store中的token
-          set({
-            token: newToken,
-            refreshToken: response.refreshToken || get().refreshToken,
-          });
-
-          // 更新请求头
-          request.setAuthToken(newToken);
-
+          get().setTokens(newToken, response.refreshToken);
           return newToken;
         } catch (error) {
           console.error('刷新token失败:', error);
+          get().clearUser();
           return null;
         }
       },
 
-      checkAuth: async () => {
-        set({ isLoading: true });
-        const setChildren = useChildrenStore.getState().setChildren;
-        const clearChildren = useChildrenStore.getState().clearChildren;
-        try {
-          const userData = await getUserProfile();
-          // 获取当前存储的token
-          const token = get().token;
+      // 初始化认证状态
+      initializeAuth: async () => {
+        const token = get().token;
 
-          if (token) {
-            get().setUser({ id: userData.id, email: userData.email }, token);
-            const children = await getAllChildren();
-            setChildren(children);
-          } else {
-            throw new Error('未找到有效的令牌');
-          }
+        if (!token) {
+          return { success: false };
+        }
+
+        set({ isLoading: true });
+
+        try {
+          // 设置请求头
+          request.setAuthToken(token);
+
+          // 验证token有效性并获取用户信息
+          const userData = await getUserProfile();
+
+          get().setUser({
+            id: userData.id,
+            email: userData.email,
+          });
+
+          return {
+            success: true,
+            user: userData,
+          };
         } catch (error) {
-          console.error('检查用户是否已登录失败:', error);
+          console.error('初始化认证失败:', error);
           get().clearUser();
-          clearChildren();
+          return { success: false };
         } finally {
           set({ isLoading: false });
         }
       },
 
+      // 检查认证状态
+      checkAuth: async () => {
+        const token = get().token;
+
+        if (!token) {
+          return { success: false };
+        }
+
+        set({ isLoading: true });
+
+        try {
+          const userData = await getUserProfile();
+          get().setUser({
+            id: userData.id,
+            email: userData.email,
+          });
+
+          return {
+            success: true,
+            user: userData,
+          };
+        } catch (error) {
+          console.error('检查认证状态失败:', error);
+          get().clearUser();
+          return { success: false };
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      // 用户登录
       login: async (email, password) => {
         set({ isLoading: true });
-        const setChildren = useChildrenStore.getState().setChildren;
-        const clearChildren = useChildrenStore.getState().clearChildren;
-        const setCurrentChild = useChildrenStore.getState().setCurrentChild;
+
         try {
           const tokenResponse = await loginApi({ email, password });
 
-          // 直接设置token到状态，persist中间件会自动持久化
-          set({
-            token: tokenResponse.accessToken,
-            refreshToken: tokenResponse.refreshToken || null,
+          // 设置令牌
+          get().setTokens(
+            tokenResponse.accessToken,
+            tokenResponse.refreshToken,
+          );
+
+          // 获取用户信息
+          const userData = await getUserProfile();
+          get().setUser({
+            id: userData.id,
+            email: userData.email,
           });
 
-          get().setUser({ id: '', email }, tokenResponse.accessToken);
-          const userData = await getUserProfile();
-          get().setUser(
-            { id: userData.id, email: userData.email },
-            tokenResponse.accessToken,
-          );
-          const children = await getAllChildren();
-          setChildren(children);
-
-          // 如果有儿童信息但没有选中当前儿童，自动选择第一个
-          if (
-            children &&
-            children.length > 0 &&
-            !useChildrenStore.getState().currentChild
-          ) {
-            setCurrentChild(children[0]);
-          }
+          return {
+            success: true,
+            user: userData,
+          };
         } catch (error) {
           get().clearUser();
-          clearChildren();
           throw error;
         } finally {
           set({ isLoading: false });
         }
       },
 
+      // 用户注册
       register: async (email, password, verificationCode) => {
         set({ isLoading: true });
-        const clearChildren = useChildrenStore.getState().clearChildren;
+
         try {
           const registerData: RegisterDto = {
             email,
             password,
             verificationCode,
           };
+
           await registerApi(registerData);
-          await get().login(email, password);
+
+          // 注册成功后自动登录
+          const loginResult = await get().login(email, password);
+          return loginResult;
         } catch (error) {
           get().clearUser();
-          clearChildren();
           throw error;
         } finally {
           set({ isLoading: false });
         }
       },
 
+      // 用户登出
       logout: async () => {
-        const clearChildren = useChildrenStore.getState().clearChildren;
         try {
           await logoutApi();
         } catch (error) {
-          console.error('退出登录失败:', error);
+          console.error('退出登录API失败:', error);
         } finally {
-          // 无论退出登录API是否成功，都清除本地状态
+          // 无论API是否成功，都清除本地状态
           get().clearUser();
-          clearChildren();
         }
       },
 
+      // 发送注册验证码
       sendRegisterCode: async (email) => {
         const data: SendVerificationCodeDto = { email };
         return await sendRegisterVerificationCode(data);
       },
 
+      // 发送重置密码验证码
       sendResetPasswordCode: async (email) => {
         const data: SendVerificationCodeDto = { email };
         return await sendResetPasswordVerificationCode(data);
       },
 
+      // 重置密码
       resetPassword: async (email, newPassword, verificationCode) => {
-        const data: ResetPasswordDto = { email, newPassword, verificationCode };
+        const data: ResetPasswordDto = {
+          email,
+          newPassword,
+          verificationCode,
+        };
         return await resetPasswordApi(data);
       },
     }),
     {
-      name: 'user-auth-storage', // 存储在localStorage中的键名
+      name: 'user-auth-storage',
       partialize: (state) => ({
         token: state.token,
         refreshToken: state.refreshToken,
-      }), // 只持久化token相关信息
+      }),
     },
   ),
 );

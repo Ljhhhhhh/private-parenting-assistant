@@ -10,8 +10,7 @@ import {
   GrowthRecord,
 } from '@/components/record';
 import { getRecordsByChildId } from '@/api/records';
-import { useChildrenStore } from '@/stores/children';
-import { useAppContext } from '@/contexts/useAppContext';
+import { useChildrenStore, useAppStore } from '@/stores';
 import {
   SleepDetails,
   FeedingDetails,
@@ -26,9 +25,9 @@ const Home: React.FC = () => {
   const [hasRecords, setHasRecords] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // 从AppContext获取应用状态
+  // 从AppStore获取应用状态
   const { isAuthenticated, hasChildren, isLoading, refreshUserData } =
-    useAppContext();
+    useAppStore();
 
   // 从全局状态获取儿童信息
   const { children, currentChild } = useChildrenStore();
@@ -387,11 +386,11 @@ const Home: React.FC = () => {
     <div className="flex flex-col min-h-screen bg-[#FDFBF8]">
       {/* <NavBar title="日常记录" /> */}
 
-      <div className="overflow-auto flex-1">
+      <div className="flex-1 overflow-auto">
         {/* 顶部欢迎区 - 使用温暖渐变背景 */}
         <div className="relative px-5 pt-4 pb-4 bg-gradient-to-br from-white to-[#FFF8F4] overflow-hidden">
           {/* 背景装饰元素 */}
-          <div className="absolute top-0 right-0 opacity-5 transform translate-x-1/4 -translate-y-1/4">
+          <div className="absolute top-0 right-0 transform opacity-5 translate-x-1/4 -translate-y-1/4">
             <Icon
               icon="mdi:baby-face-outline"
               className="text-[200px] text-[#FFB38A]"
@@ -399,7 +398,7 @@ const Home: React.FC = () => {
           </div>
 
           {/* 顶部区域：左侧问候，右侧儿童信息 */}
-          <div className="flex justify-between items-start">
+          <div className="flex items-start justify-between">
             <div>
               <h1 className="mb-2 text-2xl font-semibold text-[#333333]">
                 <span className="text-[#FF9F73]">{getGreeting()}</span>
@@ -460,7 +459,7 @@ const Home: React.FC = () => {
         <div className="px-5 pt-2 pb-4">
           {/* 最近记录展示 */}
           <div className="mb-4">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="flex items-center text-lg font-semibold text-[#333333]">
                 <Icon icon="mdi:history" className="mr-2 text-[#FFB38A]" />
                 最近记录
@@ -496,7 +495,7 @@ const Home: React.FC = () => {
                     <div className="flex items-start">
                       {/* 记录类型图标 */}
                       <div
-                        className="flex flex-shrink-0 justify-center items-center mr-3 w-10 h-10 rounded-full"
+                        className="flex items-center justify-center flex-shrink-0 w-10 h-10 mr-3 rounded-full"
                         style={{ backgroundColor: `${record.color}20` }}
                       >
                         <Icon
@@ -508,7 +507,7 @@ const Home: React.FC = () => {
 
                       {/* 记录内容 */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-center mb-1">
+                        <div className="flex items-center justify-between mb-1">
                           <div className="text-[#333333] font-medium truncate mr-2">
                             {record.title}
                           </div>
@@ -561,11 +560,11 @@ const Home: React.FC = () => {
 
             <div className="bg-white rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-[#F0F0F0] overflow-hidden">
               {/* 水平滑动卡片设计 */}
-              <div className="flex overflow-x-auto py-4 px-4 hide-scrollbar">
+              <div className="flex px-4 py-4 overflow-x-auto hide-scrollbar">
                 {recordTypes.map((type) => (
                   <div
                     key={type.id}
-                    className="flex-shrink-0 mr-3 last:mr-0 cursor-pointer"
+                    className="flex-shrink-0 mr-3 cursor-pointer last:mr-0"
                     onClick={() => openRecordModal(type.id as any)}
                   >
                     {/* 精简卡片设计 */}
@@ -606,7 +605,7 @@ const Home: React.FC = () => {
               onClick={navigateToChat}
             >
               {/* 背景装饰 */}
-              <div className="absolute right-0 bottom-0 opacity-5">
+              <div className="absolute bottom-0 right-0 opacity-5">
                 <Icon
                   icon="mdi:robot"
                   className="text-[120px] text-[#FFB38A]"

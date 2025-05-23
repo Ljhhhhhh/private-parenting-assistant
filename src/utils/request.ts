@@ -5,7 +5,8 @@ import axios, {
   AxiosError,
   InternalAxiosRequestConfig,
 } from 'axios';
-import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/const';
+import { REFRESH_TOKEN_KEY } from '@/const';
+import { useUserStore } from '@/stores/user';
 
 // 定义请求选项接口，扩展 AxiosRequestConfig
 export interface RequestOptions
@@ -161,74 +162,30 @@ class Request {
                   throw new Error('No refresh token found');
                 }
 
-                // 尝试使用refreshToken获取新的accessToken
-                // 需要使用基础axios发起请求，避免触发拦截器
-                return axios
-                  .post(
-                    `${this.baseUrl}/auth/refresh-token`,
-                    { refreshToken },
-                    { headers: { 'Content-Type': 'application/json' } },
-                  )
-                  .then((response) => {
-                    const { accessToken } = response.data;
+                // 使用userStore的refreshAccessToken方法
+                const userStore = useUserStore.getState();
+                const newAccessToken = await userStore.refreshAccessToken(
+                  refreshToken,
+                );
 
-                    // 保存新的token到localStorage (由于Zustand持久化依赖localStorage)
-                    const updatedState = {
-                      ...state,
-                      [ACCESS_TOKEN_KEY.split('.')[1]]: accessToken,
-                    };
-                    localStorage.setItem(
-                      'user-auth-storage',
-                      JSON.stringify({ state: updatedState }),
-                    );
+                if (!newAccessToken) {
+                  throw new Error('Failed to refresh access token');
+                }
 
-                    // 更新实例默认headers
-                    this.setAuthToken(accessToken);
+                // 更新原始请求中的Authorization
+                originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
-                    // 更新原始请求中的Authorization
-                    originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+                // 执行队列中的请求
+                refreshSubscribers.forEach((callback) =>
+                  callback(newAccessToken),
+                );
+                refreshSubscribers = [];
 
-                    // 执行队列中的请求
-                    refreshSubscribers.forEach((callback) =>
-                      callback(accessToken),
-                    );
-                    refreshSubscribers = [];
+                // 重置标记
+                isRefreshingToken = false;
 
-                    // 重置标记
-                    isRefreshingToken = false;
-
-                    // 尝试同步更新Zustand store (如果已加载)
-                    try {
-                      if (
-                        window &&
-                        typeof (window as any).useUserStore !== 'undefined'
-                      ) {
-                        const userStore = (window as any).useUserStore;
-                        userStore
-                          .getState()
-                          .setUser(
-                            userStore.getState().user || { id: '', email: '' },
-                            accessToken,
-                          );
-                      }
-                    } catch (e) {
-                      console.error('同步token到store失败:', e);
-                    }
-
-                    // 重新发起原始请求
-                    return this.instance(originalRequest);
-                  })
-                  .catch((refreshError) => {
-                    console.error('刷新令牌失败:', refreshError);
-                    isRefreshingToken = false;
-                    refreshSubscribers = [];
-
-                    // 刷新token失败，重定向到登录页
-                    if (typeof window !== 'undefined') {
-                      window.location.href = '/login';
-                    }
-                    return Promise.reject(refreshError);
-                  });
+                // 重新发起原始请求
+                return this.instance(originalRequest);
               } catch (error) {
                 console.error('处理刷新token失败:', error);
                 isRefreshingToken = false;
