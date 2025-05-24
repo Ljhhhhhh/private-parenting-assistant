@@ -58,7 +58,7 @@ class Request {
     baseUrl: string = import.meta.env.VITE_API_BASE_URL ||
       'http://localhost:3010',
     defaultHeaders: Record<string, string> = {},
-    timeout: number = 10000,
+    timeout: number = 600000, // 只有聊天接口才需要特别长
   ) {
     this.baseUrl = baseUrl;
     this.defaultHeaders = {
@@ -457,6 +457,7 @@ class Request {
     return new Promise((resolve, reject) => {
       let hasReceivedData = false;
       let timeoutId: number | null = null;
+      let processedLength = 0; // 追踪已处理的内容长度
 
       // 重置活动计时器的函数
       const resetActivityTimer = () => {
@@ -480,24 +481,13 @@ class Request {
             resetActivityTimer();
             hasReceivedData = true;
 
-            // 处理响应文本以提取新块
-            const lines = responseText.split('\n');
+            // 只传递新增的原始内容，让上层解析器处理所有解析逻辑
+            const newContent = responseText.slice(processedLength);
+            processedLength = responseText.length;
 
-            // 处理每一行
-            for (const line of lines) {
-              const trimmedLine = line.trim();
-              if (!trimmedLine) continue; // 跳过空行
-
-              // 处理 SSE 格式 (data: {...})
-              if (trimmedLine.startsWith('data:')) {
-                const data = trimmedLine.slice(5).trim();
-                if (data) {
-                  onStream(data);
-                }
-              } else {
-                // 为非标准格式的响应提供回退
-                onStream(trimmedLine);
-              }
+            if (newContent) {
+              // 直接传递原始新增内容，不做任何预处理
+              onStream(newContent);
             }
           }
         },

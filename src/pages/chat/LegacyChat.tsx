@@ -54,24 +54,28 @@ const Chat: React.FC = () => {
         id: `user-${item.id}`,
         content: item.userMessage,
         isUser: true,
-        timestamp: new Date(item.createdAt),
+        timestamp: new Date(item.requestTimestamp || item.createdAt),
         chatHistoryId: item.id,
+        conversationId: item.conversationId,
       });
 
       // 添加AI回复
-      messages.push({
-        id: `ai-${item.id}`,
-        content: item.aiResponse,
-        isUser: false,
-        timestamp: new Date(item.createdAt),
-        feedback:
-          item.isHelpful !== undefined
-            ? item.isHelpful
-              ? 'helpful'
-              : 'not-helpful'
-            : undefined,
-        chatHistoryId: item.id,
-      });
+      if (item.aiResponse) {
+        messages.push({
+          id: `ai-${item.id}`,
+          content: item.aiResponse,
+          isUser: false,
+          timestamp: new Date(item.responseTimestamp || item.createdAt),
+          feedback:
+            item.isHelpful !== undefined
+              ? item.isHelpful
+                ? 'helpful'
+                : 'not-helpful'
+              : undefined,
+          chatHistoryId: item.id,
+          conversationId: item.conversationId,
+        });
+      }
     });
 
     // 按时间排序
@@ -86,7 +90,7 @@ const Chat: React.FC = () => {
     if (currentChild?.id) {
       console.log('开始获取聊天历史, childId:', currentChild.id);
       setIsLoading(true);
-      getChatHistory(currentChild.id, 20, 0)
+      getChatHistory({ childId: currentChild.id, limit: 20, offset: 0 })
         .then((response: any) => {
           console.log('聊天历史API响应:', response);
 
