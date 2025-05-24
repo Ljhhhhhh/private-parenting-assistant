@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-} from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { FixedSizeList as List, areEqual } from 'react-window';
 import type { ChatMessage } from '../types/chat';
 import { formatMessageTime } from '../utils/messageUtils';
@@ -277,31 +271,4 @@ export const VirtualMessageList: React.FC<VirtualMessageListProps> = ({
       `}</style>
     </div>
   );
-};
-
-/**
- * 高性能消息列表Hook
- * 提供消息列表的优化功能
- */
-export const useVirtualMessageList = () => {
-  const [isAtBottom, setIsAtBottom] = useState(true);
-
-  const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
-    const threshold = 100; // 距离底部100px内认为在底部
-
-    setIsAtBottom(scrollHeight - scrollTop - clientHeight < threshold);
-  }, []);
-
-  const scrollToBottom = useCallback((ref: React.RefObject<List>) => {
-    if (ref.current) {
-      ref.current.scrollToItem(0, 'end');
-    }
-  }, []);
-
-  return {
-    isAtBottom,
-    handleScroll,
-    scrollToBottom,
-  };
 };

@@ -432,5 +432,4 @@ export const TagStats: React.FC<TagStatsProps> = ({
   );
 };
 
-export { DEFAULT_TAGS };
 export type { ConversationTag };

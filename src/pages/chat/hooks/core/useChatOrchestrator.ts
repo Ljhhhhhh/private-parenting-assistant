@@ -9,7 +9,7 @@
  * @since 1.0.0
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { useStreamProcessor } from './useStreamProcessor';
 import { useMessageManager, type ChatMessage } from './useMessageManager';
 
@@ -72,24 +72,63 @@ export const useChatOrchestrator = (
     | null
   >(null);
 
-  // 流式处理器
+  // 🔧 修复：先初始化消息管理器
+  const messageManager = useMessageManager({
+    onMessageAdded: (message) => {
+      if (message.isUser) {
+        options.onMessageSent?.(message);
+      }
+    },
+  });
+
+  // 🔧 修复：使用 useRef 存储最新的 messageManager 引用，避免闭包陷阱
+  const messageManagerRef = useRef(messageManager);
+  messageManagerRef.current = messageManager;
+
+  // 🔧 修复：使用 useRef 确保回调函数能访问到最新的 messageManager
   const streamProcessor = useStreamProcessor({
     onChunk: (content) => {
-      // 实时更新流式消息内容
-      if (messageManager.currentStreamingId) {
-        messageManager.updateMessage(messageManager.currentStreamingId, {
+      const currentManager = messageManagerRef.current;
+      console.debug('🎭 编排器接收到流式内容:', {
+        contentLength: content.length,
+        contentPreview:
+          content.substring(0, 50) + (content.length > 50 ? '...' : ''),
+        currentStreamingId: currentManager.currentStreamingId,
+      });
+
+      // 🔧 修复：通过 ref 访问最新的 currentStreamingId
+      const latestStreamingId = currentManager.currentStreamingId;
+      console.log(
+        latestStreamingId,
+        'messageManager.currentStreamingId (通过ref获取最新值)',
+      );
+
+      if (latestStreamingId) {
+        console.debug('🎭 准备更新消息:', {
+          messageId: latestStreamingId,
+          newContent: content,
+          newContentLength: content.length,
+        });
+
+        currentManager.updateMessage(latestStreamingId, {
           content,
           isStreaming: true,
         });
+
+        console.debug('🎭 消息更新调用完成');
+      } else {
+        console.warn('🎭 ⚠️ 没有当前流式消息ID，无法更新消息');
       }
     },
     onComplete: (fullContent, messageId) => {
+      const currentManager = messageManagerRef.current;
       console.debug('🎭 流式处理完成，编排后续操作');
 
-      // 完成AI消息
-      if (messageManager.currentStreamingId) {
-        messageManager.completeAiMessage(
-          messageManager.currentStreamingId,
+      // 🔧 修复：通过 ref 访问最新的 currentStreamingId
+      const latestStreamingId = currentManager.currentStreamingId;
+      if (latestStreamingId) {
+        currentManager.completeAiMessage(
+          latestStreamingId,
           fullContent,
           messageId,
         );
@@ -109,20 +148,23 @@ export const useChatOrchestrator = (
       options.onMessageReceived?.(completedMessage);
     },
     onError: (err) => {
+      const currentManager = messageManagerRef.current;
       console.error('🎭 流式处理错误:', err);
 
       setError(err);
       setIsLoading(false);
 
-      // 移除失败的占位符消息
-      if (messageManager.currentStreamingId) {
-        messageManager.removeMessage(messageManager.currentStreamingId);
+      // 🔧 修复：通过 ref 访问最新的 currentStreamingId
+      const latestStreamingId = currentManager.currentStreamingId;
+      if (latestStreamingId) {
+        currentManager.removeMessage(latestStreamingId);
       }
 
       // 添加错误消息
-      messageManager.addAiMessagePlaceholder();
-      if (messageManager.currentStreamingId) {
-        messageManager.updateMessage(messageManager.currentStreamingId, {
+      currentManager.addAiMessagePlaceholder();
+      const newStreamingId = currentManager.currentStreamingId;
+      if (newStreamingId) {
+        currentManager.updateMessage(newStreamingId, {
           content: '抱歉，发送消息失败，请稍后再试。',
           isStreaming: false,
           error: err.message,
@@ -130,18 +172,6 @@ export const useChatOrchestrator = (
       }
 
       options.onError?.(err);
-    },
-  });
-
-  // 消息管理器
-  const messageManager = useMessageManager({
-    onMessageAdded: (message) => {
-      if (message.isUser) {
-        options.onMessageSent?.(message);
-      }
-    },
-    onMessageUpdated: () => {
-      // 消息更新时的额外处理可以在这里添加
     },
   });
 

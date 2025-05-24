@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Input, Checkbox } from '@/components/ui';
-import { useUserStore } from '@/stores/user';
+import { useUserStore, storeOrchestrator } from '@/stores';
+
 import { Icon } from '@iconify/react';
 import logoImage from '@/assets/logo.png';
 
@@ -25,7 +26,10 @@ const Login: React.FC = () => {
     if (!password) return setError('请输入密码');
     setLoading(true);
     try {
-      await login(email, password);
+      const result = await login(email, password);
+      if (result.success) {
+        await storeOrchestrator.handleLoginSuccess();
+      }
       navigate('/home');
     } catch (err: any) {
       setError(err?.message || '登录失败');

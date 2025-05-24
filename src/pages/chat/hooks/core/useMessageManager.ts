@@ -9,7 +9,7 @@
  * @since 1.0.0
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 
 // ========== 类型定义 ==========
 
@@ -72,8 +72,10 @@ export const useMessageManager = (
   // 消息列表状态
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-  // 当前流式消息ID
-  const currentStreamingIdRef = useRef<string | null>(null);
+  // 🔧 修复：将 currentStreamingId 改为状态，而不是 useRef
+  const [currentStreamingId, setCurrentStreamingId] = useState<string | null>(
+    null,
+  );
 
   /**
    * 添加用户消息
@@ -123,16 +125,25 @@ export const useMessageManager = (
       isStreaming: true,
     };
 
-    console.debug('🤖 添加AI消息占位符:', { messageId });
+    console.debug('🤖 添加AI消息占位符 - 开始:', { messageId });
 
     setMessages((prev) => {
       const newMessages = [...prev, aiMessage];
+      console.debug('🤖 AI消息占位符已添加到列表:', {
+        messageId,
+        totalMessages: newMessages.length,
+        messageIndex: newMessages.length - 1,
+      });
       options.onMessageAdded?.(aiMessage);
       return newMessages;
     });
 
-    // 设置当前流式消息ID
-    currentStreamingIdRef.current = messageId;
+    // 🔧 修复：设置当前流式消息ID为状态
+    setCurrentStreamingId(messageId);
+    console.debug('🤖 设置当前流式消息ID:', {
+      messageId,
+      currentStreamingId: messageId,
+    });
 
     return messageId;
   }, [options.onMessageAdded]);
@@ -142,20 +153,62 @@ export const useMessageManager = (
    */
   const updateMessage = useCallback(
     (messageId: string, updates: Partial<ChatMessage>) => {
-      console.debug('📝 更新消息:', { messageId, updates });
+      console.debug('📝 更新消息 - 开始:', {
+        messageId,
+        updates,
+        currentStreamingId: currentStreamingId,
+      });
 
-      setMessages((prev) =>
-        prev.map((msg) => {
+      setMessages((prev) => {
+        // 查找要更新的消息
+        const targetMessage = prev.find((msg) => msg.id === messageId);
+
+        if (!targetMessage) {
+          console.warn('⚠️ 未找到要更新的消息:', {
+            messageId,
+            availableIds: prev.map((m) => m.id),
+          });
+          return prev;
+        }
+
+        console.debug('📝 找到目标消息:', {
+          messageId,
+          beforeUpdate: {
+            content: targetMessage.content,
+            contentLength: targetMessage.content.length,
+            isStreaming: targetMessage.isStreaming,
+          },
+          updates,
+        });
+
+        const newMessages = prev.map((msg) => {
           if (msg.id === messageId) {
             const updatedMessage = { ...msg, ...updates };
+
+            console.debug('📝 消息更新完成:', {
+              messageId,
+              afterUpdate: {
+                content: updatedMessage.content,
+                contentLength: updatedMessage.content.length,
+                isStreaming: updatedMessage.isStreaming,
+              },
+            });
+
             options.onMessageUpdated?.(updatedMessage);
             return updatedMessage;
           }
           return msg;
-        }),
-      );
+        });
+
+        console.debug('📝 消息列表更新完成:', {
+          totalMessages: newMessages.length,
+          updatedMessageIndex: newMessages.findIndex((m) => m.id === messageId),
+        });
+
+        return newMessages;
+      });
     },
-    [options.onMessageUpdated],
+    [options.onMessageUpdated, currentStreamingId],
   );
 
   /**
@@ -185,12 +238,12 @@ export const useMessageManager = (
         }),
       );
 
-      // 清除当前流式消息ID
-      if (currentStreamingIdRef.current === messageId) {
-        currentStreamingIdRef.current = null;
+      // 🔧 修复：清除当前流式消息ID状态
+      if (currentStreamingId === messageId) {
+        setCurrentStreamingId(null);
       }
     },
-    [options.onMessageUpdated],
+    [options.onMessageUpdated, currentStreamingId],
   );
 
   /**
@@ -206,12 +259,12 @@ export const useMessageManager = (
         return filteredMessages;
       });
 
-      // 如果删除的是当前流式消息，清除引用
-      if (currentStreamingIdRef.current === messageId) {
-        currentStreamingIdRef.current = null;
+      // 🔧 修复：如果删除的是当前流式消息，清除状态
+      if (currentStreamingId === messageId) {
+        setCurrentStreamingId(null);
       }
     },
-    [options.onMessageRemoved],
+    [options.onMessageRemoved, currentStreamingId],
   );
 
   /**
@@ -233,7 +286,7 @@ export const useMessageManager = (
     console.debug('📋 设置消息列表:', { count: newMessages.length });
 
     setMessages(newMessages);
-    currentStreamingIdRef.current = null;
+    setCurrentStreamingId(null); // 🔧 修复：重置状态
   }, []);
 
   /**
@@ -243,7 +296,7 @@ export const useMessageManager = (
     console.debug('🧹 清空消息列表');
 
     setMessages([]);
-    currentStreamingIdRef.current = null;
+    setCurrentStreamingId(null); // 🔧 修复：重置状态
   }, []);
 
   /**
@@ -258,13 +311,12 @@ export const useMessageManager = (
 
   // 计算派生状态
   const totalCount = messages.length;
-  const currentStreamingId = currentStreamingIdRef.current;
 
   // 返回状态和操作方法
   return {
     // 状态
     messages,
-    currentStreamingId,
+    currentStreamingId, // 🔧 修复：现在这是真正的状态
     totalCount,
 
     // 操作方法

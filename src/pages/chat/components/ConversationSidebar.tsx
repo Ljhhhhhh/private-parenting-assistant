@@ -1,6 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { Input } from '@/components/ui';
+import { useConversations } from '../hooks/useConversations';
+import type { ConversationResponseDto } from '@/types/models';
+import { formatDistanceToNow } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 
 interface ConversationSidebarProps {
   isOpen: boolean;
@@ -10,52 +14,36 @@ interface ConversationSidebarProps {
   childId: number;
 }
 
-interface MockConversation {
-  id: number;
-  title: string;
-  preview: string;
-  timestamp: string;
-  isArchived: boolean;
-}
-
 /**
  * 会话管理侧边栏组件
  * 支持会话列表、搜索、创建等基础功能
+ * 集成真实 API 数据
  */
 export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   isOpen,
   onClose,
   currentConversationId,
   onConversationSelect,
+  childId,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showArchived, setShowArchived] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // 模拟数据
-  const mockConversations: MockConversation[] = [
-    {
-      id: 1,
-      title: '宝宝发烧护理',
-      preview: '宝宝今天有点发烧，体温38.2度，请问需要立即就医吗？',
-      timestamp: '2024-01-15 10:30',
-      isArchived: false,
-    },
-    {
-      id: 2,
-      title: '辅食添加问题',
-      preview: '6个月大的宝宝开始添加辅食，请问有什么注意事项？',
-      timestamp: '2024-01-14 15:20',
-      isArchived: false,
-    },
-    {
-      id: 3,
-      title: '睡眠时间调整',
-      preview: '宝宝晚上总是很晚才睡，白天又起得很早...',
-      timestamp: '2024-01-13 20:45',
-      isArchived: true,
-    },
-  ];
+  // 使用会话数据 Hook
+  const {
+    conversations,
+    loading,
+    error,
+    searchQuery,
+    showArchived,
+    setSearchQuery,
+    toggleArchived,
+    filterConversations,
+    refreshConversations,
+  } = useConversations({
+    childId,
+    includeArchived: false,
+    autoLoad: true,
+  });
 
   // 点击外部关闭
   useEffect(() => {
@@ -73,21 +61,8 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
 
-  // 过滤会话
-  const filteredConversations = mockConversations.filter((conv) => {
-    if (showArchived && !conv.isArchived) return false;
-    if (!showArchived && conv.isArchived) return false;
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      return (
-        conv.title.toLowerCase().includes(query) ||
-        conv.preview.toLowerCase().includes(query)
-      );
-    }
-
-    return true;
-  });
+  // 获取过滤后的会话列表
+  const filteredConversations = filterConversations();
 
   // 创建新会话
   const handleCreateConversation = () => {
@@ -96,9 +71,43 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   };
 
   // 选择会话
-  const handleConversationClick = (conversation: MockConversation) => {
+  const handleConversationClick = (conversation: ConversationResponseDto) => {
     onConversationSelect(conversation.id);
     onClose();
+  };
+
+  // 格式化时间显示
+  const formatTime = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return formatDistanceToNow(date, {
+        addSuffix: true,
+        locale: zhCN,
+      });
+    } catch (error) {
+      console.warn('时间格式化失败:', error);
+      return '未知时间';
+    }
+  };
+
+  // 获取会话预览文本
+  const getConversationPreview = (
+    conversation: ConversationResponseDto,
+  ): string => {
+    if (conversation.latestMessage?.userMessage) {
+      return conversation.latestMessage.userMessage;
+    }
+
+    if (conversation.title) {
+      return '新建对话';
+    }
+
+    return '暂无消息';
+  };
+
+  // 重试加载
+  const handleRetry = () => {
+    refreshConversations();
   };
 
   if (!isOpen) return null;
@@ -116,17 +125,35 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
         {/* 头部 */}
         <div className="flex items-center justify-between p-4 border-b border-[#E0E0E0]">
           <h2 className="text-lg font-semibold text-[#333333]">对话记录</h2>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-[#F5F5F5] transition-colors"
-          >
-            <Icon
-              icon="ph:x"
-              width={20}
-              height={20}
-              className="text-[#666666]"
-            />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* 刷新按钮 */}
+            <button
+              onClick={handleRetry}
+              disabled={loading}
+              className="p-2 rounded-full hover:bg-[#F5F5F5] transition-colors disabled:opacity-50"
+              title="刷新列表"
+            >
+              <Icon
+                icon={loading ? 'ph:spinner' : 'ph:arrow-clockwise'}
+                width={18}
+                height={18}
+                className={`text-[#666666] ${loading ? 'animate-spin' : ''}`}
+              />
+            </button>
+
+            {/* 关闭按钮 */}
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-[#F5F5F5] transition-colors"
+            >
+              <Icon
+                icon="ph:x"
+                width={20}
+                height={20}
+                className="text-[#666666]"
+              />
+            </button>
+          </div>
         </div>
 
         {/* 工具栏 */}
@@ -138,6 +165,7 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="搜索对话内容..."
               className="pl-10 py-2"
+              disabled={loading}
             />
             <Icon
               icon="ph:magnifying-glass"
@@ -158,7 +186,7 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
             </button>
 
             <button
-              onClick={() => setShowArchived(!showArchived)}
+              onClick={toggleArchived}
               className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
                 showArchived
                   ? 'bg-[#FFB38A] text-white'
@@ -172,7 +200,42 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
 
         {/* 会话列表 */}
         <div className="flex-1 overflow-y-auto">
-          {filteredConversations.length === 0 ? (
+          {/* 错误状态 */}
+          {error && (
+            <div className="text-center py-8 px-4">
+              <Icon
+                icon="ph:warning-circle"
+                width={48}
+                height={48}
+                className="mx-auto mb-3 text-red-400"
+              />
+              <p className="text-red-600 text-sm mb-3">
+                {error.message || '加载失败'}
+              </p>
+              <button
+                onClick={handleRetry}
+                className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors"
+              >
+                重试
+              </button>
+            </div>
+          )}
+
+          {/* 加载状态 */}
+          {loading && !error && (
+            <div className="text-center py-8">
+              <Icon
+                icon="ph:spinner"
+                width={48}
+                height={48}
+                className="mx-auto mb-3 text-[#FFB38A] animate-spin"
+              />
+              <p className="text-[#999999] text-sm">加载中...</p>
+            </div>
+          )}
+
+          {/* 空状态 */}
+          {!loading && !error && filteredConversations.length === 0 && (
             <div className="text-center py-8">
               <Icon
                 icon="ph:chat-circle"
@@ -187,8 +250,19 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
                   ? '暂无归档对话'
                   : '暂无对话记录'}
               </p>
+              {!searchQuery.trim() && !showArchived && (
+                <button
+                  onClick={handleCreateConversation}
+                  className="mt-3 px-4 py-2 bg-[#FFB38A] text-white text-sm rounded-lg hover:bg-[#FF9966] transition-colors"
+                >
+                  开始第一个对话
+                </button>
+              )}
             </div>
-          ) : (
+          )}
+
+          {/* 会话列表 */}
+          {!loading && !error && filteredConversations.length > 0 && (
             <div className="space-y-1 p-2">
               {filteredConversations.map((conversation) => (
                 <div
@@ -204,24 +278,34 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <h3 className="font-medium text-[#333333] truncate flex-1">
-                          {conversation.title}
+                          {conversation.title || '未命名对话'}
                         </h3>
-                        {conversation.isArchived && (
-                          <Icon
-                            icon="ph:archive"
-                            width={16}
-                            height={16}
-                            className="text-[#9E9E9E] ml-2"
-                          />
-                        )}
+                        <div className="flex items-center gap-1 ml-2">
+                          {/* 消息数量 */}
+                          {conversation.messageCount > 0 && (
+                            <span className="text-xs text-[#999999] bg-[#F0F0F0] px-1.5 py-0.5 rounded">
+                              {conversation.messageCount}
+                            </span>
+                          )}
+
+                          {/* 归档标识 */}
+                          {conversation.isArchived && (
+                            <Icon
+                              icon="ph:archive"
+                              width={16}
+                              height={16}
+                              className="text-[#9E9E9E]"
+                            />
+                          )}
+                        </div>
                       </div>
 
                       <p className="text-sm text-[#666666] truncate mb-2">
-                        {conversation.preview}
+                        {getConversationPreview(conversation)}
                       </p>
 
                       <div className="text-xs text-[#999999]">
-                        {conversation.timestamp}
+                        {formatTime(conversation.updatedAt)}
                       </div>
                     </div>
                   </div>
@@ -230,6 +314,20 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
             </div>
           )}
         </div>
+
+        {/* 底部统计信息 */}
+        {!loading && !error && (
+          <div className="p-3 border-t border-[#E0E0E0] text-xs text-[#999999] text-center">
+            {showArchived
+              ? `已归档对话 ${filteredConversations.length} 个`
+              : `共 ${
+                  conversations.filter((c) => !c.isArchived).length
+                } 个对话`}
+            {searchQuery.trim() && (
+              <span> · 筛选后 {filteredConversations.length} 个</span>
+            )}
+          </div>
+        )}
       </div>
     </>
   );
