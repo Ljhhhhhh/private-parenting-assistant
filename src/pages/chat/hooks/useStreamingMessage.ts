@@ -123,15 +123,7 @@ export const useStreamingMessage = (
  */
 export const useMessageListStreaming = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [currentStreamingIdState, _setCurrentStreamingIdState] = useState<
-    string | null
-  >(null);
   const currentStreamingIdRef = useRef<string | null>(null);
-
-  const setCurrentStreamingId = useCallback((id: string | null) => {
-    _setCurrentStreamingIdState(id);
-    currentStreamingIdRef.current = id;
-  }, []);
 
   /**
    * 添加用户消息
@@ -162,35 +154,31 @@ export const useMessageListStreaming = () => {
     };
 
     setMessages((prev) => [...prev, aiMessage]);
-    setCurrentStreamingId(messageId);
+    currentStreamingIdRef.current = messageId;
+    console.debug('🆔 设置当前流式消息ID:', messageId);
     return messageId;
-  }, [setCurrentStreamingId]);
+  }, []);
 
   /**
    * 更新流式AI消息内容
    */
-  const updateStreamingMessage = useCallback(
-    (content: string) => {
-      const idToUpdate = currentStreamingIdRef.current;
-      if (!idToUpdate) {
-        console.warn('⚠️ 无当前流式消息ID (ref)，跳过更新:', { content });
-        return;
-      }
+  const updateStreamingMessage = useCallback((content: string) => {
+    const idToUpdate = currentStreamingIdRef.current;
+    if (!idToUpdate) {
+      console.warn('⚠️ 无当前流式消息ID，跳过更新:', { content });
+      return;
+    }
 
-      console.debug('💬 更新AI消息 (ref):', {
-        currentStreamingId: idToUpdate,
-        content: content.substring(0, 50) + (content.length > 50 ? '...' : ''),
-        fullLength: content.length,
-      });
+    console.debug('💬 更新AI消息:', {
+      currentStreamingId: idToUpdate,
+      content: content.substring(0, 50) + (content.length > 50 ? '...' : ''),
+      fullLength: content.length,
+    });
 
-      setMessages((prev) =>
-        prev.map((msg) => (msg.id === idToUpdate ? { ...msg, content } : msg)),
-      );
-    },
-    [
-      /* currentStreamingIdRef is stable, setMessages is stable */
-    ],
-  );
+    setMessages((prev) =>
+      prev.map((msg) => (msg.id === idToUpdate ? { ...msg, content } : msg)),
+    );
+  }, []);
 
   /**
    * 完成AI消息
@@ -199,29 +187,29 @@ export const useMessageListStreaming = () => {
     (finalContent: string, messageId?: string) => {
       const idToUpdate = currentStreamingIdRef.current;
       if (!idToUpdate) {
-        console.warn('⚠️ 无当前流式消息ID (ref) on complete, 跳过完成:', {
+        console.warn('⚠️ 无当前流式消息ID，跳过完成:', {
           finalContent,
           messageId,
         });
         return;
       }
 
+      console.debug('🏁 完成AI消息:', { idToUpdate, finalContent, messageId });
+
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === idToUpdate
             ? {
                 ...msg,
-                id: messageId ? `ai-${messageId}` : `ai-temp-${Date.now()}`,
+                id: messageId ? `ai-${messageId}` : `ai-final-${Date.now()}`,
                 content: finalContent || '抱歉，我现在无法回答这个问题。',
               }
             : msg,
         ),
       );
-      setCurrentStreamingId(null);
+      currentStreamingIdRef.current = null;
     },
-    [
-      setCurrentStreamingId /* currentStreamingIdRef is stable, setMessages is stable */,
-    ],
+    [],
   );
 
   /**
@@ -230,6 +218,7 @@ export const useMessageListStreaming = () => {
   const addErrorMessage = useCallback(
     (errorMessage: string = '抱歉，发送消息失败，请稍后再试。') => {
       const idToClear = currentStreamingIdRef.current;
+
       // 移除可能存在的临时AI消息
       setMessages((prev) => {
         const messagesWithoutTemp = idToClear
@@ -246,11 +235,9 @@ export const useMessageListStreaming = () => {
           },
         ];
       });
-      setCurrentStreamingId(null);
+      currentStreamingIdRef.current = null;
     },
-    [
-      setCurrentStreamingId /* currentStreamingIdRef is stable, setMessages is stable */,
-    ],
+    [],
   );
 
   /**
@@ -268,25 +255,22 @@ export const useMessageListStreaming = () => {
   /**
    * 设置消息列表
    */
-  const setMessageList = useCallback(
-    (newMessages: ChatMessage[]) => {
-      setMessages(newMessages);
-      setCurrentStreamingId(null);
-    },
-    [setCurrentStreamingId],
-  );
+  const setMessageList = useCallback((newMessages: ChatMessage[]) => {
+    setMessages(newMessages);
+    currentStreamingIdRef.current = null;
+  }, []);
 
   /**
    * 清空消息列表
    */
   const clearMessages = useCallback(() => {
     setMessages([]);
-    setCurrentStreamingId(null);
-  }, [setCurrentStreamingId]);
+    currentStreamingIdRef.current = null;
+  }, []);
 
   return {
     messages,
-    currentStreamingId: currentStreamingIdState,
+    currentStreamingId: currentStreamingIdRef.current, // 直接返回ref值，仅供调试
     addUserMessage,
     addAiMessagePlaceholder,
     updateStreamingMessage,
