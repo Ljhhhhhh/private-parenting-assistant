@@ -9,6 +9,40 @@ interface UseStreamingMessageOptions {
 }
 
 /**
+ * ⚠️ 【已重构】此文件已拆分为职责明确的独立Hook
+ *
+ * 🔄 新的架构：
+ *
+ * 1️⃣ useStreamProcessor.ts - 纯流式处理逻辑 ✅
+ *    位置: src/pages/chat/hooks/core/useStreamProcessor.ts
+ *
+ * 2️⃣ useMessageManager.ts - 消息列表管理 ✅
+ *    位置: src/pages/chat/hooks/core/useMessageManager.ts
+ *
+ * 3️⃣ useChatOrchestrator.ts - 聊天流程编排 ✅
+ *    位置: src/pages/chat/hooks/core/useChatOrchestrator.ts
+ *
+ * 📦 统一导出：src/pages/chat/hooks/core/index.ts
+ *
+ * 💡 建议：逐步迁移使用新的Hook，并最终删除此文件
+ *
+ * 🔧 迁移示例：
+ * ```typescript
+ * // 旧方式
+ * const { sendMessage, messages, isStreaming } = useStreamingChat();
+ *
+ * // 新方式
+ * const { sendMessage, messages, isLoading, isStreaming } = useChatOrchestrator({
+ *   onMessageSent: (message) => console.log('消息发送:', message),
+ *   onMessageReceived: (message) => console.log('消息接收:', message),
+ *   onError: (error) => console.error('错误:', error)
+ * });
+ * ```
+ */
+
+// 为了兼容性，暂时保留原有导出（建议逐步迁移到新Hook）
+
+/**
  * 流式消息处理Hook
  * 管理流式响应的状态和内容累积
  */
