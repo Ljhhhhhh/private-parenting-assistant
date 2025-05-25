@@ -25,6 +25,7 @@ interface ConversationActions {
   createConversation: (
     childId: number,
     title?: string,
+    initialMessage?: string,
   ) => Promise<ConversationResponseDto>;
   selectConversation: (id: number | null) => void;
   updateConversation: (
@@ -84,13 +85,18 @@ export const useConversationStore = create<ConversationStore>()(
       },
 
       // 创建新会话
-      createConversation: async (childId: number, title = '新的对话') => {
+      createConversation: async (
+        childId: number,
+        title = '新的对话',
+        initialMessage = '',
+      ) => {
         try {
           set({ isLoading: true, error: null });
 
           const createData: CreateConversationDto = {
             childId,
             title,
+            initialMessage,
           };
 
           const newConversation = await apiCreateConversation(createData);

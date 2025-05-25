@@ -105,14 +105,22 @@ export const sendConversationMessageStream = (
   const params = { message };
 
   if (onStream) {
+    console.debug('🌊 发起会话流式请求:', {
+      conversationId,
+      message: message.substring(0, 50),
+    });
     return request.stream<ChatStreamResponseDto>(
       `/chat/conversations/${conversationId}/stream`,
       params,
       onStream,
     );
   } else {
-    return request.get<ChatStreamResponseDto>(
-      `/chat/conversations/${conversationId}/stream`,
+    console.debug('📝 发起会话普通请求:', {
+      conversationId,
+      message: message.substring(0, 50),
+    });
+    return request.post<ChatStreamResponseDto>(
+      `/chat/conversations/${conversationId}/messages`,
       params,
     );
   }

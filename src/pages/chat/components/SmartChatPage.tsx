@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useChildrenStore } from '@/stores/children';
-import { useRouterParams } from '../hooks/useRouterParams';
+import { useConversationState } from '../hooks/useConversationState';
 import { ChatContainer } from './ChatContainer';
 import { ConversationSidebar } from './ConversationSidebar';
 import { NavBar } from '@/components/ui';
@@ -12,8 +12,18 @@ import { Icon } from '@iconify/react';
  */
 export const SmartChatPage: React.FC = () => {
   const { currentChild } = useChildrenStore();
-  const { currentConversationId, navigateToConversation, navigateToNewChat } =
-    useRouterParams();
+
+  // 🆕 使用状态管理替代路由参数
+  const conversationState = useConversationState({
+    initialConversationId: null,
+    enableHistory: true,
+    maxHistorySize: 10,
+    onConversationChange: (conversationId) => {
+      console.log('🗂️ 会话切换:', conversationId);
+      // 这里可以添加会话切换后的处理逻辑
+      // 比如清空消息、重置状态等
+    },
+  });
 
   // 侧边栏状态
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -38,21 +48,19 @@ export const SmartChatPage: React.FC = () => {
   // 会话选择处理
   const handleConversationSelect = useCallback(
     (conversationId: number | null) => {
-      if (conversationId) {
-        navigateToConversation(conversationId);
-      } else {
-        navigateToNewChat();
-      }
+      console.debug('🗂️ 用户选择会话:', conversationId);
+      conversationState.selectConversation(conversationId);
       setIsSidebarOpen(false);
     },
-    [navigateToConversation, navigateToNewChat],
+    [conversationState],
   );
 
   // 新建会话
   const handleNewConversation = useCallback(() => {
-    navigateToNewChat();
+    console.debug('🆕 用户创建新会话');
+    conversationState.createNewConversation();
     setIsSidebarOpen(false);
-  }, [navigateToNewChat]);
+  }, [conversationState]);
 
   // 打开侧边栏
   const handleOpenSidebar = useCallback(() => {
@@ -92,7 +100,7 @@ export const SmartChatPage: React.FC = () => {
           <ConversationSidebar
             isOpen={true}
             onClose={() => {}}
-            currentConversationId={currentConversationId}
+            currentConversationId={conversationState.currentConversationId}
             onConversationSelect={handleConversationSelect}
             childId={currentChild.id}
           />
@@ -104,7 +112,7 @@ export const SmartChatPage: React.FC = () => {
         <ConversationSidebar
           isOpen={isSidebarOpen}
           onClose={handleCloseSidebar}
-          currentConversationId={currentConversationId}
+          currentConversationId={conversationState.currentConversationId}
           onConversationSelect={handleConversationSelect}
           childId={currentChild.id}
         />
@@ -115,7 +123,7 @@ export const SmartChatPage: React.FC = () => {
         {/* 顶部导航栏 */}
         <div className="bg-white border-b border-[#E0E0E0] shadow-sm">
           <NavBar
-            title="智能问答"
+            title="萌芽助手"
             titleClassName="font-semibold text-xl text-[#FFB38A]"
             right={
               <div className="flex items-center space-x-3">
@@ -166,11 +174,24 @@ export const SmartChatPage: React.FC = () => {
           />
         </div>
 
+        {/* 🆕 会话切换状态指示器 */}
+        {conversationState.isSwitching && (
+          <div className="bg-blue-50 border-b border-blue-200 px-4 py-2">
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+              <span className="text-sm text-blue-700">正在切换会话...</span>
+            </div>
+          </div>
+        )}
+
         {/* 聊天容器 */}
         <div className="flex-1 overflow-hidden">
           <ChatContainer
             childId={currentChild.id}
-            initialConversationId={currentConversationId || undefined}
+            initialConversationId={
+              conversationState.currentConversationId || undefined
+            }
+            key={conversationState.currentConversationId || 'new'} // 🆕 强制重新渲染
           />
         </div>
       </div>

@@ -9,6 +9,7 @@ import { useChatOrchestrator } from '../hooks/core/useChatOrchestrator';
 import { useChatAPI } from '../hooks/integrations/useChatAPI';
 import { useLocation } from 'react-router-dom';
 import { getChatSuggestions } from '@/api/chat';
+import logoImage from '@/assets/logo.png';
 import { Icon } from '@iconify/react';
 import { Input } from '@/components/ui';
 import {
@@ -36,6 +37,8 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 
   // ✨ 新架构：使用聊天编排器替代流式聊天
   const chatOrchestrator = useChatOrchestrator({
+    childId: childId || null,
+    conversationId: initialConversationId || null,
     onMessageSent: (message) => {
       console.log('📤 消息发送:', message.content);
       // 实际工作：清空输入框，滚动到底部
@@ -74,6 +77,11 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
         console.debug('📄 收到长消息，内容长度:', content.length);
       }
     },
+    onConversationCreated: (conversationId) => {
+      console.log('🆕 会话创建成功:', conversationId);
+      // 这里可以添加会话创建后的处理逻辑
+      // 比如更新URL、通知父组件等
+    },
   });
 
   // 聊天API Hook
@@ -105,6 +113,31 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       setHasInitialized(true);
     }
   }, [location.search, hasInitialized]);
+
+  // 🆕 会话切换时重置状态
+  useEffect(() => {
+    console.debug('🔄 会话ID变化，重置聊天状态:', {
+      newConversationId: initialConversationId,
+      previousMessageCount: chatOrchestrator.messages.length,
+    });
+
+    // 清空当前消息（如果切换到不同会话）
+    if (chatOrchestrator.messages.length > 0) {
+      chatOrchestrator.clearMessages();
+    }
+
+    // 重置输入状态
+    setInputValue('');
+    setHasInitialized(false);
+
+    // 如果有预设问题，设置到输入框
+    const query = new URLSearchParams(location.search);
+    const question = query.get('question');
+    if (question) {
+      setInputValue(question);
+      setHasInitialized(true);
+    }
+  }, [initialConversationId]); // 依赖会话ID变化
 
   // 加载消息历史 (兼容旧的运行时系统)
   useEffect(() => {
@@ -216,14 +249,22 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       // ✨ 使用新的聊天编排器发送消息
       await chatOrchestrator.sendMessage(
         content,
-        (messageContent, onStream) => {
+        (
+          messageContent: string,
+          onStream: (chunk: string) => void,
+          conversationId?: number | null,
+        ) => {
           console.debug('🚀 ChatContainer调用新架构sendMessage:', {
             messageContent,
+            conversationId,
+            fromOrchestrator: conversationId,
+            fromState: chatOrchestrator.currentConversationId,
           });
 
           return sendMessageAPI({
             content: messageContent,
             childId: childId || null,
+            conversationId,
             onStream,
           });
         },
@@ -324,8 +365,9 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           {chatOrchestrator.messages.length === 0 ? (
             /* 空状态 - 显示建议 */
             <div className="flex flex-col items-center justify-center min-h-full">
-              <div className="w-48 h-48 mb-6 animate-float flex items-center justify-center text-[#FFB38A]">
-                <Icon icon="ph:baby-fill" width={120} height={120} />
+              <div className="w-36 h-36 mb-4 animate-float flex items-center justify-center text-[#FFB38A]">
+                {/* <Icon icon="ph:baby-fill" width={120} height={120} /> */}
+                <img src={logoImage} alt="" className="w-full h-full" />
               </div>
               <p className="mb-6 text-lg font-medium text-center text-[#666666]">
                 有什么育儿问题，请随时向我提问

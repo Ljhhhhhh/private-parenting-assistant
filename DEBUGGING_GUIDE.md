@@ -127,23 +127,42 @@ const streamProcessor = useStreamProcessor({
 9. 🔍 重点检查 AI 消息 - content 应该逐渐增长 ✅
 ```
 
-## 🎯 问题排查清单
+## 🆕 会话创建功能日志流程
 
-### 检查要点：
+### 第一条消息时的完整日志
 
-1. ✅ `messageManagerRef.current` 是否指向最新的 `messageManager`？
-2. ✅ `currentStreamingId` 是否不再为 `null`？
-3. ✅ 回调函数是否通过 `ref.current` 访问状态？
-4. ✅ `updateMessage` 是否找到目标消息？
-5. ✅ 消息内容是否正确更新？
-6. ✅ `messages[1].content` 的值和长度是否正确？
+```
+1. 🎭 开始聊天流程编排: { contentLength: 12 }
+2. 🆕 检测到第一条消息，尝试创建会话
+3. 🆕 创建新会话: { childId: 123, firstMessage: "宝宝发烧怎么办？" }
+4. 📝 模拟创建会话: { childId: 123, title: "宝宝发烧怎么办" }
+5. ✅ 会话创建成功: { conversationId: 359, title: "宝宝发烧怎么办" }
+6. 🗂️ 会话创建完成，继续发送消息: { conversationId: 359 }
+7. 🎭 用户消息已添加: { userMessageId: "user-xxx" }
+8. 🎭 AI消息占位符已添加: { aiMessageId: "ai-xxx" }
+9. ... 继续正常的流式处理流程
+```
 
-### 常见问题及解决方案：
+### 后续消息的日志
 
-#### 问题 1: 仍然出现闭包陷阱
+```
+1. 🎭 开始聊天流程编排: { contentLength: 8 }
+2. 🗂️ 使用现有会话: { conversationId: 359 }
+3. 🎭 用户消息已添加: { userMessageId: "user-xxx" }
+4. 🎭 AI消息占位符已添加: { aiMessageId: "ai-xxx" }
+5. ... 继续正常的流式处理流程
+```
 
-**解决方案**: 确保使用 `useRef` 并在每次渲染时更新 `ref.current`。
+### 会话创建失败的日志
 
+```
+1. 🎭 开始聊天流程编排: { contentLength: 12 }
+2. 🆕 检测到第一条消息，尝试创建会话
+3. 🆕 创建新会话: { childId: 123, firstMessage: "宝宝发烧怎么办？" }
+4. ❌ 创建会话失败: 网络错误
+5. 🗂️ 会话创建失败或跳过，继续发送消息
+6. 🎭 用户消息已添加: { userMessageId: "user-xxx" }
+7. 🎭 AI消息占位符已添加: { aiMessageId: "ai-xxx" }
 #### 问题 2: ref.current 为 undefined
 
 **解决方案**: 检查 `messageManagerRef.current = messageManager` 是否在正确位置执行。
@@ -212,3 +231,4 @@ const streamProcessor = useStreamProcessor({
 - **useRef 的桥梁作用**: 在重新渲染之间保持引用的一致性
 
 这是一个典型的"看起来应该工作，但实际不工作"的场景，需要深入理解 React 的渲染机制和 JavaScript 的闭包特性才能正确诊断和修复。
+```

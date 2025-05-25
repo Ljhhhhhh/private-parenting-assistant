@@ -195,6 +195,8 @@ export interface ChatRequestDto {
   message: string;
   /** 关联的孩子ID（可选） */
   childId?: number;
+  /** 关联的会话ID（可选） */
+  conversationId?: number;
 }
 
 export interface ChatResponseDto {

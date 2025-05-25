@@ -12,6 +12,8 @@
 import { useCallback, useState, useRef } from 'react';
 import { useStreamProcessor } from './useStreamProcessor';
 import { useMessageManager, type ChatMessage } from './useMessageManager';
+import { useConversationStore } from '../useConversationStore';
+import { generateConversationTitle } from '../useConversationStore';
 
 // ========== 类型定义 ==========
 
@@ -21,6 +23,9 @@ export interface ChatOrchestratorOptions {
   onError?: (error: Error) => void;
   onStreamingStart?: () => void;
   onStreamingComplete?: (content: string) => void;
+  onConversationCreated?: (conversationId: number) => void;
+  childId?: number | null; // 添加 childId 参数
+  conversationId?: number | null; // 添加当前会话ID
 }
 
 export interface ChatOrchestratorState {
@@ -29,6 +34,7 @@ export interface ChatOrchestratorState {
   isStreaming: boolean;
   error: Error | null;
   currentStreamingContent: string;
+  currentConversationId: number | null; // 🆕 添加当前会话ID
 }
 
 export interface ChatOrchestratorActions {
@@ -37,6 +43,7 @@ export interface ChatOrchestratorActions {
     sendFunction: (
       content: string,
       onStream: (chunk: string) => void,
+      conversationId?: number | null,
     ) => Promise<string>,
   ) => Promise<void>;
   retryLastMessage: () => Promise<void>;
@@ -71,6 +78,12 @@ export const useChatOrchestrator = (
     | ((content: string, onStream: (chunk: string) => void) => Promise<string>)
     | null
   >(null);
+
+  // 🔧 会话管理
+  const conversationStore = useConversationStore();
+  const [currentConversationId, setCurrentConversationId] = useState<
+    number | null
+  >(options.conversationId || null);
 
   // 🔧 修复：先初始化消息管理器
   const messageManager = useMessageManager({
@@ -176,6 +189,67 @@ export const useChatOrchestrator = (
   });
 
   /**
+   * 🆕 创建新会话
+   */
+  const createConversationIfNeeded = useCallback(
+    async (firstMessage: string): Promise<number | null> => {
+      // 如果已经有会话ID，直接返回
+      if (currentConversationId) {
+        console.debug('🗂️ 使用现有会话:', {
+          conversationId: currentConversationId,
+        });
+        return currentConversationId;
+      }
+
+      // 如果没有childId，无法创建会话
+      if (!options.childId) {
+        console.warn('⚠️ 没有childId，无法创建会话');
+        return null;
+      }
+
+      try {
+        console.debug('🆕 创建新会话:', {
+          childId: options.childId,
+          firstMessage: firstMessage.substring(0, 50),
+        });
+
+        // 生成会话标题
+        const title = generateConversationTitle(firstMessage);
+
+        // 创建会话
+        const newConversation = await conversationStore.createConversation(
+          options.childId,
+          title,
+          firstMessage,
+        );
+
+        const newConversationId = newConversation.id;
+        setCurrentConversationId(newConversationId);
+
+        console.debug('✅ 会话创建成功:', {
+          conversationId: newConversationId,
+          title,
+        });
+
+        // 通知会话创建完成
+        options.onConversationCreated?.(newConversationId);
+
+        return newConversationId;
+      } catch (error) {
+        console.error('❌ 创建会话失败:', error);
+        // 会话创建失败不应该阻止消息发送，返回null继续发送
+        return null;
+      }
+    },
+    [
+      currentConversationId,
+      options.childId,
+      options.onConversationCreated,
+      conversationStore,
+    ],
+  );
+
+  /**
    * 发送消息的完整流程
    */
   const sendMessage = useCallback(
@@ -184,6 +258,7 @@ export const useChatOrchestrator = (
       sendFunction: (
         content: string,
         onStream: (chunk: string) => void,
+        conversationId?: number | null,
       ) => Promise<string>,
     ) => {
       console.debug('🎭 开始聊天流程编排:', { contentLength: content.length });
@@ -197,25 +272,58 @@ export const useChatOrchestrator = (
         setLastUserMessage(content);
         setLastSendFunction(() => sendFunction);
 
-        // 3. 添加用户消息
+        // 3. 🆕 检查是否需要创建会话（第一条消息时）
+        let effectiveConversationId = currentConversationId;
+        const isFirstMessage = messageManager.messages.length === 0;
+
+        if (isFirstMessage) {
+          console.debug('🆕 检测到第一条消息，尝试创建会话');
+          const newConversationId = await createConversationIfNeeded(content);
+
+          if (newConversationId) {
+            effectiveConversationId = newConversationId;
+            console.debug('🗂️ 会话创建完成，使用新会话ID:', {
+              conversationId: newConversationId,
+            });
+          } else {
+            console.debug('🗂️ 会话创建失败或跳过，使用当前会话ID:', {
+              conversationId: effectiveConversationId,
+            });
+          }
+        }
+
+        console.debug('🎭 准备发送消息，使用会话ID:', {
+          effectiveConversationId,
+          isFirstMessage,
+          currentConversationId,
+        });
+
+        // 4. 添加用户消息
         const userMessageId = messageManager.addUserMessage(content);
         console.debug('🎭 用户消息已添加:', { userMessageId });
 
-        // 4. 添加AI消息占位符
+        // 5. 添加AI消息占位符
         const aiMessageId = messageManager.addAiMessagePlaceholder();
         console.debug('🎭 AI消息占位符已添加:', { aiMessageId });
 
-        // 5. 开始流式处理
+        // 6. 开始流式处理
         streamProcessor.startProcessing();
         options.onStreamingStart?.();
 
-        // 6. 发送消息并处理流式响应
-        console.debug('🎭 开始发送消息和处理流式响应');
+        // 7. 🔧 发送消息并处理流式响应 - 传递正确的会话ID
+        console.debug(
+          '🎭 开始发送消息和处理流式响应，会话ID:',
+          effectiveConversationId,
+        );
 
-        await sendFunction(content, (chunk) => {
-          console.debug('🎭 接收数据块并传递给流式处理器');
-          streamProcessor.processChunk(chunk);
-        });
+        await sendFunction(
+          content,
+          (chunk) => {
+            console.debug('🎭 接收数据块并传递给流式处理器');
+            streamProcessor.processChunk(chunk);
+          },
+          effectiveConversationId,
+        );
       } catch (err) {
         console.error('🎭 发送消息失败:', err);
 
@@ -239,7 +347,13 @@ export const useChatOrchestrator = (
         throw error;
       }
     },
-    [streamProcessor, messageManager, options],
+    [
+      streamProcessor,
+      messageManager,
+      options,
+      createConversationIfNeeded,
+      currentConversationId,
+    ],
   );
 
   /**
@@ -306,6 +420,7 @@ export const useChatOrchestrator = (
     isStreaming,
     error,
     currentStreamingContent,
+    currentConversationId,
 
     // 操作方法
     sendMessage,

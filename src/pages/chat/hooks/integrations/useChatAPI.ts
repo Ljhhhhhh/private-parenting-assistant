@@ -18,6 +18,7 @@ import type { ChatRequestDto } from '@/types/models';
 export interface SendMessageParams {
   content: string;
   childId?: number | null;
+  conversationId?: number | null;
   onStream?: (chunk: string) => void;
 }
 
@@ -36,36 +37,35 @@ export const useChatAPI = (): ChatAPIHook => {
    */
   const sendMessage = useCallback(
     async (params: SendMessageParams): Promise<string> => {
-      const { content, childId, onStream } = params;
+      const { content, childId, conversationId, onStream } = params;
 
       console.debug('🌐 API发送消息:', {
         content,
         childId,
+        conversationId,
         hasStream: !!onStream,
       });
 
       try {
-        // 构建请求数据
+        console.debug('🗂️ 使用会话API发送消息:', { conversationId });
+
         const requestData: ChatRequestDto = {
           message: content.trim(),
           childId: childId || undefined,
+          conversationId: conversationId || undefined,
         };
-
-        // 使用已有的 chat 接口发送流式消息
         const response = await chat(requestData, onStream);
 
-        console.debug('✅ API响应完成:', {
+        console.debug('✅ 会话API响应完成:', {
           chatId: response.chatId,
           type: response.type,
-          childId,
+          conversationId,
         });
 
-        // 返回完整内容
         return response.content || '';
       } catch (error) {
         console.error('❌ API请求失败:', error);
 
-        // 包装错误信息
         if (error instanceof Error) {
           throw error;
         } else {
@@ -81,32 +81,35 @@ export const useChatAPI = (): ChatAPIHook => {
    */
   const sendMessageSync = useCallback(
     async (params: Omit<SendMessageParams, 'onStream'>): Promise<string> => {
-      const { content, childId } = params;
+      const { content, childId, conversationId } = params;
 
-      console.debug('🌐 API发送同步消息:', { content, childId });
+      console.debug('🌐 API发送同步消息:', {
+        content,
+        childId,
+        conversationId,
+      });
 
       try {
-        // 构建请求数据
+        console.debug('💬 发送同步消息');
+
         const requestData: ChatRequestDto = {
           message: content.trim(),
           childId: childId || undefined,
+          conversationId: conversationId || undefined,
         };
 
-        // 使用已有的 chat 接口发送同步消息（不传 onStream）
         const response = await chat(requestData);
 
-        console.debug('✅ API同步响应完成:', {
+        console.debug('✅ 同步响应完成:', {
           chatId: response.chatId,
           type: response.type,
           childId,
         });
 
-        // 返回完整内容
         return response.content || '';
       } catch (error) {
         console.error('❌ API同步请求失败:', error);
 
-        // 包装错误信息
         if (error instanceof Error) {
           throw error;
         } else {
