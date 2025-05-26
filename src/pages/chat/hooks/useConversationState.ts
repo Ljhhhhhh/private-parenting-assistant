@@ -79,7 +79,6 @@ export const useConversationState = (
   /**
    * 选择会话
    */
-  // TODO: 应该发起请求并获取 conversationId 的聊天历史
   const selectConversation = useCallback(
     (conversationId: number | null) => {
       console.debug('🗂️ 选择会话:', {
@@ -168,21 +167,6 @@ export const useConversationState = (
       maxHistorySize,
     });
   }, []);
-
-  // 状态变化日志
-  useEffect(() => {
-    console.debug('🗂️ 会话状态变化:', {
-      currentConversationId,
-      previousConversationId,
-      historySize: conversationHistory.length,
-      isSwitching,
-    });
-  }, [
-    currentConversationId,
-    previousConversationId,
-    conversationHistory.length,
-    isSwitching,
-  ]);
 
   return {
     // 状态

@@ -61,10 +61,10 @@ const Home: React.FC = () => {
 
   // 获取最近记录数据
   useEffect(() => {
-    if (currentChild) {
+    if (currentChild?.id) {
       fetchRecordList();
     }
-  }, [currentChild]); // 依赖于currentChild而不是currentChildId
+  }, [currentChild?.id]);
 
   // 更新当前时间
   useEffect(() => {
@@ -386,11 +386,11 @@ const Home: React.FC = () => {
     <div className="flex flex-col min-h-screen bg-[#FDFBF8]">
       {/* <NavBar title="日常记录" /> */}
 
-      <div className="flex-1 overflow-auto">
+      <div className="overflow-auto flex-1">
         {/* 顶部欢迎区 - 使用温暖渐变背景 */}
         <div className="relative px-5 pt-4 pb-4 bg-gradient-to-br from-white to-[#FFF8F4] overflow-hidden">
           {/* 背景装饰元素 */}
-          <div className="absolute top-0 right-0 transform opacity-5 translate-x-1/4 -translate-y-1/4">
+          <div className="absolute top-0 right-0 opacity-5 transform translate-x-1/4 -translate-y-1/4">
             <Icon
               icon="mdi:baby-face-outline"
               className="text-[200px] text-[#FFB38A]"
@@ -398,7 +398,7 @@ const Home: React.FC = () => {
           </div>
 
           {/* 顶部区域：左侧问候，右侧儿童信息 */}
-          <div className="flex items-start justify-between">
+          <div className="flex justify-between items-start">
             <div>
               <h1 className="mb-2 text-2xl font-semibold text-[#333333]">
                 <span className="text-[#FF9F73]">{getGreeting()}</span>
@@ -459,7 +459,7 @@ const Home: React.FC = () => {
         <div className="px-5 pt-2 pb-4">
           {/* 最近记录展示 */}
           <div className="mb-4">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex justify-between items-center mb-4">
               <h2 className="flex items-center text-lg font-semibold text-[#333333]">
                 <Icon icon="mdi:history" className="mr-2 text-[#FFB38A]" />
                 最近记录
@@ -495,7 +495,7 @@ const Home: React.FC = () => {
                     <div className="flex items-start">
                       {/* 记录类型图标 */}
                       <div
-                        className="flex items-center justify-center flex-shrink-0 w-10 h-10 mr-3 rounded-full"
+                        className="flex flex-shrink-0 justify-center items-center mr-3 w-10 h-10 rounded-full"
                         style={{ backgroundColor: `${record.color}20` }}
                       >
                         <Icon
@@ -507,7 +507,7 @@ const Home: React.FC = () => {
 
                       {/* 记录内容 */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
+                        <div className="flex justify-between items-center mb-1">
                           <div className="text-[#333333] font-medium truncate mr-2">
                             {record.title}
                           </div>
@@ -548,7 +548,7 @@ const Home: React.FC = () => {
 
           {/* 快捷记录区 - 优化UX设计 */}
           <div className="mb-8">
-            <h2 className="flex items-center justify-between mb-4">
+            <h2 className="flex justify-between items-center mb-4">
               <div className="flex items-center text-lg font-semibold text-[#333333]">
                 <Icon
                   icon="mdi:lightning-bolt"
@@ -560,7 +560,7 @@ const Home: React.FC = () => {
 
             <div className="bg-white rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-[#F0F0F0] overflow-hidden">
               {/* 水平滑动卡片设计 */}
-              <div className="flex px-4 py-4 overflow-x-auto hide-scrollbar">
+              <div className="flex overflow-x-auto px-4 py-4 hide-scrollbar">
                 {recordTypes.map((type) => (
                   <div
                     key={type.id}
@@ -572,7 +572,7 @@ const Home: React.FC = () => {
                       className={`flex flex-col items-center px-3 py-3 ${type.bgColor} rounded-xl border ${type.borderColor} transition-all duration-200 hover:${type.hoverBgColor} hover:shadow-sm min-w-[64px]`}
                     >
                       {/* 图标 */}
-                      <div className="flex items-center justify-center w-8 h-8 mb-1">
+                      <div className="flex justify-center items-center mb-1 w-8 h-8">
                         <Icon
                           icon={type.icon}
                           className={`text-xl ${type.iconColor}`}
@@ -605,7 +605,7 @@ const Home: React.FC = () => {
               onClick={navigateToChat}
             >
               {/* 背景装饰 */}
-              <div className="absolute bottom-0 right-0 opacity-5">
+              <div className="absolute right-0 bottom-0 opacity-5">
                 <Icon
                   icon="mdi:robot"
                   className="text-[120px] text-[#FFB38A]"
