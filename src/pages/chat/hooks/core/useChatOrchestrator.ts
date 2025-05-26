@@ -9,11 +9,12 @@
  * @since 1.0.0
  */
 
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import { useStreamProcessor } from './useStreamProcessor';
 import { useMessageManager, type ChatMessage } from './useMessageManager';
 import { useConversationStore } from '../useConversationStore';
 import { generateConversationTitle } from '../useConversationStore';
+import { getConversationMessages } from '@/api/chat';
 
 // ========== 类型定义 ==========
 
@@ -81,9 +82,10 @@ export const useChatOrchestrator = (
 
   // 🔧 会话管理
   const conversationStore = useConversationStore();
-  const [currentConversationId, setCurrentConversationId] = useState<
-    number | null
-  >(options.conversationId || null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false);
+
+  // 直接使用 options.conversationId，不需要额外的状态
+  const currentConversationId = options.conversationId || null;
 
   // 🔧 修复：先初始化消息管理器
   const messageManager = useMessageManager({
@@ -98,6 +100,128 @@ export const useChatOrchestrator = (
   const messageManagerRef = useRef(messageManager);
   messageManagerRef.current = messageManager;
 
+  // 🆕 监听 conversationId 变化，加载历史消息
+  useEffect(() => {
+    const loadConversationHistory = async (conversationId: number) => {
+      console.debug('🔄 开始加载会话历史:', { conversationId });
+      setIsLoadingHistory(true);
+
+      try {
+        // 调用API获取会话消息历史
+        const response = await getConversationMessages(conversationId, {
+          limit: 50,
+          offset: 0,
+        });
+
+        // 处理API响应格式
+        let messagesData: any[] = [];
+        if (Array.isArray(response)) {
+          messagesData = response;
+        } else if (
+          response &&
+          'data' in response &&
+          Array.isArray((response as any).data)
+        ) {
+          messagesData = (response as any).data;
+        } else if (
+          response &&
+          'messages' in response &&
+          Array.isArray((response as any).messages)
+        ) {
+          messagesData = (response as any).messages;
+        }
+
+        console.debug('📚 获取到历史消息:', { count: messagesData.length });
+
+        if (messagesData.length > 0) {
+          // 转换为UI消息格式 - 每个ChatHistoryDto转换为两个ChatMessage
+          const historyMessages: ChatMessage[] = [];
+
+          messagesData.forEach((item: any) => {
+            // 添加用户消息
+            if (item.userMessage) {
+              historyMessages.push({
+                id: `user-${item.id}`,
+                content: item.userMessage,
+                isUser: true,
+                timestamp: new Date(item.requestTimestamp || item.createdAt),
+                isStreaming: false,
+              });
+            }
+
+            // 添加AI回复
+            if (item.aiResponse) {
+              historyMessages.push({
+                id: `ai-${item.id}`,
+                content: item.aiResponse,
+                isUser: false,
+                timestamp: new Date(item.responseTimestamp || item.createdAt),
+                feedback:
+                  item.isHelpful !== undefined
+                    ? item.isHelpful
+                      ? 'helpful'
+                      : 'not-helpful'
+                    : undefined,
+                isStreaming: false,
+              });
+            }
+          });
+
+          // 按时间排序
+          historyMessages.sort(
+            (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
+          );
+
+          // 清空当前消息并设置历史消息
+          const currentManager = messageManagerRef.current;
+          currentManager.clearMessages();
+
+          // 使用 setMessages 直接设置历史消息
+          currentManager.setMessages(historyMessages);
+
+          console.debug('✅ 历史消息加载完成:', {
+            totalMessages: historyMessages.length,
+            userMessages: historyMessages.filter((m) => m.isUser).length,
+            aiMessages: historyMessages.filter((m) => !m.isUser).length,
+          });
+        } else {
+          // 如果没有历史消息，清空当前消息
+          const currentManager = messageManagerRef.current;
+          currentManager.clearMessages();
+          console.debug('📭 该会话暂无历史消息');
+        }
+      } catch (error) {
+        console.error('❌ 加载会话历史失败:', error);
+        // 加载失败时也要清空当前消息，避免显示其他会话的消息
+        const currentManager = messageManagerRef.current;
+        currentManager.clearMessages();
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    console.debug('🔄 开始加载会话历史:', {
+      conversationId: options.conversationId,
+      currentConversationId,
+    });
+
+    // 当 conversationId 变化时
+    if (
+      options.conversationId !== null &&
+      options.conversationId !== undefined
+    ) {
+      console.debug('🔄 会话ID变化，准备加载历史:', {
+        conversationId: options.conversationId,
+      });
+      loadConversationHistory(options.conversationId);
+    } else {
+      // 如果 conversationId 为 null（新会话），清空消息
+      console.debug('🆕 切换到新会话，清空消息');
+      const currentManager = messageManagerRef.current;
+      currentManager.clearMessages();
+    }
+  }, [options.conversationId]); // 依赖 conversationId 变化
+
   // 🔧 修复：使用 useRef 确保回调函数能访问到最新的 messageManager
   const streamProcessor = useStreamProcessor({
     onChunk: (content) => {
@@ -111,10 +235,6 @@ export const useChatOrchestrator = (
 
       // 🔧 修复：通过 ref 访问最新的 currentStreamingId
       const latestStreamingId = currentManager.currentStreamingId;
-      console.log(
-        latestStreamingId,
-        'messageManager.currentStreamingId (通过ref获取最新值)',
-      );
 
       if (latestStreamingId) {
         console.debug('🎭 准备更新消息:', {
@@ -224,7 +344,6 @@ export const useChatOrchestrator = (
         );
 
         const newConversationId = newConversation.id;
-        setCurrentConversationId(newConversationId);
 
         console.debug('✅ 会话创建成功:', {
           conversationId: newConversationId,
@@ -416,7 +535,7 @@ export const useChatOrchestrator = (
   return {
     // 状态
     messages: messageManager.messages,
-    isLoading,
+    isLoading: isLoading || isLoadingHistory, // 包含历史加载状态
     isStreaming,
     error,
     currentStreamingContent,

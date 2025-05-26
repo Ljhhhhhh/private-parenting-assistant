@@ -3,7 +3,7 @@ import { ChatContainerProps } from '../types/chat';
 import {
   useChatRuntime,
   useSendMessage,
-  useLoadMessages,
+  // useLoadMessages,
 } from '../hooks/useChatRuntime';
 import { useChatOrchestrator } from '../hooks/core/useChatOrchestrator';
 import { useChatAPI } from '../hooks/integrations/useChatAPI';
@@ -13,7 +13,7 @@ import logoImage from '@/assets/logo.png';
 import { Icon } from '@iconify/react';
 import { Input } from '@/components/ui';
 import {
-  convertApiMessageToUI,
+  // convertApiMessageToUI,
   formatMessageTime,
   isEmptyMessage,
 } from '../utils/messageUtils';
@@ -33,7 +33,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   });
 
   const sendMessage = useSendMessage(runtime);
-  const loadMessages = useLoadMessages(runtime);
+  // const loadMessages = useLoadMessages(runtime);
 
   // ✨ 新架构：使用聊天编排器替代流式聊天
   const chatOrchestrator = useChatOrchestrator({
@@ -140,32 +140,32 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   }, [initialConversationId]); // 依赖会话ID变化
 
   // 加载消息历史 (兼容旧的运行时系统)
-  useEffect(() => {
-    if (!runtime || chatOrchestrator.messages.length > 0) return;
+  // useEffect(() => {
+  //   if (!runtime || chatOrchestrator.messages.length > 0) return;
 
-    const loadHistory = async () => {
-      try {
-        const historyData = await loadMessages();
+  //   const loadHistory = async () => {
+  //     try {
+  //       const historyData = await loadMessages();
 
-        // 转换为新架构的消息格式
-        const historyMessages = historyData.map(convertApiMessageToUI);
+  //       // 转换为新架构的消息格式
+  //       const historyMessages = historyData.map(convertApiMessageToUI);
 
-        // 按时间排序
-        historyMessages.sort(
-          (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
-        );
+  //       // 按时间排序
+  //       historyMessages.sort(
+  //         (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
+  //       );
 
-        // 🔄 迁移说明：setMessageList 现在通过编排器管理
-        // 由于编排器暂时没有直接的 setMessages 方法，
-        // 我们可以考虑在编排器中添加这个功能，或者通过其他方式初始化
-        console.debug('📚 加载历史消息:', historyMessages.length);
-      } catch (error) {
-        console.error('加载消息历史失败:', error);
-      }
-    };
+  //       // 🔄 迁移说明：setMessageList 现在通过编排器管理
+  //       // 由于编排器暂时没有直接的 setMessages 方法，
+  //       // 我们可以考虑在编排器中添加这个功能，或者通过其他方式初始化
+  //       console.debug('📚 加载历史消息:', historyMessages.length);
+  //     } catch (error) {
+  //       console.error('加载消息历史失败:', error);
+  //     }
+  //   };
 
-    loadHistory();
-  }, [runtime, loadMessages, chatOrchestrator.messages.length]);
+  //   loadHistory();
+  // }, [runtime, loadMessages, chatOrchestrator.messages.length]);
 
   // 获取智能建议
   useEffect(() => {
