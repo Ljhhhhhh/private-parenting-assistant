@@ -63,14 +63,14 @@ const Chat: React.FC = () => {
   }, [conversationState]);
 
   // 打开侧边栏
-  const handleOpenSidebar = useCallback(() => {
+  const handleOpenSidebar = () => {
     setIsSidebarOpen(true);
-  }, []);
+  };
 
   // 关闭侧边栏
-  const handleCloseSidebar = useCallback(() => {
+  const handleCloseSidebar = () => {
     setIsSidebarOpen(false);
-  }, []);
+  };
 
   // 如果没有选择宝宝
   if (!currentChild) {
