@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChatContainerProps } from '../types/chat';
 import { useChatOrchestrator } from '../hooks/core/useChatOrchestrator';
-import { useChatAPI } from '../hooks/integrations/useChatAPI';
+import { chat } from '@/api/chat';
+import type { ChatRequestDto } from '@/types/models';
 import { useLocation } from 'react-router-dom';
 import { getChatSuggestions } from '@/api/chat';
 import logoImage from '@/assets/logo.png';
@@ -21,7 +22,6 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   childId,
   initialConversationId,
 }) => {
-  // ✨ 新架构：使用聊天编排器替代流式聊天
   const chatOrchestrator = useChatOrchestrator({
     childId: childId || null,
     conversationId: initialConversationId || null,
@@ -68,8 +68,32 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     },
   });
 
-  // 聊天API Hook
-  const { sendMessage: sendMessageAPI } = useChatAPI();
+  const sendMessageAPI = useCallback(
+    async (params: {
+      content: string;
+      childId: number | null;
+      conversationId?: number | null;
+      onStream?: (chunk: string) => void;
+    }) => {
+      const { content, childId, conversationId, onStream } = params;
+
+      try {
+        const requestData: ChatRequestDto = {
+          message: content.trim(),
+          childId: childId || undefined,
+          conversationId: conversationId || undefined,
+        };
+
+        // 直接调用chat API
+        const response = await chat(requestData, onStream);
+        return response.content || '';
+      } catch (error) {
+        console.error('❌ API请求失败:', error);
+        throw new Error('发送消息失败，请稍后重试');
+      }
+    },
+    [],
+  );
 
   // 状态管理
   const [inputValue, setInputValue] = useState('');
@@ -80,9 +104,14 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
-  // 滚动到底部
+  // 滚动到底部（带动画效果）
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  // 立即滚动到底部（无动画效果）
+  const scrollToBottomInstantly = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
   }, []);
 
   // 从URL参数获取预设问题
@@ -146,8 +175,16 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 
   // 消息更新后滚动到底部
   useEffect(() => {
-    scrollToBottom();
-  }, [chatOrchestrator.messages, scrollToBottom]);
+    // 检查是否是由于加载历史消息导致的更新
+    if (chatOrchestrator.isLoadingHistory) {
+      console.debug('🔄 加载历史消息，使用无动画滚动');
+      // 历史消息加载时，使用无动画滚动
+      scrollToBottomInstantly();
+    } else {
+      // 正常消息更新时，使用平滑滚动
+      scrollToBottom();
+    }
+  }, [chatOrchestrator.messages, chatOrchestrator.isLoadingHistory]);
 
   // 🔄 发送消息 - 使用新的编排器架构
   const handleSend = useCallback(async () => {
@@ -203,23 +240,6 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     },
     [chatOrchestrator],
   );
-
-  // 如果聊天未准备就绪
-  if (chatOrchestrator.isLoading) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <div className="text-center">
-          <Icon
-            icon="ph:spinner"
-            width={48}
-            height={48}
-            className="mx-auto mb-4 text-[#FFB38A] animate-spin"
-          />
-          <p className="text-[#666666]">正在初始化聊天...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col h-full bg-[#FDFBF8]">

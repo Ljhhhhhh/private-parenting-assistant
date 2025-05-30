@@ -33,15 +33,11 @@ interface ConversationActions {
     data: UpdateConversationDto,
   ) => Promise<void>;
   deleteConversation: (id: number) => Promise<void>;
-  archiveConversation: (id: number) => Promise<void>;
 
   // 批量操作
   deleteMultipleConversations: (ids: number[]) => Promise<void>;
-  archiveMultipleConversations: (ids: number[]) => Promise<void>;
 
   // 搜索和过滤
-  searchConversations: (query: string) => ConversationResponseDto[];
-  getArchivedConversations: () => ConversationResponseDto[];
   getActiveConversations: () => ConversationResponseDto[];
 
   // 状态管理
@@ -169,16 +165,6 @@ export const useConversationStore = create<ConversationStore>()(
         }
       },
 
-      // 归档会话
-      archiveConversation: async (id: number) => {
-        try {
-          await get().updateConversation(id, { isArchived: true });
-        } catch (error) {
-          console.error('归档会话失败:', error);
-          throw error;
-        }
-      },
-
       // 批量删除会话
       deleteMultipleConversations: async (ids: number[]) => {
         try {
@@ -208,60 +194,6 @@ export const useConversationStore = create<ConversationStore>()(
         }
       },
 
-      // 批量归档会话
-      archiveMultipleConversations: async (ids: number[]) => {
-        try {
-          set({ isLoading: true, error: null });
-
-          // 并行归档所有会话
-          await Promise.all(
-            ids.map((id) => apiUpdateConversation(id, { isArchived: true })),
-          );
-
-          set((state) => ({
-            conversations: state.conversations.map((conv) =>
-              ids.includes(conv.id)
-                ? {
-                    ...conv,
-                    isArchived: true,
-                    updatedAt: new Date().toISOString(),
-                  }
-                : conv,
-            ),
-            isLoading: false,
-          }));
-        } catch (error) {
-          console.error('批量归档会话失败:', error);
-          set({
-            error: error instanceof Error ? error.message : '批量归档会话失败',
-            isLoading: false,
-          });
-          throw error;
-        }
-      },
-
-      // 搜索会话
-      searchConversations: (query: string) => {
-        const { conversations } = get();
-
-        if (!query.trim()) {
-          return conversations;
-        }
-
-        const searchTerm = query.toLowerCase();
-        return conversations.filter(
-          (conv) =>
-            conv.title?.toLowerCase().includes(searchTerm) ||
-            conv.latestMessage?.userMessage?.toLowerCase().includes(searchTerm),
-        );
-      },
-
-      // 获取归档会话
-      getArchivedConversations: () => {
-        const { conversations } = get();
-        return conversations.filter((conv) => conv.isArchived);
-      },
-
       // 获取活跃会话
       getActiveConversations: () => {
         const { conversations } = get();
@@ -286,125 +218,3 @@ export const useConversationStore = create<ConversationStore>()(
     },
   ),
 );
-
-/**
- * 会话统计Hook
- * 提供会话相关的统计信息
- */
-export const useConversationStats = () => {
-  const conversations = useConversationStore(
-    (state: ConversationStore) => state.conversations,
-  );
-
-  return {
-    totalCount: conversations.length,
-    activeCount: conversations.filter((conv) => !conv.isArchived).length,
-    archivedCount: conversations.filter((conv) => conv.isArchived).length,
-    totalMessages: conversations.reduce(
-      (sum, conv) => sum + (conv.messageCount || 0),
-      0,
-    ),
-  };
-};
-
-/**
- * 会话搜索Hook
- * 提供搜索功能和结果管理
- */
-export const useConversationSearch = () => {
-  const searchConversations = useConversationStore(
-    (state: ConversationStore) => state.searchConversations,
-  );
-
-  return {
-    search: searchConversations,
-  };
-};
-
-// ========== 选择器 Hooks ==========
-
-/**
- * 获取当前选中的会话
- */
-export const useCurrentConversation = () => {
-  return useConversationStore((state) => {
-    if (!state.currentConversationId) return null;
-    return (
-      state.conversations.find(
-        (conv) => conv.id === state.currentConversationId,
-      ) || null
-    );
-  });
-};
-
-/**
- * 获取会话加载状态
- */
-export const useConversationLoading = () => {
-  return useConversationStore((state) => state.isLoading);
-};
-
-/**
- * 获取会话错误状态
- */
-export const useConversationError = () => {
-  return useConversationStore((state) => state.error);
-};
-
-/**
- * 获取会话列表（按更新时间排序）
- */
-export const useSortedConversations = () => {
-  return useConversationStore((state) =>
-    [...state.conversations].sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    ),
-  );
-};
-
-/**
- * 检查是否有会话存在
- */
-export const useHasConversations = () => {
-  return useConversationStore((state) => state.conversations.length > 0);
-};
-
-// ========== 工具函数 ==========
-
-/**
- * 生成会话标题（基于首条消息内容）
- */
-export const generateConversationTitle = (
-  firstMessage: string,
-  maxLength = 20,
-): string => {
-  if (!firstMessage?.trim()) return '新对话';
-
-  const title = firstMessage.trim();
-  if (title.length <= maxLength) return title;
-
-  return title.substring(0, maxLength - 3) + '...';
-};
-
-/**
- * 格式化会话时间
- */
-export const formatConversationTime = (dateString: string): string => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffMins < 1) return '刚刚';
-  if (diffMins < 60) return `${diffMins}分钟前`;
-  if (diffHours < 24) return `${diffHours}小时前`;
-  if (diffDays < 7) return `${diffDays}天前`;
-
-  return date.toLocaleDateString('zh-CN', {
-    month: 'short',
-    day: 'numeric',
-  });
-};

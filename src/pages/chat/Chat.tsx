@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useChildrenStore } from '@/stores/children';
-import { useConversationState } from './hooks/useConversationState';
+import { useConversationStore } from './hooks/useConversationStore';
 import { ChatContainer } from './components/ChatContainer';
 import { ConversationSidebar } from './components/ConversationSidebar';
 import { NavBar } from '@/components/ui';
@@ -13,54 +13,30 @@ import { Icon } from '@iconify/react';
 const Chat: React.FC = () => {
   const { currentChild } = useChildrenStore();
 
-  // 🆕 使用状态管理替代路由参数
-  const conversationState = useConversationState({
-    initialConversationId: null,
-    enableHistory: true,
-    maxHistorySize: 10,
-    onConversationChange: (conversationId) => {
-      console.log('🗂️ 会话切换:', conversationId);
-      // 这里可以添加会话切换后的处理逻辑
-      // 比如清空消息、重置状态等
-    },
-  });
+  // 🆕 使用 Zustand store 管理会话状态
+  const { currentConversationId, selectConversation } = useConversationStore();
 
   // 侧边栏状态
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
-
-  // 监听屏幕尺寸变化
-  useEffect(() => {
-    const handleResize = () => {
-      const newIsDesktop = window.innerWidth >= 768;
-      setIsDesktop(newIsDesktop);
-
-      // 桌面端自动关闭移动端侧边栏
-      if (newIsDesktop) {
-        setIsSidebarOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // 会话选择处理
   const handleConversationSelect = useCallback(
     (conversationId: number | null) => {
       console.debug('🗂️ 用户选择会话:', conversationId);
-      conversationState.selectConversation(conversationId);
+      selectConversation(conversationId);
       setIsSidebarOpen(false);
     },
-    [conversationState],
+    [selectConversation],
   );
 
   // 新建会话
   const handleNewConversation = useCallback(() => {
     console.debug('🆕 用户创建新会话');
-    conversationState.createNewConversation();
+
+    // 使用 selectConversation(null) 来表示新会话
+    selectConversation(null);
     setIsSidebarOpen(false);
-  }, [conversationState]);
+  }, [selectConversation]);
 
   // 打开侧边栏
   const handleOpenSidebar = () => {
@@ -94,29 +70,14 @@ const Chat: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-[#FDFBF8] overflow-hidden">
-      {/* 桌面端固定侧边栏 */}
-      {isDesktop && (
-        <div className="w-80 border-r border-[#E0E0E0] bg-white">
-          <ConversationSidebar
-            isOpen={true}
-            onClose={() => {}}
-            currentConversationId={conversationState.currentConversationId}
-            onConversationSelect={handleConversationSelect}
-            childId={currentChild.id}
-          />
-        </div>
-      )}
-
       {/* 移动端抽屉式侧边栏 */}
-      {!isDesktop && (
-        <ConversationSidebar
-          isOpen={isSidebarOpen}
-          onClose={handleCloseSidebar}
-          currentConversationId={conversationState.currentConversationId}
-          onConversationSelect={handleConversationSelect}
-          childId={currentChild.id}
-        />
-      )}
+      <ConversationSidebar
+        isOpen={isSidebarOpen}
+        onClose={handleCloseSidebar}
+        currentConversationId={currentConversationId}
+        onConversationSelect={handleConversationSelect}
+        childId={currentChild.id}
+      />
 
       {/* 主聊天区域 */}
       <div className="flex overflow-hidden flex-col flex-1">
@@ -152,21 +113,18 @@ const Chat: React.FC = () => {
                   />
                 </button>
 
-                {/* 移动端菜单按钮 */}
-                {!isDesktop && (
-                  <button
-                    onClick={handleOpenSidebar}
-                    className="p-2 rounded-full hover:bg-[#F5F5F5] transition-colors"
-                    aria-label="打开会话列表"
-                  >
-                    <Icon
-                      icon="ph:list"
-                      width={20}
-                      height={20}
-                      className="text-[#666666]"
-                    />
-                  </button>
-                )}
+                <button
+                  onClick={handleOpenSidebar}
+                  className="p-2 rounded-full hover:bg-[#F5F5F5] transition-colors"
+                  aria-label="打开会话列表"
+                >
+                  <Icon
+                    icon="ph:list"
+                    width={20}
+                    height={20}
+                    className="text-[#666666]"
+                  />
+                </button>
               </div>
             }
             border={false}
@@ -174,24 +132,12 @@ const Chat: React.FC = () => {
           />
         </div>
 
-        {/* 🆕 会话切换状态指示器 */}
-        {conversationState.isSwitching && (
-          <div className="px-4 py-2 bg-blue-50 border-b border-blue-200">
-            <div className="flex items-center space-x-3">
-              <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-              <span className="text-sm text-blue-700">正在切换会话...</span>
-            </div>
-          </div>
-        )}
-
         {/* 聊天容器 */}
         <div className="overflow-hidden flex-1">
           <ChatContainer
             childId={currentChild.id}
-            initialConversationId={
-              conversationState.currentConversationId || undefined
-            }
-            key={conversationState.currentConversationId || 'new'} // 🆕 强制重新渲染
+            initialConversationId={currentConversationId || undefined}
+            key={currentConversationId || 'new'} // 🆕 强制重新渲染
           />
         </div>
       </div>

@@ -1,7 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { Icon } from '@iconify/react';
-import { Input } from '@/components/ui';
-import { useConversations } from '../hooks/useConversations';
+import { useConversationStore } from '../hooks/useConversationStore';
 import type { ConversationResponseDto } from '@/types/models';
 import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -28,22 +27,14 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
 }) => {
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // 使用会话数据 Hook
-  const {
-    conversations,
-    loading,
-    error,
-    searchQuery,
-    showArchived,
-    setSearchQuery,
-    toggleArchived,
-    filterConversations,
-    refreshConversations,
-  } = useConversations({
-    childId,
-    includeArchived: false,
-    autoLoad: true,
-  });
+  // 使用 Zustand store 管理会话数据
+  const { isLoading, error, loadConversations, getActiveConversations } =
+    useConversationStore();
+
+  // 刷新会话列表
+  const refreshConversations = useCallback(() => {
+    loadConversations(childId);
+  }, [loadConversations, childId]);
 
   // 点击外部关闭
   useEffect(() => {
@@ -61,8 +52,15 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
 
+  // 初始加载会话列表
+  useEffect(() => {
+    if (childId) {
+      loadConversations(childId);
+    }
+  }, [childId, loadConversations]);
+
   // 获取过滤后的会话列表
-  const filteredConversations = filterConversations();
+  const filteredConversations = getActiveConversations();
 
   // 创建新会话
   const handleCreateConversation = () => {
@@ -115,29 +113,29 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   return (
     <>
       {/* 背景遮罩 */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-40" />
+      <div className="fixed inset-0 z-40 bg-black bg-opacity-50" />
 
       {/* 侧边栏 */}
       <div
         ref={sidebarRef}
-        className="fixed top-0 left-0 h-full w-80 bg-white shadow-xl z-50 flex flex-col"
+        className="flex fixed top-0 left-0 z-50 flex-col w-80 h-full bg-white shadow-xl"
       >
         {/* 头部 */}
         <div className="flex items-center justify-between p-4 border-b border-[#E0E0E0]">
           <h2 className="text-lg font-semibold text-[#333333]">对话记录</h2>
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2 items-center">
             {/* 刷新按钮 */}
             <button
               onClick={handleRetry}
-              disabled={loading}
+              disabled={isLoading}
               className="p-2 rounded-full hover:bg-[#F5F5F5] transition-colors disabled:opacity-50"
               title="刷新列表"
             >
               <Icon
-                icon={loading ? 'ph:spinner' : 'ph:arrow-clockwise'}
+                icon={isLoading ? 'ph:spinner' : 'ph:arrow-clockwise'}
                 width={18}
                 height={18}
-                className={`text-[#666666] ${loading ? 'animate-spin' : ''}`}
+                className={`text-[#666666] ${isLoading ? 'animate-spin' : ''}`}
               />
             </button>
 
@@ -158,25 +156,8 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
 
         {/* 工具栏 */}
         <div className="p-4 border-b border-[#E0E0E0] space-y-3">
-          {/* 搜索框 */}
-          <div className="relative">
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜索对话内容..."
-              className="pl-10 py-2"
-              disabled={loading}
-            />
-            <Icon
-              icon="ph:magnifying-glass"
-              width={18}
-              height={18}
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#999999]"
-            />
-          </div>
-
           {/* 操作按钮 */}
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2 items-center">
             <button
               onClick={handleCreateConversation}
               className="flex items-center gap-2 px-3 py-1.5 bg-[#FFB38A] text-white rounded-full text-sm font-medium hover:bg-[#FF9966] transition-colors"
@@ -184,37 +165,24 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
               <Icon icon="ph:plus" width={16} height={16} />
               新建
             </button>
-
-            <button
-              onClick={toggleArchived}
-              className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                showArchived
-                  ? 'bg-[#FFB38A] text-white'
-                  : 'border border-[#E0E0E0] text-[#666666] hover:border-[#FFB38A]'
-              }`}
-            >
-              {showArchived ? '显示全部' : '已归档'}
-            </button>
           </div>
         </div>
 
         {/* 会话列表 */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="overflow-y-auto flex-1">
           {/* 错误状态 */}
           {error && (
-            <div className="text-center py-8 px-4">
+            <div className="px-4 py-8 text-center">
               <Icon
                 icon="ph:warning-circle"
                 width={48}
                 height={48}
                 className="mx-auto mb-3 text-red-400"
               />
-              <p className="text-red-600 text-sm mb-3">
-                {error.message || '加载失败'}
-              </p>
+              <p className="mb-3 text-sm text-red-600">{error || '加载失败'}</p>
               <button
                 onClick={handleRetry}
-                className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors"
+                className="px-4 py-2 text-sm text-white bg-red-500 rounded-lg transition-colors hover:bg-red-600"
               >
                 重试
               </button>
@@ -222,8 +190,8 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
           )}
 
           {/* 加载状态 */}
-          {loading && !error && (
-            <div className="text-center py-8">
+          {isLoading && !error && (
+            <div className="py-8 text-center">
               <Icon
                 icon="ph:spinner"
                 width={48}
@@ -235,35 +203,26 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
           )}
 
           {/* 空状态 */}
-          {!loading && !error && filteredConversations.length === 0 && (
-            <div className="text-center py-8">
+          {!isLoading && !error && filteredConversations.length === 0 && (
+            <div className="py-8 text-center">
               <Icon
                 icon="ph:chat-circle"
                 width={48}
                 height={48}
                 className="mx-auto mb-2 text-[#E0E0E0]"
               />
-              <p className="text-[#999999] text-sm">
-                {searchQuery.trim()
-                  ? '没有找到相关对话'
-                  : showArchived
-                  ? '暂无归档对话'
-                  : '暂无对话记录'}
-              </p>
-              {!searchQuery.trim() && !showArchived && (
-                <button
-                  onClick={handleCreateConversation}
-                  className="mt-3 px-4 py-2 bg-[#FFB38A] text-white text-sm rounded-lg hover:bg-[#FF9966] transition-colors"
-                >
-                  开始第一个对话
-                </button>
-              )}
+              <button
+                onClick={handleCreateConversation}
+                className="mt-3 px-4 py-2 bg-[#FFB38A] text-white text-sm rounded-lg hover:bg-[#FF9966] transition-colors"
+              >
+                开始第一个对话
+              </button>
             </div>
           )}
 
           {/* 会话列表 */}
-          {!loading && !error && filteredConversations.length > 0 && (
-            <div className="space-y-1 p-2">
+          {!isLoading && !error && filteredConversations.length > 0 && (
+            <div className="p-2 space-y-1">
               {filteredConversations.map((conversation) => (
                 <div
                   key={conversation.id}
@@ -274,13 +233,13 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
                       : 'hover:bg-[#F9F9F9]'
                   }`}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex gap-3 items-start">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex justify-between items-center mb-1">
                         <h3 className="font-medium text-[#333333] truncate flex-1">
                           {conversation.title || '未命名对话'}
                         </h3>
-                        <div className="flex items-center gap-1 ml-2">
+                        <div className="flex gap-1 items-center ml-2">
                           {/* 消息数量 */}
                           {conversation.messageCount > 0 && (
                             <span className="text-xs text-[#999999] bg-[#F0F0F0] px-1.5 py-0.5 rounded">
@@ -316,16 +275,9 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
         </div>
 
         {/* 底部统计信息 */}
-        {!loading && !error && (
+        {!isLoading && !error && (
           <div className="p-3 border-t border-[#E0E0E0] text-xs text-[#999999] text-center">
-            {showArchived
-              ? `已归档对话 ${filteredConversations.length} 个`
-              : `共 ${
-                  conversations.filter((c) => !c.isArchived).length
-                } 个对话`}
-            {searchQuery.trim() && (
-              <span> · 筛选后 {filteredConversations.length} 个</span>
-            )}
+            {`共 ${getActiveConversations().length} 个对话`}
           </div>
         )}
       </div>

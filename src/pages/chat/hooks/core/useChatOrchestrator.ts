@@ -13,7 +13,7 @@ import { useCallback, useState, useRef, useEffect } from 'react';
 import { useStreamProcessor } from './useStreamProcessor';
 import { useMessageManager, type ChatMessage } from './useMessageManager';
 import { useConversationStore } from '../useConversationStore';
-import { generateConversationTitle } from '../useConversationStore';
+import { generateConversationTitle } from '../../utils/conversationUtils';
 import { getConversationMessages } from '@/api/chat';
 
 // ========== 类型定义 ==========
@@ -36,6 +36,7 @@ export interface ChatOrchestratorState {
   error: Error | null;
   currentStreamingContent: string;
   currentConversationId: number | null; // 🆕 添加当前会话ID
+  isLoadingHistory: boolean; // 🆕 添加历史消息加载状态
 }
 
 export interface ChatOrchestratorActions {
@@ -399,23 +400,11 @@ export const useChatOrchestrator = (
           console.debug('🆕 检测到第一条消息，尝试创建会话');
           const newConversationId = await createConversationIfNeeded(content);
 
-          if (newConversationId) {
-            effectiveConversationId = newConversationId;
-            console.debug('🗂️ 会话创建完成，使用新会话ID:', {
-              conversationId: newConversationId,
-            });
-          } else {
-            console.debug('🗂️ 会话创建失败或跳过，使用当前会话ID:', {
-              conversationId: effectiveConversationId,
-            });
-          }
+          effectiveConversationId = newConversationId;
+          console.debug('🗂️ 会话创建完成，使用新会话ID:', {
+            conversationId: newConversationId,
+          });
         }
-
-        console.debug('🎭 准备发送消息，使用会话ID:', {
-          effectiveConversationId,
-          isFirstMessage,
-          currentConversationId,
-        });
 
         // 4. 添加用户消息
         const userMessageId = messageManager.addUserMessage(content);
@@ -540,6 +529,7 @@ export const useChatOrchestrator = (
     error,
     currentStreamingContent,
     currentConversationId,
+    isLoadingHistory, // 将历史消息加载状态暴露给外部组件
 
     // 操作方法
     sendMessage,

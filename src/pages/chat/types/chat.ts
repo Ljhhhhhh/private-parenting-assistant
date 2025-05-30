@@ -1,9 +1,4 @@
-import {
-  ChatHistoryDto,
-  ConversationResponseDto,
-  CreateConversationDto,
-  UpdateConversationDto,
-} from '@/types/models';
+import { ChatHistoryDto, ConversationResponseDto } from '@/types/models';
 
 // ========== 基础类型定义 ==========
 
@@ -14,32 +9,6 @@ export interface ChatError {
   message: string;
   details?: unknown;
 }
-
-// ========== 会话相关类型 ==========
-
-export interface ConversationState {
-  conversations: ConversationResponseDto[];
-  currentConversationId: number | null;
-  isLoading: boolean;
-  error: string | null;
-}
-
-export interface ConversationActions {
-  loadConversations: (childId: number) => Promise<void>;
-  createConversation: (data: CreateConversationDto) => Promise<number>;
-  selectConversation: (id: number) => void;
-  updateConversation: (
-    id: number,
-    data: UpdateConversationDto,
-  ) => Promise<void>;
-  archiveConversation: (id: number) => Promise<void>;
-  deleteConversation: (id: number) => Promise<void>;
-  clearError: () => void;
-}
-
-export interface ConversationStore
-  extends ConversationState,
-    ConversationActions {}
 
 // ========== 消息相关类型 ==========
 
@@ -140,34 +109,6 @@ export interface RouterParams {
   currentConversationId: number | null;
   navigateToConversation: (id: number) => void;
   navigateToNewChat: () => void;
-}
-
-// ========== 性能优化类型 ==========
-
-export interface VirtualMessageListProps {
-  messages: ChatHistoryDto[];
-  conversationId?: number;
-}
-
-export interface MessageHeightEstimate {
-  estimated: number;
-  actual?: number;
-}
-
-// ========== 离线支持类型 ==========
-
-export interface OfflineMessage {
-  id: string;
-  content: string;
-  timestamp: number;
-  conversationId?: number;
-  childId: number;
-}
-
-export interface OfflineState {
-  isOnline: boolean;
-  queuedMessages: OfflineMessage[];
-  syncInProgress: boolean;
 }
 
 // ========== 设计规范相关类型 ==========
