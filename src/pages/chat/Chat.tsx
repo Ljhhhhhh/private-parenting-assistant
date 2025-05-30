@@ -29,15 +29,6 @@ const Chat: React.FC = () => {
     [selectConversation],
   );
 
-  // 新建会话
-  const handleNewConversation = useCallback(() => {
-    console.debug('🆕 用户创建新会话');
-
-    // 使用 selectConversation(null) 来表示新会话
-    selectConversation(null);
-    setIsSidebarOpen(false);
-  }, [selectConversation]);
-
   // 打开侧边栏
   const handleOpenSidebar = () => {
     setIsSidebarOpen(true);
@@ -98,33 +89,6 @@ const Chat: React.FC = () => {
                   />
                   <span className="font-medium">{currentChild.nickname}</span>
                 </div>
-
-                {/* 新建会话按钮 */}
-                <button
-                  onClick={handleNewConversation}
-                  className="p-2 rounded-full hover:bg-[#FFF8F5] transition-colors group"
-                  aria-label="新建对话"
-                >
-                  <Icon
-                    icon="ph:plus"
-                    width={20}
-                    height={20}
-                    className="text-[#FFB38A] group-hover:text-[#FF9966]"
-                  />
-                </button>
-
-                <button
-                  onClick={handleOpenSidebar}
-                  className="p-2 rounded-full hover:bg-[#F5F5F5] transition-colors"
-                  aria-label="打开会话列表"
-                >
-                  <Icon
-                    icon="ph:list"
-                    width={20}
-                    height={20}
-                    className="text-[#666666]"
-                  />
-                </button>
               </div>
             }
             border={false}
@@ -137,7 +101,8 @@ const Chat: React.FC = () => {
           <ChatContainer
             childId={currentChild.id}
             initialConversationId={currentConversationId || undefined}
-            key={currentConversationId || 'new'} // 🆕 强制重新渲染
+            key={currentConversationId || 'new'}
+            onOpenSidebar={handleOpenSidebar}
           />
         </div>
       </div>

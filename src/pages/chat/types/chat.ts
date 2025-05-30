@@ -35,6 +35,7 @@ export interface ChatContainerProps {
   childId: number;
   initialConversationId?: number;
   mode?: ChatMode;
+  onOpenSidebar?: () => void; // 添加打开侧边栏的回调函数
 }
 
 export interface ConversationSidebarProps {

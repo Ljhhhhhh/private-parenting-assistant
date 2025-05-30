@@ -21,6 +21,7 @@ import { MessageFeedback } from './MessageFeedback';
 export const ChatContainer: React.FC<ChatContainerProps> = ({
   childId,
   initialConversationId,
+  onOpenSidebar,
 }) => {
   const chatOrchestrator = useChatOrchestrator({
     childId: childId || null,
@@ -397,6 +398,22 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       {/* 输入区域 */}
       <div className="p-4 bg-white border-t border-[#E0E0E0] shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
         <div className="flex gap-3 items-center">
+          {/* 打开会话列表按钮 */}
+          {onOpenSidebar && (
+            <button
+              onClick={onOpenSidebar}
+              className="flex-shrink-0 p-2 rounded-full hover:bg-[#F5F5F5] transition-colors"
+              aria-label="打开会话列表"
+            >
+              <Icon
+                icon="solar:list-linear"
+                width={28}
+                height={28}
+                className="text-[#666666]"
+              />
+            </button>
+          )}
+
           {/* 输入框 */}
           <div className="relative flex-1">
             <Input
