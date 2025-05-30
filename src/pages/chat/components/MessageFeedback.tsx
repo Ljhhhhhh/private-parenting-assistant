@@ -4,7 +4,7 @@ import { provideChatFeedback } from '@/api/chat';
 import type { ChatFeedbackDto } from '@/types/models';
 
 interface MessageFeedbackProps {
-  messageId: string;
+  messageId?: string;
   chatHistoryId?: number;
   initialFeedback?: 'helpful' | 'not-helpful';
   onFeedbackChange?: (feedback: 'helpful' | 'not-helpful' | undefined) => void;
@@ -33,6 +33,8 @@ export const MessageFeedback: React.FC<MessageFeedbackProps> = ({
 
       setFeedback(finalFeedback);
       onFeedbackChange?.(finalFeedback);
+
+      console.log(chatHistoryId, 'chatHistoryId');
 
       // 如果有chatHistoryId，提交到API
       if (chatHistoryId && finalFeedback) {
