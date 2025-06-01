@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
 import RecordModal from './RecordModal';
 import { createRecord } from '@/api/records';
 import { CreateRecordDto, RecordType, GrowthDetails } from '@/types/models';
@@ -21,8 +22,14 @@ const GrowthRecord: React.FC<GrowthRecordProps> = ({
 }) => {
   // 记录时间
   const [recordTime, setRecordTime] = useState<string>(
-    new Date().toISOString().slice(0, 16),
+    dayjs().format('YYYY-MM-DDTHH:mm'),
   );
+
+  useEffect(() => {
+    if (isOpen) {
+      setRecordTime(dayjs().format('YYYY-MM-DDTHH:mm'));
+    }
+  }, [isOpen]);
 
   // 身高（厘米）
   const [height, setHeight] = useState<number | undefined>(undefined);

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
+import dayjs from 'dayjs';
 import RecordModal from './RecordModal';
 import { createRecord } from '@/api/records';
 import { CreateRecordDto, RecordType, DiaperDetails } from '@/types/models';
@@ -22,8 +23,14 @@ const DiaperRecord: React.FC<DiaperRecordProps> = ({
 }) => {
   // 记录时间
   const [recordTime, setRecordTime] = useState<string>(
-    new Date().toISOString().slice(0, 16),
+    dayjs().format('YYYY-MM-DDTHH:mm'),
   );
+
+  useEffect(() => {
+    if (isOpen) {
+      setRecordTime(dayjs().format('YYYY-MM-DDTHH:mm'));
+    }
+  }, [isOpen]);
 
   // 尿布状态
   const [hasUrine, setHasUrine] = useState<boolean>(true);

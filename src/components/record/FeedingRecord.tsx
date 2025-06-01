@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
+import dayjs from 'dayjs';
 import RecordModal from './RecordModal';
 import { createRecord } from '@/api/records';
 import {
@@ -27,8 +28,14 @@ const FeedingRecord: React.FC<FeedingRecordProps> = ({
 }) => {
   // 记录时间
   const [recordTime, setRecordTime] = useState<string>(
-    new Date().toISOString().slice(0, 16),
+    dayjs().format('YYYY-MM-DDTHH:mm'),
   );
+
+  useEffect(() => {
+    if (isOpen) {
+      setRecordTime(dayjs().format('YYYY-MM-DDTHH:mm'));
+    }
+  }, [isOpen]);
 
   // 喂养类型
   const [feedingType, setFeedingType] = useState<FeedingType>(FeedingType.MILK);

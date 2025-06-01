@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
+import dayjs from 'dayjs';
 import RecordModal from './RecordModal';
 import { createRecord } from '@/api/records';
 import { CreateRecordDto, RecordType, SleepDetails } from '@/types/models';
@@ -22,8 +23,14 @@ const SleepRecord: React.FC<SleepRecordProps> = ({
 }) => {
   // 记录时间
   const [recordTime, setRecordTime] = useState<string>(
-    new Date().toISOString().slice(0, 16),
+    dayjs().format('YYYY-MM-DDTHH:mm'),
   );
+
+  useEffect(() => {
+    if (isOpen) {
+      setRecordTime(dayjs().format('YYYY-MM-DDTHH:mm'));
+    }
+  }, [isOpen]);
 
   // 睡眠时长（格式为小时:minute）
   const [sleepDuration, setSleepDuration] = useState<string>('1:00');

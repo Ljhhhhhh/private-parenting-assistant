@@ -14,6 +14,9 @@ const EditChild = lazy(() => import('./pages/children/EditChild'));
 // 主应用页面（需要登录后才能访问）
 const Home = lazy(() => import('./pages/home/Home'));
 const Chat = lazy(() => import('./pages/chat/Chat'));
+const RecordHistory = lazy(() => import('./pages/record/Index'));
+const Profile = lazy(() => import('./pages/profile/Profile'));
+const PrivacyPolicy = lazy(() => import('./pages/profile/PrivacyPolicy'));
 
 // 加载状态组件
 const Loading = () => (
@@ -75,6 +78,36 @@ const App = () => (
           element={
             <RequireAuth>
               <Chat />
+            </RequireAuth>
+          }
+        />
+
+        {/* 历史记录页面 */}
+        <Route
+          path="/records"
+          element={
+            <RequireAuth>
+              <RecordHistory />
+            </RequireAuth>
+          }
+        />
+
+        {/* 个人中心页面 */}
+        <Route
+          path="/profile"
+          element={
+            <RequireAuth>
+              <Profile />
+            </RequireAuth>
+          }
+        />
+
+        {/* 隐私政策页面 */}
+        <Route
+          path="/privacy-policy"
+          element={
+            <RequireAuth>
+              <PrivacyPolicy />
             </RequireAuth>
           }
         />

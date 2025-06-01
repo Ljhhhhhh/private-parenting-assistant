@@ -83,7 +83,7 @@ const Login: React.FC = () => {
         <div className="flex flex-col items-center mb-8">
           <div
             ref={logoRef}
-            className="flex overflow-hidden justify-center items-center mb-4 w-24 h-24"
+            className="flex overflow-hidden justify-center items-center mb-4 w-20 h-20"
           >
             <img
               src={logoImage}
@@ -208,7 +208,7 @@ const Login: React.FC = () => {
         </div>
 
         {/* 底部特性介绍 */}
-        <div className="grid grid-cols-3 gap-4 mt-8">
+        {/* <div className="grid grid-cols-3 gap-4 mt-8">
           <div className="p-3 text-center backdrop-blur-sm bg-white/80 rounded-card shadow-card">
             <div className="flex justify-center items-center mx-auto mb-2 w-8 h-8 rounded-full bg-primary-light/20 text-primary">
               <Icon icon="mdi:lightbulb-outline" width="16" height="16" />
@@ -227,7 +227,7 @@ const Login: React.FC = () => {
             </div>
             <p className="text-sm text-gray-700">随时记</p>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* 全局样式 */}

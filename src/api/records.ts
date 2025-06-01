@@ -6,6 +6,8 @@ import {
   CreateRecordDto,
   UpdateRecordDto,
   RecordResponseDto,
+  PaginationQueryDto,
+  PaginatedRecordsResponseDto,
 } from '@/types/models';
 
 /**
@@ -24,6 +26,34 @@ export const createRecord = (data: CreateRecordDto) => {
  */
 export const getRecordsByChildId = (childId: number) => {
   return request.get<RecordResponseDto[]>(`/records/child/${childId}`);
+};
+
+/**
+ * 分页获取特定儿童的记录
+ * @param childId 儿童ID
+ * @param params 分页查询参数
+ * @returns 分页记录列表
+ */
+export const getRecordsByChildIdPaginated = (
+  childId: number,
+  params?: PaginationQueryDto,
+) => {
+  const queryParams = new URLSearchParams();
+
+  if (params?.page) {
+    queryParams.append('page', params.page.toString());
+  }
+
+  if (params?.limit) {
+    queryParams.append('limit', params.limit.toString());
+  }
+
+  const queryString = queryParams.toString();
+  const url = `/records/child/${childId}/paginated${
+    queryString ? `?${queryString}` : ''
+  }`;
+
+  return request.get<PaginatedRecordsResponseDto>(url);
 };
 
 /**

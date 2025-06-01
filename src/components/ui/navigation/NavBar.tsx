@@ -1,8 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface NavBarProps {
   title?: React.ReactNode;
   onBack?: () => void;
+  hideBack?: boolean;
   right?: React.ReactNode;
   className?: string;
   titleClassName?: string;
@@ -15,6 +17,7 @@ interface NavBarProps {
 const NavBar: React.FC<NavBarProps> = ({
   title,
   onBack,
+  hideBack = false,
   right,
   className = '',
   titleClassName = '',
@@ -23,6 +26,8 @@ const NavBar: React.FC<NavBarProps> = ({
   safeArea = true,
   theme = 'light',
 }) => {
+  const navigate = useNavigate();
+
   // 根据主题确定颜色
   const getThemeClasses = () => {
     switch (theme) {
@@ -52,21 +57,29 @@ const NavBar: React.FC<NavBarProps> = ({
 
   const themeClasses = getThemeClasses();
 
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
+    }
+  };
+
   return (
     <div
       className={`flex items-center h-[56px] bg-gradient-to-r from-[#FFB38A] to-[#FFC9A8] shadow-sm ${
         safeArea ? 'pt-2' : ''
-      } px-4 ${themeClasses.background}
+      } pl-2 pr-4 ${themeClasses.background}
         ${border && theme === 'light' ? 'border-b border-[#E0E0E0]' : ''} 
         ${fixed ? 'fixed top-0 left-0 right-0' : 'relative'} 
         ${
           theme === 'light' ? 'shadow-[0_2px_8px_rgba(0,0,0,0.08)]' : ''
         } z-10 ${className}`}
     >
-      {onBack ? (
+      {!hideBack ? (
         <button
-          className={`flex items-center justify-center w-11 h-11 mr-2 rounded-full ${themeClasses.hoverBg} transition-colors duration-200`}
-          onClick={onBack}
+          className={`flex items-center justify-center w-11 h-11 mr-1 rounded-full ${themeClasses.hoverBg} transition-colors duration-200`}
+          onClick={handleBack}
           aria-label="返回"
         >
           <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -80,7 +93,7 @@ const NavBar: React.FC<NavBarProps> = ({
           </svg>
         </button>
       ) : (
-        <div className="w-11 h-11 mr-2" />
+        <div className="w-11 h-11 mr-1" />
       )}
 
       <div

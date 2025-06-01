@@ -453,3 +453,25 @@ export interface LoginResponseDto {
   refreshToken?: string;
   expiresIn?: number;
 }
+
+// 分页相关类型
+export interface PaginationQueryDto {
+  /** 页码，从1开始 */
+  page?: number;
+  /** 每页记录数 */
+  limit?: number;
+}
+
+export interface PaginatedRecordsResponseDto {
+  /** 记录列表 */
+  data: RecordResponseDto[];
+  /** 分页信息 */
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}

@@ -29,6 +29,14 @@ body {
   display: none; /* Chrome, Safari, Edge */
 }
 
+/* 隐藏滚动条的另一个类名 */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
 /* Chatbot 相关样式 */
 .Chatbot {
   --chat-avatar-size: 28px;

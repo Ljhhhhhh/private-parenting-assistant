@@ -529,7 +529,7 @@ const Home: React.FC = () => {
                   className="p-4 bg-white rounded-xl border border-dashed border-[#FFB38A] flex items-center justify-center cursor-pointer transition-all duration-300 hover:bg-[#FFF8F4]"
                   onClick={() => navigate('/records')}
                 >
-                  <Icon icon="mdi:plus" className="mr-2 text-[#FFB38A]" />
+                  {/* <Icon icon="mdi:plus" className="mr-2 text-[#FFB38A]" /> */}
                   <span className="text-[#FF9F73]">查看全部记录</span>
                 </div>
               </div>
@@ -627,6 +627,50 @@ const Home: React.FC = () => {
               <div className="flex items-center text-[#FFB38A] z-10 group">
                 <span className="mr-1 transition-all duration-300 group-hover:mr-2">
                   咨询
+                </span>
+                <Icon
+                  icon="mdi:chevron-right"
+                  className="transition-transform duration-300 group-hover:translate-x-1"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 我的信息入口 */}
+          <div className="mt-6">
+            <h2 className="flex items-center mb-4 text-lg font-semibold text-[#333333]">
+              <Icon icon="mdi:account-circle" className="mr-2 text-[#FFB38A]" />
+              个人中心
+            </h2>
+            <div
+              className="flex items-center p-5 bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-[#F0F0F0] transition-all duration-300 cursor-pointer hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] relative overflow-hidden"
+              onClick={() => navigate('/profile')}
+            >
+              {/* 背景装饰 */}
+              <div className="absolute right-0 bottom-0 opacity-5">
+                <Icon
+                  icon="mdi:account-heart"
+                  className="text-[120px] text-[#FFB38A]"
+                />
+              </div>
+
+              <div className="flex justify-center items-center mr-5 w-14 h-14 bg-gradient-to-br rounded-full shadow-[0_4px_10px_rgba(255,179,138,0.3)] from-[#4A90E2] to-[#7AADEE] z-10">
+                <Icon
+                  icon="mdi:account-heart"
+                  className="text-2xl text-white"
+                />
+              </div>
+              <div className="z-10 flex-1">
+                <div className="mb-1 text-lg font-medium text-[#333333]">
+                  我的信息
+                </div>
+                <div className="text-base text-[#666666]">
+                  个人设置，数据管理
+                </div>
+              </div>
+              <div className="flex items-center text-[#4A90E2] z-10 group">
+                <span className="mr-1 transition-all duration-300 group-hover:mr-2">
+                  查看
                 </span>
                 <Icon
                   icon="mdi:chevron-right"

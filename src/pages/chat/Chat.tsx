@@ -5,6 +5,7 @@ import { ChatContainer } from './components/ChatContainer';
 import { ConversationSidebar } from './components/ConversationSidebar';
 import { NavBar } from '@/components/ui';
 import { Icon } from '@iconify/react';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * 智能聊天主页面组件
@@ -12,7 +13,7 @@ import { Icon } from '@iconify/react';
  */
 const Chat: React.FC = () => {
   const { currentChild } = useChildrenStore();
-
+  const navigate = useNavigate();
   // 🆕 使用 Zustand store 管理会话状态
   const { currentConversationId, selectConversation } = useConversationStore();
 
@@ -75,6 +76,9 @@ const Chat: React.FC = () => {
         {/* 顶部导航栏 */}
         <div className="bg-white border-b border-[#E0E0E0] shadow-sm">
           <NavBar
+            onBack={() => {
+              navigate('/');
+            }}
             title="萌芽助手"
             titleClassName="font-semibold text-xl text-[#FFB38A]"
             right={
