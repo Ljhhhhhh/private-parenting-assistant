@@ -15,6 +15,7 @@ import { useState, useCallback } from 'react';
 
 export interface ChatMessage {
   id: string;
+  chatHistoryId?: string;
   content: string;
   isUser: boolean;
   timestamp: Date;

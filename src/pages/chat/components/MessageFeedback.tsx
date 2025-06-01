@@ -5,7 +5,7 @@ import type { ChatFeedbackDto } from '@/types/models';
 
 interface MessageFeedbackProps {
   messageId?: string;
-  chatHistoryId?: number;
+  chatHistoryId?: string;
   initialFeedback?: 'helpful' | 'not-helpful';
   onFeedbackChange?: (feedback: 'helpful' | 'not-helpful' | undefined) => void;
 }

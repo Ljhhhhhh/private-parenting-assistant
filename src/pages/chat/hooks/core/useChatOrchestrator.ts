@@ -132,7 +132,7 @@ export const useChatOrchestrator = (
           messagesData = (response as any).messages;
         }
 
-        console.debug('📚 获取到历史消息:', { count: messagesData.length });
+        console.debug('📚 获取到历史消息:', messagesData);
 
         if (messagesData.length > 0) {
           // 转换为UI消息格式 - 每个ChatHistoryDto转换为两个ChatMessage
@@ -143,6 +143,7 @@ export const useChatOrchestrator = (
             if (item.userMessage) {
               historyMessages.push({
                 id: `user-${item.id}`,
+                chatHistoryId: item.id,
                 content: item.userMessage,
                 isUser: true,
                 timestamp: new Date(item.requestTimestamp || item.createdAt),
@@ -154,12 +155,13 @@ export const useChatOrchestrator = (
             if (item.aiResponse) {
               historyMessages.push({
                 id: `ai-${item.id}`,
+                chatHistoryId: item.id,
                 content: item.aiResponse,
                 isUser: false,
                 timestamp: new Date(item.responseTimestamp || item.createdAt),
                 feedback:
-                  item.isHelpful !== undefined
-                    ? item.isHelpful
+                  item.feedback !== undefined
+                    ? item.feedback
                       ? 'helpful'
                       : 'not-helpful'
                     : undefined,

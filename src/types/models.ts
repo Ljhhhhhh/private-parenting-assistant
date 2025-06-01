@@ -208,7 +208,7 @@ export interface ChatResponseDto {
 
 export interface ChatFeedbackDto {
   /** 聊天历史ID */
-  chatHistoryId: number;
+  chatHistoryId: string;
   /** 反馈（true为有用，false为无用） */
   isHelpful: boolean;
 }

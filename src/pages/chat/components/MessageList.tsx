@@ -101,6 +101,7 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(
                   {!message.isUser && message.content && (
                     <MessageFeedback
                       messageId={message.id}
+                      chatHistoryId={message.chatHistoryId}
                       initialFeedback={message.feedback}
                       onFeedbackChange={(feedback) => {
                         onMessageFeedback(message.id, feedback);
