@@ -475,3 +475,29 @@ export interface PaginatedRecordsResponseDto {
     hasPrev: boolean;
   };
 }
+
+// ========== 用户反馈系统类型 ==========
+
+export enum FeedbackType {
+  BUG = 'bug',
+  SUGGESTION = 'suggestion',
+  FEATURE_REQUEST = 'feature_request',
+  PRAISE = 'praise',
+  OTHER = 'other',
+}
+
+export interface FeedbackDto {
+  /** 用户邮箱地址 */
+  email: string;
+  /** 反馈类型 */
+  type: FeedbackType;
+  /** 反馈标题 */
+  title: string;
+  /** 反馈内容详情 */
+  content: string;
+}
+
+export interface SendFeedbackResponse {
+  /** 返回消息 */
+  message: string;
+}

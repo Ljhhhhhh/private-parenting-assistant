@@ -17,6 +17,7 @@ const Chat = lazy(() => import('./pages/chat/Chat'));
 const RecordHistory = lazy(() => import('./pages/record/Index'));
 const Profile = lazy(() => import('./pages/profile/Profile'));
 const PrivacyPolicy = lazy(() => import('./pages/profile/PrivacyPolicy'));
+const Feedback = lazy(() => import('./pages/profile/Feedback'));
 
 // 加载状态组件
 const Loading = () => (
@@ -108,6 +109,16 @@ const App = () => (
           element={
             <RequireAuth>
               <PrivacyPolicy />
+            </RequireAuth>
+          }
+        />
+
+        {/* 建议与反馈页面 */}
+        <Route
+          path="/feedback"
+          element={
+            <RequireAuth>
+              <Feedback />
             </RequireAuth>
           }
         />

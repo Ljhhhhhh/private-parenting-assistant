@@ -7,6 +7,8 @@ import {
   SendVerificationCodeDto,
   ResetPasswordDto,
   LoginResponseDto,
+  FeedbackDto,
+  SendFeedbackResponse,
 } from '@/types/models';
 
 /**
@@ -79,4 +81,13 @@ export const sendResetPasswordVerificationCode = (
  */
 export const resetPassword = (data: ResetPasswordDto) => {
   return request.post<any>('/auth/reset-password', data);
+};
+
+/**
+ * 发送用户反馈
+ * @param data 反馈信息
+ * @returns 发送结果
+ */
+export const sendFeedback = (data: FeedbackDto) => {
+  return request.post<SendFeedbackResponse>('/auth/feedback', data);
 };

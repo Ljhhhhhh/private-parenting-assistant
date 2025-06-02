@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Toast } from '@/components/ui';
+import { NavBar, Toast } from '@/components/ui';
 import ChildForm, { ChildFormValues } from '@/components/children/ChildForm';
 import { getAllChildren, updateChild } from '@/api/children';
 import { ChildResponseDto } from '@/types/models';
@@ -49,35 +49,38 @@ const EditChild: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F7FA] px-4">
-      <div className="w-full max-w-[360px] bg-white rounded-2xl shadow-md p-6 mt-12">
-        <h1 className="text-[24px] leading-[32px] font-semibold text-[#333] mb-6 text-center">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#FDFBF8] to-[#FFF8F4]">
+      <NavBar title="编辑宝宝" onBack={() => navigate('/profile')} />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F7FA] px-4">
+        <div className="w-full max-w-[360px] bg-white rounded-2xl shadow-md p-6 mt-12">
+          {/* <h1 className="text-[24px] leading-[32px] font-semibold text-[#333] mb-6 text-center">
           编辑宝宝
-        </h1>
-        {initLoading ? (
-          <div className="flex items-center justify-center h-40">
-            <div className="w-8 h-8 border-2 border-primary rounded-full animate-spin border-t-transparent"></div>
-          </div>
-        ) : child ? (
-          <ChildForm
-            initialValues={child}
-            loading={loading}
-            onSubmit={handleSubmit}
-            submitText="保存"
+        </h1> */}
+          {initLoading ? (
+            <div className="flex items-center justify-center h-40">
+              <div className="w-8 h-8 border-2 border-primary rounded-full animate-spin border-t-transparent"></div>
+            </div>
+          ) : child ? (
+            <ChildForm
+              initialValues={child}
+              loading={loading}
+              onSubmit={handleSubmit}
+              submitText="保存"
+            />
+          ) : (
+            <div className="text-[#999] text-center py-8">未找到宝宝信息</div>
+          )}
+        </div>
+
+        {/* 渲染Toast */}
+        {toast && (
+          <Toast
+            type={toast.type}
+            content={toast.content}
+            onClose={() => setToast(null)}
           />
-        ) : (
-          <div className="text-[#999] text-center py-8">未找到宝宝信息</div>
         )}
       </div>
-
-      {/* 渲染Toast */}
-      {toast && (
-        <Toast
-          type={toast.type}
-          content={toast.content}
-          onClose={() => setToast(null)}
-        />
-      )}
     </div>
   );
 };

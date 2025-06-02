@@ -25,6 +25,9 @@ import EmptyState from './EmptyState';
 import Card from './layout/Card';
 import SafeArea from './layout/SafeArea';
 
+// 导入其他组件
+import DonationModal from './DonationModal';
+
 // 默认导出所有组件
 export {
   // 基础组件
@@ -55,6 +58,9 @@ export {
   // 布局组件
   Card,
   SafeArea,
+
+  // 其他组件
+  DonationModal,
 };
 
 // 组件分组导出
@@ -71,3 +77,4 @@ export const Feedback = {
 export const Navigation = { NavBar, TabBar };
 export const DataDisplay = { Tag, Progress, EmptyState };
 export const Layout = { Card, SafeArea };
+export const Other = { DonationModal };

@@ -580,7 +580,7 @@ const RecordHistory: React.FC = () => {
         <div
           ref={scrollContainerRef}
           className="flex-1 overflow-auto"
-          style={{ maxHeight: 'calc(100vh - 240px)' }}
+          style={{ maxHeight: 'calc(100vh - 190px)' }}
         >
           {loading ? (
             <div className="flex items-center justify-center py-20">
