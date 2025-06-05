@@ -105,7 +105,6 @@ const Chat: React.FC = () => {
           <ChatContainer
             childId={currentChild.id}
             initialConversationId={currentConversationId || undefined}
-            key={currentConversationId || 'new'}
             onOpenSidebar={handleOpenSidebar}
           />
         </div>

@@ -15,6 +15,7 @@ import { useMessageManager, type ChatMessage } from './useMessageManager';
 import { useConversationStore } from '../useConversationStore';
 import { generateConversationTitle } from '../../utils/conversationUtils';
 import { getConversationMessages } from '@/api/chat';
+import { isNil } from 'lodash-es';
 
 // ========== 类型定义 ==========
 
@@ -101,9 +102,9 @@ export const useChatOrchestrator = (
   const messageManagerRef = useRef(messageManager);
   messageManagerRef.current = messageManager;
 
-  // 🆕 监听 conversationId 变化，加载历史消息
-  useEffect(() => {
-    const loadConversationHistory = async (conversationId: number) => {
+  // 🆕 提取历史消息加载函数，使其可以在多处调用
+  const loadConversationHistory = useCallback(
+    async (conversationId: number) => {
       console.debug('🔄 开始加载会话历史:', { conversationId });
       setIsLoadingHistory(true);
 
@@ -132,7 +133,7 @@ export const useChatOrchestrator = (
           messagesData = (response as any).messages;
         }
 
-        console.debug('📚 获取到历史消息:', messagesData);
+        const currentManager = messageManagerRef.current;
 
         if (messagesData.length > 0) {
           // 转换为UI消息格式 - 每个ChatHistoryDto转换为两个ChatMessage
@@ -159,12 +160,11 @@ export const useChatOrchestrator = (
                 content: item.aiResponse,
                 isUser: false,
                 timestamp: new Date(item.responseTimestamp || item.createdAt),
-                feedback:
-                  item.feedback !== undefined
-                    ? item.feedback
-                      ? 'helpful'
-                      : 'not-helpful'
-                    : undefined,
+                feedback: !isNil(item.feedback)
+                  ? item.feedback
+                    ? 'helpful'
+                    : 'not-helpful'
+                  : undefined,
                 isStreaming: false,
               });
             }
@@ -176,7 +176,6 @@ export const useChatOrchestrator = (
           );
 
           // 清空当前消息并设置历史消息
-          const currentManager = messageManagerRef.current;
           currentManager.clearMessages();
 
           // 使用 setMessages 直接设置历史消息
@@ -188,10 +187,19 @@ export const useChatOrchestrator = (
             aiMessages: historyMessages.filter((m) => !m.isUser).length,
           });
         } else {
-          // 如果没有历史消息，清空当前消息
-          const currentManager = messageManagerRef.current;
-          currentManager.clearMessages();
-          console.debug('📭 该会话暂无历史消息');
+          // 检查是否是新会话创建过程（有活跃消息且正在流式处理）
+          const hasActiveMessages = currentManager.messages.length > 0;
+          const isStreaming = currentManager.currentStreamingId !== null;
+
+          if (hasActiveMessages && isStreaming) {
+            console.debug('🆕 检测到新会话创建过程，保留当前消息，不清空');
+            // 新会话创建过程，不清空当前正在进行的消息
+            return;
+          } else {
+            // 真正的历史会话但没有消息，或其他情况，清空消息
+            currentManager.clearMessages();
+            console.debug('📭 该会话暂无历史消息，已清空当前消息');
+          }
         }
       } catch (error) {
         console.error('❌ 加载会话历史失败:', error);
@@ -201,8 +209,12 @@ export const useChatOrchestrator = (
       } finally {
         setIsLoadingHistory(false);
       }
-    };
+    },
+    [],
+  );
 
+  // 🆕 监听 conversationId 变化，加载历史消息
+  useEffect(() => {
     console.debug('🔄 开始加载会话历史:', {
       conversationId: options.conversationId,
       currentConversationId,
@@ -216,6 +228,7 @@ export const useChatOrchestrator = (
       console.debug('🔄 会话ID变化，准备加载历史:', {
         conversationId: options.conversationId,
       });
+
       loadConversationHistory(options.conversationId);
     } else {
       // 如果 conversationId 为 null（新会话），清空消息
@@ -282,6 +295,15 @@ export const useChatOrchestrator = (
         isStreaming: false,
       };
       options.onMessageReceived?.(completedMessage);
+
+      // 🆕 新会话的第一条消息完成后，加载历史消息进行同步
+      if (options.conversationId && currentManager.messages.length === 2) {
+        console.debug('🔄 第一条消息完成，现在加载历史消息进行同步');
+        // 延迟一点时间确保数据库事务完成
+        setTimeout(() => {
+          loadConversationHistory(options.conversationId!);
+        }, 1000);
+      }
     },
     onError: (err) => {
       const currentManager = messageManagerRef.current;

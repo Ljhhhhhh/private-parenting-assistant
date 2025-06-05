@@ -150,12 +150,29 @@ export const useChatContainer = ({
       previousMessageCount: chatOrchestrator.messages.length,
     });
 
-    historyLoadedRef.current = false;
+    // 🆕 区分会话切换的不同场景
+    // 只有在真正的会话切换时才清空消息，新会话创建时不清空
+    const prevConversationId = chatOrchestrator.currentConversationId;
+    const newConversationId = initialConversationId;
 
+    // 场景1: 从null/undefined变为数字（新会话创建）- 不清空消息
+    if (
+      (prevConversationId === null || prevConversationId === undefined) &&
+      newConversationId !== null &&
+      newConversationId !== undefined
+    ) {
+      console.debug('🆕 新会话创建，保持现有消息');
+      return;
+    }
+
+    // 场景2: 从数字变为另一个数字（会话切换）- 清空消息
+    // 场景3: 从数字变为null/undefined（新建会话）- 清空消息
     if (chatOrchestrator.messages.length > 0) {
+      console.debug('🔄 会话切换，清空消息');
       chatOrchestrator.clearMessages();
     }
 
+    historyLoadedRef.current = false;
     setInputValue('');
     setHasInitialized(false);
 

@@ -29,8 +29,15 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   // 使用 Zustand store 管理会话数据
-  const { isLoading, error, loadConversations, getActiveConversations } =
-    useConversationStore();
+  const { isLoading, error, loadConversations } = useConversationStore();
+
+  // 直接订阅conversations状态，确保状态变化时组件重新渲染
+  const conversations = useConversationStore((state) => state.conversations);
+
+  // 过滤出活跃的会话（非归档）
+  const filteredConversations = conversations.filter(
+    (conv) => !conv.isArchived,
+  );
 
   // 刷新会话列表
   const refreshConversations = useCallback(() => {
@@ -66,12 +73,11 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
     }
   }, [childId, loadConversations]);
 
-  // 获取过滤后的会话列表
-  const filteredConversations = getActiveConversations();
-
   // 会话列表分组和展开收起状态
-  const [expandedGroups, setExpandedGroups] = useState<{[key: string]: boolean}>({});
-  
+  const [expandedGroups, setExpandedGroups] = useState<{
+    [key: string]: boolean;
+  }>({});
+
   // 按日期分组会话
   const groupedConversations = filteredConversations.reduce<{
     [key: string]: ConversationResponseDto[];
@@ -79,39 +85,44 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
     // 简单分组：今天、最近一周、更早
     const date = new Date(conversation.updatedAt);
     const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
+    const diffDays = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
     let groupKey = '更早';
     if (diffDays < 1) {
       groupKey = '今天';
     } else if (diffDays < 7) {
       groupKey = '最近一周';
     }
-    
+
     if (!groups[groupKey]) {
       groups[groupKey] = [];
     }
     groups[groupKey].push(conversation);
     return groups;
   }, {});
-  
+
   // 初始化展开状态
   useEffect(() => {
-    if (filteredConversations.length > 0 && Object.keys(expandedGroups).length === 0) {
+    if (
+      filteredConversations.length > 0 &&
+      Object.keys(expandedGroups).length === 0
+    ) {
       // 默认展开今天的会话
       setExpandedGroups({
-        '今天': true,
-        '最近一周': false,
-        '更早': false
+        今天: true,
+        最近一周: false,
+        更早: false,
       });
     }
   }, [filteredConversations, expandedGroups]);
-  
+
   // 切换分组展开收起状态
   const toggleGroup = (groupKey: string) => {
-    setExpandedGroups(prev => ({
+    setExpandedGroups((prev) => ({
       ...prev,
-      [groupKey]: !prev[groupKey]
+      [groupKey]: !prev[groupKey],
     }));
   };
 
@@ -263,85 +274,100 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
           {/* 会话列表 - 分组展示 */}
           {!isLoading && !error && filteredConversations.length > 0 && (
             <div className="p-2 space-y-2">
-              {Object.entries(groupedConversations).map(([groupKey, conversations]) => (
-                <div key={groupKey} className="border border-[#F0F0F0] rounded-lg overflow-hidden shadow-sm">
-                  {/* 分组标题栏 - 可点击展开/收起 */}
-                  <div 
-                    className="flex items-center justify-between p-3 bg-[#FAFAFA] cursor-pointer hover:bg-[#F5F5F5] transition-colors"
-                    onClick={() => toggleGroup(groupKey)}
+              {Object.entries(groupedConversations).map(
+                ([groupKey, conversations]) => (
+                  <div
+                    key={groupKey}
+                    className="border border-[#F0F0F0] rounded-lg overflow-hidden shadow-sm"
                   >
-                    <div className="flex items-center gap-2">
-                      <ExpandCollapseAnimation 
-                        isExpanded={!!expandedGroups[groupKey]}
-                        size={20}
-                        className="text-[#FFB38A]"
-                      />
-                      <h3 className="font-medium text-[#555555]">{groupKey}</h3>
-                      <span className="text-xs text-[#999999] bg-[#F0F0F0] px-1.5 py-0.5 rounded">
-                        {conversations.length}
-                      </span>
+                    {/* 分组标题栏 - 可点击展开/收起 */}
+                    <div
+                      className="flex items-center justify-between p-3 bg-[#FAFAFA] cursor-pointer hover:bg-[#F5F5F5] transition-colors"
+                      onClick={() => toggleGroup(groupKey)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <ExpandCollapseAnimation
+                          isExpanded={!!expandedGroups[groupKey]}
+                          size={20}
+                          className="text-[#FFB38A]"
+                        />
+                        <h3 className="font-medium text-[#555555]">
+                          {groupKey}
+                        </h3>
+                        <span className="text-xs text-[#999999] bg-[#F0F0F0] px-1.5 py-0.5 rounded">
+                          {conversations.length}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* 分组内容 - 动画展开/收起 */}
-                  <div 
-                    className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedGroups[groupKey] ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}
-                    style={{
-                      transitionTimingFunction: expandedGroups[groupKey] ? 'cubic-bezier(0.4, 0, 0.2, 1)' : 'cubic-bezier(0.4, 0, 0.2, 1)',
-                    }}
-                  >
-                    <div className="p-2 space-y-1 bg-white">
-                      {conversations.map((conversation) => (
-                        <div
-                          key={conversation.id}
-                          onClick={() => handleConversationClick(conversation)}
-                          className={`p-3 rounded-lg cursor-pointer transition-all hover:bg-[#F5F5F5] ${
-                            currentConversationId === conversation.id
-                              ? 'bg-[#FFE5D6] border border-[#FFB38A]'
-                              : 'hover:bg-[#F9F9F9]'
-                          }`}
-                        >
-                          <div className="flex gap-3 items-start">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex justify-between items-center mb-1">
-                                <h3 className="font-medium text-[#333333] truncate flex-1">
-                                  {conversation.title || '未命名对话'}
-                                </h3>
-                                <div className="flex gap-1 items-center ml-2">
-                                  {/* 消息数量 */}
-                                  {conversation.messageCount > 0 && (
-                                    <span className="text-xs text-[#999999] bg-[#F0F0F0] px-1.5 py-0.5 rounded">
-                                      {conversation.messageCount}
-                                    </span>
-                                  )}
 
-                                  {/* 归档标识 */}
-                                  {conversation.isArchived && (
-                                    <Icon
-                                      icon="ph:archive"
-                                      width={16}
-                                      height={16}
-                                      className="text-[#9E9E9E]"
-                                    />
-                                  )}
+                    {/* 分组内容 - 动画展开/收起 */}
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                        expandedGroups[groupKey]
+                          ? 'max-h-[1000px] opacity-100'
+                          : 'max-h-0 opacity-0'
+                      }`}
+                      style={{
+                        transitionTimingFunction: expandedGroups[groupKey]
+                          ? 'cubic-bezier(0.4, 0, 0.2, 1)'
+                          : 'cubic-bezier(0.4, 0, 0.2, 1)',
+                      }}
+                    >
+                      <div className="p-2 space-y-1 bg-white">
+                        {conversations.map((conversation) => (
+                          <div
+                            key={conversation.id}
+                            onClick={() =>
+                              handleConversationClick(conversation)
+                            }
+                            className={`p-3 rounded-lg cursor-pointer transition-all hover:bg-[#F5F5F5] ${
+                              currentConversationId === conversation.id
+                                ? 'bg-[#FFE5D6] border border-[#FFB38A]'
+                                : 'hover:bg-[#F9F9F9]'
+                            }`}
+                          >
+                            <div className="flex gap-3 items-start">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-center mb-1">
+                                  <h3 className="font-medium text-[#333333] truncate flex-1">
+                                    {conversation.title || '未命名对话'}
+                                  </h3>
+                                  <div className="flex gap-1 items-center ml-2">
+                                    {/* 消息数量 */}
+                                    {conversation.messageCount > 0 && (
+                                      <span className="text-xs text-[#999999] bg-[#F0F0F0] px-1.5 py-0.5 rounded">
+                                        {conversation.messageCount}
+                                      </span>
+                                    )}
+
+                                    {/* 归档标识 */}
+                                    {conversation.isArchived && (
+                                      <Icon
+                                        icon="ph:archive"
+                                        width={16}
+                                        height={16}
+                                        className="text-[#9E9E9E]"
+                                      />
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
 
-                              <p className="text-sm text-[#666666] truncate mb-2">
-                                {getConversationPreview(conversation)}
-                              </p>
+                                <p className="text-sm text-[#666666] truncate mb-2">
+                                  {getConversationPreview(conversation)}
+                                </p>
 
-                              <div className="text-xs text-[#999999]">
-                                {formatTime(conversation.updatedAt)}
+                                <div className="text-xs text-[#999999]">
+                                  {formatTime(conversation.updatedAt)}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ),
+              )}
             </div>
           )}
         </div>
@@ -349,7 +375,7 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
         {/* 底部统计信息 */}
         {!isLoading && !error && (
           <div className="p-3 border-t border-[#E0E0E0] text-xs text-[#999999] text-center">
-            {`共 ${getActiveConversations().length} 个对话`}
+            {`共 ${filteredConversations.length} 个对话`}
           </div>
         )}
 
