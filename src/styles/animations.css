@@ -1,0 +1,321 @@
+/* 首页模块动画效果 */
+
+/* 隐藏滚动条 */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 咨询萌芽模块的呼吸灯效果 */
+@keyframes breathe {
+  0%,
+  100% {
+    box-shadow: 0 8px 24px rgba(255, 179, 138, 0.2);
+  }
+  50% {
+    box-shadow: 0 12px 32px rgba(255, 179, 138, 0.3);
+  }
+}
+
+.ai-assistant-card {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* 浮动装饰元素动画 */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.floating-decoration {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* 渐变背景动画 */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* 卡片悬浮效果增强 */
+.card-hover-effect {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-2px);
+}
+
+/* 图标旋转动画 */
+@keyframes gentle-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.gentle-rotate {
+  animation: gentle-rotate 20s linear infinite;
+}
+
+/* 脉冲效果优化 */
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.soft-pulse {
+  animation: soft-pulse 2s ease-in-out infinite;
+}
+
+/* 文字渐现效果 */
+@keyframes text-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.text-reveal {
+  animation: text-reveal 0.6s ease-out;
+}
+
+/* 按钮点击波纹效果 */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.ripple-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-effect::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.ripple-effect:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* 更多服务模块专用动画 */
+
+/* 服务卡片进入动画 */
+@keyframes service-card-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.service-card-enter {
+  animation: service-card-enter 0.5s ease-out;
+}
+
+/* 错开动画延迟 */
+.service-card-enter:nth-child(1) {
+  animation-delay: 0ms;
+}
+.service-card-enter:nth-child(2) {
+  animation-delay: 100ms;
+}
+.service-card-enter:nth-child(3) {
+  animation-delay: 200ms;
+}
+.service-card-enter:nth-child(4) {
+  animation-delay: 300ms;
+}
+.service-card-enter:nth-child(5) {
+  animation-delay: 400ms;
+}
+.service-card-enter:nth-child(6) {
+  animation-delay: 500ms;
+}
+
+/* 图标悬浮动画 */
+@keyframes icon-hover {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.icon-hover:hover {
+  animation: icon-hover 0.6s ease-in-out;
+}
+
+/* 特色功能卡片的特殊效果 */
+@keyframes feature-glow {
+  0%,
+  100% {
+    box-shadow: 0 8px 24px rgba(255, 152, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 12px 32px rgba(255, 152, 0, 0.35);
+  }
+}
+
+.feature-card-glow {
+  animation: feature-glow 3s ease-in-out infinite;
+}
+
+/* 数据点闪烁动画 */
+@keyframes data-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.data-pulse {
+  animation: data-pulse 2s ease-in-out infinite;
+}
+
+/* 服务标签动画 */
+@keyframes badge-bounce {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.badge-bounce {
+  animation: badge-bounce 2s ease-in-out infinite;
+}
+
+/* 卡片组进入动画 */
+@keyframes cards-group-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cards-group-enter {
+  animation: cards-group-enter 0.6s ease-out;
+}
+
+/* 背景装饰粒子动画 */
+@keyframes particle-float {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-15px) rotate(180deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0px) rotate(360deg);
+    opacity: 0.3;
+  }
+}
+
+.particle-float {
+  animation: particle-float 4s ease-in-out infinite;
+}
+
+/* 渐变背景流动效果 */
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-flow {
+  background-size: 200% 200%;
+  animation: gradient-flow 6s ease infinite;
+}
+
+/* 微妙的阴影变化 */
+@keyframes shadow-shift {
+  0%,
+  100% {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.shadow-shift {
+  animation: shadow-shift 4s ease-in-out infinite;
+}

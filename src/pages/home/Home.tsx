@@ -19,6 +19,7 @@ import {
   GrowthDetails,
   FeedingType,
 } from '@/types/models';
+import LogoImage from '@/assets/logo2.svg?react';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -594,88 +595,320 @@ const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* AI 助手入口 */}
+          {/* AI 助手入口 - 主打功能突出设计 */}
           <div>
             <h2 className="flex items-center mb-4 text-lg font-semibold text-[#333333]">
               <Icon icon="mdi:robot" className="mr-2 text-[#FFB38A]" />
               咨询萌芽
+              <span className="ml-2 px-2 py-0.5 text-xs font-medium text-white bg-gradient-to-r from-[#FF9800] to-[#FFB38A] rounded-full">
+                AI
+              </span>
             </h2>
             <div
-              className="flex items-center p-5 bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-[#F0F0F0] transition-all duration-300 cursor-pointer hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] relative overflow-hidden"
+              className="relative p-6 bg-gradient-to-br from-[#FFB38A] via-[#FFC9A8] to-[#F8BBD0] rounded-2xl shadow-[0_8px_24px_rgba(255,179,138,0.2)] border border-white/30 transition-all duration-500 cursor-pointer hover:shadow-[0_12px_32px_rgba(255,179,138,0.3)] hover:scale-[1.02] overflow-hidden group ai-assistant-card ripple-effect"
               onClick={navigateToChat}
             >
-              {/* 背景装饰 */}
-              <div className="absolute right-0 bottom-0 opacity-5">
-                <Icon
-                  icon="mdi:robot"
-                  className="text-[120px] text-[#FFB38A]"
-                />
+              {/* 动态背景装饰元素 */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-4 right-8 w-3 h-3 bg-[#8B4513]/25 rounded-full soft-pulse"></div>
+                <div
+                  className="absolute top-12 right-16 w-2 h-2 bg-[#A0522D]/20 rounded-full soft-pulse"
+                  style={{ animationDelay: '0.5s' }}
+                ></div>
+                <div
+                  className="absolute bottom-8 right-6 w-4 h-4 bg-[#CD853F]/15 rounded-full floating-decoration"
+                  style={{ animationDelay: '1s' }}
+                ></div>
+                <div
+                  className="absolute top-8 left-1/3 w-2 h-2 bg-[#A0522D]/18 rounded-full soft-pulse"
+                  style={{ animationDelay: '1.5s' }}
+                ></div>
+                <div
+                  className="absolute bottom-12 left-8 w-1.5 h-1.5 bg-[#8B4513]/12 rounded-full floating-decoration"
+                  style={{ animationDelay: '2s' }}
+                ></div>
               </div>
 
-              <div className="flex justify-center items-center mr-5 w-14 h-14 bg-gradient-to-br rounded-full shadow-[0_4px_10px_rgba(255,179,138,0.3)] from-[#FFB38A] to-[#FFC9A8] z-10">
-                <Icon
-                  icon="mdi:robot-excited"
-                  className="text-2xl text-white"
-                />
-              </div>
-              <div className="z-10 flex-1">
-                <div className="mb-1 text-lg font-medium text-[#333333]">
-                  萌芽助手
+              {/* 主要内容区域 */}
+              <div className="relative z-10">
+                <div className="flex items-start">
+                  {/* 3D风格机器人图标 */}
+                  <div className=" flex justify-center items-center mr-4 w-14 h-14 backdrop-blur-sm rounded-2xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                    <LogoImage className="rounded-full object-cover w-full h-full" />
+                  </div>
+
+                  {/* 文字内容 */}
+                  <div className="flex-1 min-w-0">
+                    <div className="mb-2 text-lg font-bold text-[#8B4513] text-reveal">
+                      萌芽助手
+                    </div>
+                    <div
+                      className="text-[#A0522D] text-sm font-semibold text-reveal mb-1"
+                      style={{ animationDelay: '0.2s' }}
+                    >
+                      智能育儿，温暖陪伴
+                    </div>
+                    <div
+                      className="text-[#CD853F] text-xs text-reveal leading-relaxed"
+                      style={{ animationDelay: '0.4s' }}
+                    >
+                      24小时专业建议，科学育儿指导
+                    </div>
+                  </div>
                 </div>
-                <div className="text-base text-[#666666]">AI加持，专业建议</div>
+
+                {/* 交互指示器 - 移到底部右侧 */}
+                <div className="flex justify-end mt-4">
+                  <div className="flex items-center text-[#8B4513] group-hover:text-[#654321] transition-colors duration-300">
+                    <span className="mr-2 text-sm font-semibold">开始咨询</span>
+                    <div className="flex justify-center items-center w-8 h-8 bg-[#8B4513]/20 rounded-full group-hover:bg-[#8B4513]/30 transition-all duration-300 group-hover:translate-x-1">
+                      <Icon
+                        icon="mdi:arrow-right"
+                        className="text-lg text-[#8B4513]"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center text-[#FFB38A] z-10 group">
-                <span className="mr-1 transition-all duration-300 group-hover:mr-2">
-                  咨询
-                </span>
-                <Icon
-                  icon="mdi:chevron-right"
-                  className="transition-transform duration-300 group-hover:translate-x-1"
-                />
-              </div>
+
+              {/* 底部装饰波浪 */}
+              <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-white/10 to-white/5 rounded-b-2xl"></div>
             </div>
           </div>
 
-          {/* 我的信息入口 */}
-          <div className="mt-6">
+          {/* 更多服务 - 全新分层设计 */}
+          <div className="mt-8">
             <h2 className="flex items-center mb-4 text-lg font-semibold text-[#333333]">
-              <Icon icon="mdi:account-circle" className="mr-2 text-[#FFB38A]" />
-              个人中心
+              <Icon icon="mdi:apps" className="mr-2 text-[#FFB38A]" />
+              更多服务
             </h2>
-            <div
-              className="flex items-center p-5 bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-[#F0F0F0] transition-all duration-300 cursor-pointer hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] relative overflow-hidden"
-              onClick={() => navigate('/profile')}
-            >
-              {/* 背景装饰 */}
-              <div className="absolute right-0 bottom-0 opacity-5">
-                <Icon
-                  icon="mdi:account-heart"
-                  className="text-[120px] text-[#FFB38A]"
-                />
+
+            <div className="space-y-4">
+              {/* 第一层：核心服务 */}
+              <div className="flex gap-3 cards-group-enter">
+                {/* 个人中心 */}
+                <div
+                  className="flex-1 flex items-center p-3 bg-gradient-to-br from-[#4A90E2]/8 to-[#7AADEE]/12 rounded-2xl border border-[#4A90E2]/15 transition-all duration-300 cursor-pointer hover:shadow-[0_6px_20px_rgba(74,144,226,0.15)] hover:scale-[1.02] relative overflow-hidden group"
+                  onClick={() => navigate('/profile')}
+                >
+                  {/* 背景装饰 */}
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 opacity-[0.06]">
+                    <Icon
+                      icon="clarity:avatar-solid"
+                      className="text-[48px] text-[#4A90E2]"
+                    />
+                  </div>
+
+                  <div className="relative z-10 flex items-center w-full">
+                    <div className="flex justify-center items-center mr-3 w-10 h-10 bg-gradient-to-br from-[#4A90E2] to-[#7AADEE] rounded-xl shadow-[0_3px_12px_rgba(74,144,226,0.2)] group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                      <Icon
+                        icon="clarity:avatar-solid"
+                        className="text-lg text-white"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-[#333333] mb-0.5">
+                        个人中心
+                      </div>
+                      <div className="text-xs text-[#999999] whitespace-nowrap">
+                        设置·数据·隐私
+                      </div>
+                    </div>
+                    <Icon
+                      icon="mdi:chevron-right"
+                      className="text-[#4A90E2] group-hover:translate-x-1 transition-transform duration-300 text-lg flex-shrink-0"
+                    />
+                  </div>
+                </div>
+
+                {/* 意见反馈 */}
+                <div
+                  className="flex-1 flex items-center p-3 bg-gradient-to-br from-[#F8BBD0]/12 to-[#FAD1E0]/15 rounded-2xl border border-[#F8BBD0]/20 transition-all duration-300 cursor-pointer hover:shadow-[0_6px_20px_rgba(248,187,208,0.18)] hover:scale-[1.02] relative overflow-hidden group"
+                  onClick={() =>
+                    navigate('/feedback', { state: { from: '/' } })
+                  }
+                >
+                  {/* 背景装饰 */}
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 opacity-[0.06]">
+                    <Icon
+                      icon="uil:feedback"
+                      className="text-[48px] text-[#F8BBD0]"
+                    />
+                  </div>
+
+                  <div className="relative z-10 flex items-center w-full">
+                    <div className="flex justify-center items-center mr-3 w-10 h-10 bg-gradient-to-br from-[#F8BBD0] to-[#FAD1E0] rounded-xl shadow-[0_3px_12px_rgba(248,187,208,0.2)] group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                      <Icon
+                        icon="uil:feedback"
+                        className="text-lg text-white"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-[#333333] mb-0.5">
+                        意见反馈
+                      </div>
+                      <div className="text-xs text-[#999999] whitespace-nowrap">
+                        建议·改进·支持
+                      </div>
+                    </div>
+                    <Icon
+                      icon="mdi:chevron-right"
+                      className="text-[#F8BBD0] group-hover:translate-x-1 transition-transform duration-300 text-lg flex-shrink-0"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="flex justify-center items-center mr-5 w-14 h-14 bg-gradient-to-br rounded-full shadow-[0_4px_10px_rgba(255,179,138,0.3)] from-[#4A90E2] to-[#7AADEE] z-10">
-                <Icon
-                  icon="mdi:account-heart"
-                  className="text-2xl text-white"
-                />
-              </div>
-              <div className="z-10 flex-1">
-                <div className="mb-1 text-lg font-medium text-[#333333]">
-                  我的信息
+              {/* 第二层：实用工具 */}
+              <div
+                className="grid grid-cols-3 gap-3 cards-group-enter"
+                style={{ animationDelay: '0.2s' }}
+              >
+                {/* 成长报告 */}
+                <div
+                  className="flex flex-col items-center p-4 bg-gradient-to-br from-[#4CAF50]/8 to-[#81C784]/12 rounded-xl border border-[#4CAF50]/15 transition-all duration-300 cursor-pointer hover:shadow-[0_4px_16px_rgba(76,175,80,0.15)] hover:scale-[1.05] relative overflow-hidden group"
+                  onClick={() => navigate('/growth-report')}
+                >
+                  {/* 背景装饰 */}
+                  <div className="absolute -top-2 -right-2 opacity-[0.04]">
+                    <Icon
+                      icon="mdi:chart-line-variant"
+                      className="text-[40px] text-[#4CAF50]"
+                    />
+                  </div>
+
+                  <div className="relative z-10 flex flex-col items-center text-center">
+                    <div className="flex justify-center items-center mb-3 w-10 h-10 bg-gradient-to-br from-[#4CAF50] to-[#81C784] rounded-lg shadow-[0_2px_8px_rgba(76,175,80,0.2)] group-hover:scale-110 transition-transform duration-300">
+                      <Icon
+                        icon="mdi:chart-line-variant"
+                        className="text-lg text-white"
+                      />
+                    </div>
+                    <div className="text-sm font-semibold text-[#333333] mb-1">
+                      成长报告
+                    </div>
+                    <div className="text-xs text-[#999999] leading-tight">
+                      专业分析
+                    </div>
+                  </div>
                 </div>
-                <div className="text-base text-[#666666]">
-                  个人设置，数据管理
+
+                {/* 疫苗提醒 */}
+                <div
+                  className="flex flex-col items-center p-4 bg-gradient-to-br from-[#FF9800]/8 to-[#FFB74D]/12 rounded-xl border border-[#FF9800]/15 transition-all duration-300 cursor-pointer hover:shadow-[0_4px_16px_rgba(255,152,0,0.15)] hover:scale-[1.05] relative overflow-hidden group"
+                  onClick={() => navigate('/vaccine-reminder')}
+                >
+                  {/* 背景装饰 */}
+                  <div className="absolute -top-2 -right-2 opacity-[0.04]">
+                    <Icon
+                      icon="mdi:medical-bag"
+                      className="text-[40px] text-[#FF9800]"
+                    />
+                  </div>
+
+                  <div className="relative z-10 flex flex-col items-center text-center">
+                    <div className="flex justify-center items-center mb-3 w-10 h-10 bg-gradient-to-br from-[#FF9800] to-[#FFB74D] rounded-lg shadow-[0_2px_8px_rgba(255,152,0,0.2)] group-hover:scale-110 transition-transform duration-300">
+                      <Icon
+                        icon="mdi:medical-bag"
+                        className="text-lg text-white"
+                      />
+                    </div>
+                    <div className="text-sm font-semibold text-[#333333] mb-1">
+                      疫苗提醒
+                    </div>
+                    <div className="text-xs text-[#999999] leading-tight">
+                      接种计划
+                    </div>
+                  </div>
+                </div>
+
+                {/* 育儿知识 */}
+                <div
+                  className="flex flex-col items-center p-4 bg-gradient-to-br from-[#2196F3]/8 to-[#64B5F6]/12 rounded-xl border border-[#2196F3]/15 transition-all duration-300 cursor-pointer hover:shadow-[0_4px_16px_rgba(33,150,243,0.15)] hover:scale-[1.05] relative overflow-hidden group"
+                  onClick={() => navigate('/parenting-knowledge')}
+                >
+                  {/* 背景装饰 */}
+                  <div className="absolute -top-2 -right-2 opacity-[0.04]">
+                    <Icon
+                      icon="mdi:book-open-variant"
+                      className="text-[40px] text-[#2196F3]"
+                    />
+                  </div>
+
+                  <div className="relative z-10 flex flex-col items-center text-center">
+                    <div className="flex justify-center items-center mb-3 w-10 h-10 bg-gradient-to-br from-[#2196F3] to-[#64B5F6] rounded-lg shadow-[0_2px_8px_rgba(33,150,243,0.2)] group-hover:scale-110 transition-transform duration-300">
+                      <Icon
+                        icon="mdi:book-open-variant"
+                        className="text-lg text-white"
+                      />
+                    </div>
+                    <div className="text-sm font-semibold text-[#333333] mb-1">
+                      育儿知识
+                    </div>
+                    <div className="text-xs text-[#999999] leading-tight">
+                      专家指南
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center text-[#4A90E2] z-10 group">
-                <span className="mr-1 transition-all duration-300 group-hover:mr-2">
-                  查看
-                </span>
-                <Icon
-                  icon="mdi:chevron-right"
-                  className="transition-transform duration-300 group-hover:translate-x-1"
-                />
+
+              {/* 第三层：特色功能 */}
+              <div
+                className="relative p-5 bg-gradient-to-br from-[#FF9800]/10 via-[#FFB38A]/8 to-[#FFD040]/12 rounded-2xl border border-[#FF9800]/20 transition-all duration-500 cursor-pointer hover:shadow-[0_8px_24px_rgba(255,152,0,0.2)] hover:scale-[1.02] overflow-hidden group cards-group-enter feature-card-glow"
+                style={{ animationDelay: '0.4s' }}
+                onClick={() => navigate('/data-statistics')}
+              >
+                {/* 动态背景装饰 */}
+                <div className="absolute inset-0 opacity-[0.03]">
+                  <div className="absolute top-4 right-8 w-3 h-3 bg-[#FF9800] rounded-full data-pulse"></div>
+                  <div
+                    className="absolute top-12 right-16 w-2 h-2 bg-[#FFB38A] rounded-full data-pulse"
+                    style={{ animationDelay: '0.5s' }}
+                  ></div>
+                  <div
+                    className="absolute bottom-8 right-6 w-4 h-4 bg-[#FFD040] rounded-full data-pulse"
+                    style={{ animationDelay: '1s' }}
+                  ></div>
+                </div>
+
+                <div className="absolute top-4 right-4 opacity-[0.06]">
+                  <Icon
+                    icon="mdi:chart-donut"
+                    className="text-[60px] text-[#FF9800]"
+                  />
+                </div>
+
+                <div className="relative z-10 flex items-center">
+                  <div className="flex justify-center items-center mr-4 w-14 h-14 bg-gradient-to-br from-[#FF9800] to-[#FFB38A] rounded-2xl shadow-[0_4px_16px_rgba(255,152,0,0.25)] group-hover:scale-110 transition-transform duration-300">
+                    <Icon
+                      icon="mdi:chart-donut"
+                      className="text-2xl text-white"
+                    />
+                  </div>
+
+                  <div className="flex-1">
+                    <div className="flex items-center mb-2">
+                      <div className="text-lg font-bold text-[#333333]">
+                        数据统计
+                      </div>
+                      {/* <span className="ml-2 px-2 py-0.5 text-xs font-medium text-white bg-gradient-to-r from-[#FF9800] to-[#FFB38A] rounded-full">
+                        Pro
+                      </span> */}
+                    </div>
+                    <div className="text-sm text-[#666666] mb-1">
+                      全面的成长数据分析与可视化
+                    </div>
+                    <div className="text-xs text-[#999999]">
+                      趋势分析·智能洞察·个性化报告
+                    </div>
+                  </div>
+
+                  <div className="flex items-center text-[#FF9800] group-hover:text-[#E08600] transition-colors duration-300">
+                    <div className="flex justify-center items-center w-10 h-10 bg-white/20 rounded-full group-hover:bg-white/30 transition-all duration-300 group-hover:translate-x-1">
+                      <Icon icon="mdi:arrow-right" className="text-xl" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { Button, Input, Checkbox } from '@/components/ui';
 import { useUserStore, storeOrchestrator } from '@/stores';
 
 import { Icon } from '@iconify/react';
-import logoImage from '@/assets/logo.png';
+import LogoImage from '@/assets/logo.svg?react';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -85,11 +85,7 @@ const Login: React.FC = () => {
             ref={logoRef}
             className="flex overflow-hidden justify-center items-center mb-4 w-20 h-20"
           >
-            <img
-              src={logoImage}
-              alt="萌芽育儿 Logo"
-              className="object-cover w-full h-full"
-            />
+            <LogoImage className="object-cover w-full h-full" />
           </div>
 
           <h1 className="mb-1 font-semibold text-h1 text-primary-dark">

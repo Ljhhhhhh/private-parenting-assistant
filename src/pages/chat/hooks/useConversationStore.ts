@@ -17,11 +17,15 @@ interface ConversationState {
   currentConversationId: number | null;
   isLoading: boolean;
   error: string | null;
+  hasMore: boolean;
+  currentOffset: number;
+  pageSize: number;
 }
 
 interface ConversationActions {
   // 基础操作
-  loadConversations: (childId: number) => Promise<void>;
+  loadConversations: (childId: number, reset?: boolean) => Promise<void>;
+  loadMoreConversations: (childId: number) => Promise<void>;
   createConversation: (
     childId: number,
     title?: string,
@@ -59,22 +63,69 @@ export const useConversationStore = create<ConversationStore>()(
       currentConversationId: null,
       isLoading: false,
       error: null,
+      hasMore: true,
+      currentOffset: 0,
+      pageSize: 10,
 
       // 加载会话列表
-      loadConversations: async (childId: number) => {
+      loadConversations: async (childId: number, reset = true) => {
         try {
+          const { pageSize, currentOffset } = get();
           set({ isLoading: true, error: null });
 
-          const conversations = await getConversations({ childId });
-
-          set({
-            conversations: conversations || [],
-            isLoading: false,
+          const offset = reset ? 0 : currentOffset;
+          const conversations = await getConversations({
+            childId,
+            limit: pageSize,
+            offset,
           });
+
+          const newConversations = conversations || [];
+          const hasMore = newConversations.length === pageSize;
+
+          set((state) => ({
+            conversations: reset
+              ? newConversations
+              : [...state.conversations, ...newConversations],
+            currentOffset: offset + newConversations.length,
+            hasMore,
+            isLoading: false,
+          }));
         } catch (error) {
           console.error('加载会话列表失败:', error);
           set({
             error: error instanceof Error ? error.message : '加载会话列表失败',
+            isLoading: false,
+          });
+        }
+      },
+
+      // 加载更多会话
+      loadMoreConversations: async (childId: number) => {
+        const { hasMore, isLoading, pageSize, currentOffset } = get();
+        if (!hasMore || isLoading) return;
+
+        try {
+          set({ error: null });
+
+          const conversations = await getConversations({
+            childId,
+            limit: pageSize,
+            offset: currentOffset,
+          });
+
+          const newConversations = conversations || [];
+          const hasMoreData = newConversations.length === pageSize;
+
+          set((state) => ({
+            conversations: [...state.conversations, ...newConversations],
+            currentOffset: state.currentOffset + newConversations.length,
+            hasMore: hasMoreData,
+          }));
+        } catch (error) {
+          console.error('加载更多会话失败:', error);
+          set({
+            error: error instanceof Error ? error.message : '加载更多会话失败',
             isLoading: false,
           });
         }

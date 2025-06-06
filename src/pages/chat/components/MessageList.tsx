@@ -4,6 +4,7 @@ import { MessageFeedback } from './MessageFeedback';
 import { formatMessageTime } from '../utils/messageUtils';
 import { MarkdownRenderer } from '../../../components/ui/data-display/MarkdownRenderer';
 import { Icon } from '@iconify/react';
+import LogoImage from '@/assets/logo2.svg?react';
 
 interface MessageListProps {
   messages: ChatMessage[];
@@ -104,17 +105,16 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(
                     } px-2`}
                   >
                     {!message.isUser && (
-                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-[#5BA3F5] to-[#8CC8FF] flex items-center justify-center shadow-md ring-1 ring-white">
-                        <Icon
-                          icon="ph:robot-fill"
-                          className="text-white text-sm md:text-lg"
-                        />
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-md ring-1 ring-white">
+                        <LogoImage className="rounded-full object-cover w-full h-full" />
                       </div>
                     )}
                     {message.isUser && (
                       <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-[#F8BBD0] to-[#FFDCE8] flex items-center justify-center shadow-md ring-1 ring-white">
                         <Icon
                           icon="ph:user-fill"
+                          width={20}
+                          height={20}
                           className="text-white text-sm md:text-lg"
                         />
                       </div>
@@ -129,11 +129,9 @@ export const MessageList = forwardRef<MessageListRef, MessageListProps>(
                   }`}
                 >
                   <div
-                    className={`relative ${
-                      message.isUser
-                        ? 'w-[95%] md:w-[85%] max-w-[600px]'
-                        : 'w-[95%] md:w-[85%] max-w-[600px]'
-                    } ${message.isUser ? 'message-user' : 'message-ai'}`}
+                    className={`relative max-w-[600px] ${
+                      message.isUser ? 'message-user' : 'message-ai'
+                    }`}
                   >
                     {/* 消息气泡 */}
                     <div

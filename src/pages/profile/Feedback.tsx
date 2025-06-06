@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { Button, NavBar, Toast } from '@/components/ui';
 import { useUserStore } from '@/stores';
@@ -21,7 +21,11 @@ interface FormErrors {
 
 const Feedback: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useUserStore();
+
+  // 获取来源页面，默认为个人中心
+  const fromPage = (location.state as any)?.from || '/profile';
 
   // 表单数据
   const [formData, setFormData] = useState<FormData>({
@@ -178,9 +182,9 @@ const Feedback: React.FC = () => {
       });
       setErrors({});
 
-      // 2秒后返回个人中心
+      // 2秒后返回来源页面
       setTimeout(() => {
-        navigate('/profile');
+        navigate(fromPage);
       }, 2000);
     } catch (error: any) {
       console.error('提交反馈失败:', error);
@@ -199,7 +203,7 @@ const Feedback: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#FDFBF8] to-[#FFF8F4]">
-      <NavBar title="建议与反馈" onBack={() => navigate('/profile')} />
+      <NavBar title="建议与反馈" onBack={() => navigate(fromPage)} />
 
       <div className="flex-1 overflow-auto">
         <div className="px-4 pt-6 pb-8">

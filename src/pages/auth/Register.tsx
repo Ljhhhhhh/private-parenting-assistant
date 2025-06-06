@@ -5,7 +5,7 @@ import type { FormInstance } from '@/components/ui';
 import { useUserStore } from '@/stores/user';
 import { useChildrenStore } from '@/stores/children';
 import { Icon } from '@iconify/react';
-import logoImage from '@/assets/logo.png';
+import LogoImage from '@/assets/logo.svg?react';
 
 const Register: React.FC = () => {
   const formRef = useRef<FormInstance | null>(null);
@@ -119,11 +119,7 @@ const Register: React.FC = () => {
         {/* Logo和标题 */}
         <div className="flex flex-col items-center mb-8">
           <div className="flex overflow-hidden justify-center items-center mb-4 w-24 h-24">
-            <img
-              src={logoImage}
-              alt="萌芽育儿 Logo"
-              className="object-cover w-full h-full"
-            />
+            <LogoImage className="object-cover w-full h-full" />
           </div>
           <h1 className="mb-1 font-semibold text-h1 text-primary-dark">
             萌芽育儿

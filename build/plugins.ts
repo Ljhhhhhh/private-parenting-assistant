@@ -1,6 +1,6 @@
 import { cdn } from './cdn';
 import { viteBuildInfo } from './info';
-import svgLoader from 'vite-svg-loader';
+import svgr from 'vite-plugin-svgr';
 import react from '@vitejs/plugin-react';
 import type { PluginOption } from 'vite';
 import removeNoMatch from 'vite-plugin-router-warn';
@@ -30,7 +30,7 @@ export function getPluginsList(VITE_CDN: boolean): PluginOption[] {
      */
     removeNoMatch(),
     // svg组件化支持
-    svgLoader(),
+    svgr(),
     VITE_CDN ? cdn : null,
     // 线上环境删除console
     removeConsole({ external: ['src/assets/iconfont/iconfont.js'] }),

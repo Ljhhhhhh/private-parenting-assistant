@@ -52,7 +52,7 @@ const Profile: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#FDFBF8] to-[#FFF8F4]">
-      <NavBar title="个人中心" />
+      <NavBar title="个人中心" onBack={() => navigate('/')} />
 
       <div className="overflow-auto flex-1">
         <div className="px-4 pt-6 pb-8">
@@ -329,7 +329,9 @@ const Profile: React.FC = () => {
 
               <div
                 className="flex items-center justify-between p-5 transition-all duration-200 hover:bg-[#FFF8F4] cursor-pointer border-b border-[#F0F0F0] group"
-                onClick={() => navigate('/feedback')}
+                onClick={() =>
+                  navigate('/feedback', { state: { from: '/profile' } })
+                }
               >
                 <div className="flex items-center">
                   <div className="flex justify-center items-center mr-4 w-10 h-10 bg-[#56C0E0]/10 rounded-xl group-hover:bg-[#56C0E0]/20 transition-colors duration-200">

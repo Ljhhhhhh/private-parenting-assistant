@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
 import './styles/global.css'; // 引入全局样式
+import './styles/animations.css'; // 引入动画样式
 // 导入存储
 import './stores';
 
