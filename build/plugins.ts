@@ -7,6 +7,7 @@ import removeNoMatch from 'vite-plugin-router-warn';
 import { visualizer } from 'rollup-plugin-visualizer';
 import removeConsole from 'vite-plugin-remove-console';
 import { codeInspectorPlugin } from 'code-inspector-plugin';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export function getPluginsList(VITE_CDN: boolean): PluginOption[] {
   const lifecycle = process.env.npm_lifecycle_event;
@@ -23,6 +24,106 @@ export function getPluginsList(VITE_CDN: boolean): PluginOption[] {
       hideConsole: true,
     }),
     viteBuildInfo(),
+    /**
+     * PWA 支持
+     * 优雅美观的 PWA 功能，符合育儿助手的温暖设计理念
+     */
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: [
+        'favicon.ico',
+        'logo.svg',
+        'boy-avatar.svg',
+        'girl-avatar.svg',
+      ],
+      manifest: {
+        name: '温暖育儿助手',
+        short_name: '育儿助手',
+        description: '专业贴心的育儿记录与问答助手，陪伴您的育儿之旅',
+        theme_color: '#FFB38A',
+        background_color: '#FDFBF8',
+        display: 'standalone',
+        orientation: 'portrait',
+        start_url: '/',
+        scope: '/',
+        lang: 'zh-CN',
+        categories: ['lifestyle', 'health', 'education'],
+        icons: [
+          {
+            src: '/icons/icon-72x72.png',
+            sizes: '72x72',
+            type: 'image/png',
+          },
+          {
+            src: '/icons/icon-96x96.png',
+            sizes: '96x96',
+            type: 'image/png',
+          },
+          {
+            src: '/icons/icon-128x128.png',
+            sizes: '128x128',
+            type: 'image/png',
+          },
+          {
+            src: '/icons/icon-128x128.png',
+            sizes: '144x144',
+            type: 'image/png',
+          },
+          {
+            src: '/icons/icon-128x128.png',
+            sizes: '152x152',
+            type: 'image/png',
+          },
+          {
+            src: '/icons/icon-128x128.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: '/icons/icon-512x512.png',
+            sizes: '384x384',
+            type: 'image/png',
+          },
+          {
+            src: '/icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api'),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+              networkTimeoutSeconds: 3,
+            },
+          },
+          {
+            urlPattern: ({ url }) =>
+              url.origin === 'https://fonts.googleapis.com' ||
+              url.origin === 'https://fonts.gstatic.com',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts',
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module',
+      },
+    }),
     /**
      * 开发环境下移除非必要的vue-router动态路由警告No match found for location with path
      * 非必要具体看 https://github.com/vuejs/router/issues/521 和 https://github.com/vuejs/router/issues/359

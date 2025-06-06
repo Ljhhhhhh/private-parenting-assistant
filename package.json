@@ -56,6 +56,7 @@
     "vite": "^6.2.0",
     "vite-plugin-cdn-import": "^1.0.1",
     "vite-plugin-fake-server": "^2.2.0",
+    "vite-plugin-pwa": "^1.0.0",
     "vite-plugin-remove-console": "^2.2.0",
     "vite-plugin-router-warn": "^1.0.0",
     "vite-plugin-svgr": "^4.3.0"
