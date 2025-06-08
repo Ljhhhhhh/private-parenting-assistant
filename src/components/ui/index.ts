@@ -11,6 +11,8 @@ export type { FormInstance } from './data-entry/Form';
 import Toast, { useToast } from './feedback/Toast';
 import Dialog, { useDialog } from './feedback/Dialog';
 import Loading, { DotLoading } from './feedback/Loading';
+import FeatureComingSoon from './feedback/FeatureComingSoon';
+import { useFeatureComingSoon } from './feedback/useFeatureComingSoon';
 
 // 导入导航组件
 import NavBar from './navigation/NavBar';
@@ -45,6 +47,8 @@ export {
   useDialog,
   Loading,
   DotLoading,
+  FeatureComingSoon,
+  useFeatureComingSoon,
 
   // 导航组件
   NavBar,
@@ -73,6 +77,8 @@ export const Feedback = {
   useDialog,
   Loading,
   DotLoading,
+  FeatureComingSoon,
+  useFeatureComingSoon,
 };
 export const Navigation = { NavBar, TabBar };
 export const DataDisplay = { Tag, Progress, EmptyState };

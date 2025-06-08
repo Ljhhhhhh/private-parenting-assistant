@@ -37,8 +37,8 @@ export function getPluginsList(VITE_CDN: boolean): PluginOption[] {
         'girl-avatar.svg',
       ],
       manifest: {
-        name: '温暖育儿助手',
-        short_name: '育儿助手',
+        name: '萌芽育儿',
+        short_name: '萌芽育儿',
         description: '专业贴心的育儿记录与问答助手，陪伴您的育儿之旅',
         theme_color: '#FFB38A',
         background_color: '#FDFBF8',

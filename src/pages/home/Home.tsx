@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EmptyState, Button } from '@/components/ui';
+import { useFeatureComingSoon } from '@/components/ui/feedback/useFeatureComingSoon';
 import { Icon } from '@iconify/react';
 import {
   SleepRecord,
@@ -25,6 +26,14 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const [hasRecords, setHasRecords] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // 功能预告组件Hook
+  const {
+    showGrowthReport,
+    showVaccineReminder,
+    showParentingKnowledge,
+    FeatureComingSoonDialog,
+  } = useFeatureComingSoon();
 
   // 从AppStore获取应用状态
   const { isAuthenticated, hasChildren, isLoading, refreshUserData } =
@@ -767,7 +776,7 @@ const Home: React.FC = () => {
                 {/* 成长报告 */}
                 <div
                   className="flex flex-col items-center p-4 bg-gradient-to-br from-[#4CAF50]/8 to-[#81C784]/12 rounded-xl border border-[#4CAF50]/15 transition-all duration-300 cursor-pointer hover:shadow-[0_4px_16px_rgba(76,175,80,0.15)] hover:scale-[1.05] relative overflow-hidden group"
-                  onClick={() => navigate('/growth-report')}
+                  onClick={() => showGrowthReport()}
                 >
                   {/* 背景装饰 */}
                   <div className="absolute -top-2 -right-2 opacity-[0.04]">
@@ -796,7 +805,7 @@ const Home: React.FC = () => {
                 {/* 疫苗提醒 */}
                 <div
                   className="flex flex-col items-center p-4 bg-gradient-to-br from-[#FF9800]/8 to-[#FFB74D]/12 rounded-xl border border-[#FF9800]/15 transition-all duration-300 cursor-pointer hover:shadow-[0_4px_16px_rgba(255,152,0,0.15)] hover:scale-[1.05] relative overflow-hidden group"
-                  onClick={() => navigate('/vaccine-reminder')}
+                  onClick={() => showVaccineReminder()}
                 >
                   {/* 背景装饰 */}
                   <div className="absolute -top-2 -right-2 opacity-[0.04]">
@@ -825,7 +834,7 @@ const Home: React.FC = () => {
                 {/* 育儿知识 */}
                 <div
                   className="flex flex-col items-center p-4 bg-gradient-to-br from-[#2196F3]/8 to-[#64B5F6]/12 rounded-xl border border-[#2196F3]/15 transition-all duration-300 cursor-pointer hover:shadow-[0_4px_16px_rgba(33,150,243,0.15)] hover:scale-[1.05] relative overflow-hidden group"
-                  onClick={() => navigate('/parenting-knowledge')}
+                  onClick={() => showParentingKnowledge()}
                 >
                   {/* 背景装饰 */}
                   <div className="absolute -top-2 -right-2 opacity-[0.04]">
@@ -853,12 +862,11 @@ const Home: React.FC = () => {
               </div>
 
               {/* 第三层：特色功能 */}
-              <div
+              {/* <div
                 className="relative p-5 bg-gradient-to-br from-[#FF9800]/10 via-[#FFB38A]/8 to-[#FFD040]/12 rounded-2xl border border-[#FF9800]/20 transition-all duration-500 cursor-pointer hover:shadow-[0_8px_24px_rgba(255,152,0,0.2)] hover:scale-[1.02] overflow-hidden group cards-group-enter feature-card-glow"
                 style={{ animationDelay: '0.4s' }}
                 onClick={() => navigate('/data-statistics')}
               >
-                {/* 动态背景装饰 */}
                 <div className="absolute inset-0 opacity-[0.03]">
                   <div className="absolute top-4 right-8 w-3 h-3 bg-[#FF9800] rounded-full data-pulse"></div>
                   <div
@@ -891,9 +899,6 @@ const Home: React.FC = () => {
                       <div className="text-lg font-bold text-[#333333]">
                         数据统计
                       </div>
-                      {/* <span className="ml-2 px-2 py-0.5 text-xs font-medium text-white bg-gradient-to-r from-[#FF9800] to-[#FFB38A] rounded-full">
-                        Pro
-                      </span> */}
                     </div>
                     <div className="text-sm text-[#666666] mb-1">
                       全面的成长数据分析与可视化
@@ -909,7 +914,7 @@ const Home: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -953,6 +958,9 @@ const Home: React.FC = () => {
           />
         </>
       )}
+
+      {/* 功能预告对话框 */}
+      <FeatureComingSoonDialog />
     </div>
   );
 };

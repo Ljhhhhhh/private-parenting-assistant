@@ -138,7 +138,7 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({
           {/* 文本内容 */}
           <div className="flex-1 pr-4">
             <h3 className="text-base font-semibold text-[#333333] mb-1">
-              安装育儿助手
+              安装萌芽育儿
             </h3>
             <p className="text-sm text-[#666666] mb-3 leading-relaxed">
               添加到桌面，随时记录宝宝成长，享受更便捷的使用体验

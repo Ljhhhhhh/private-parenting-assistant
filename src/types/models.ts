@@ -501,3 +501,48 @@ export interface SendFeedbackResponse {
   /** 返回消息 */
   message: string;
 }
+
+// 催更相关类型
+export enum UrgeType {
+  GROWTH_REPORT = 'growth_report',
+  VACCINE_REMINDER = 'vaccine_reminder',
+  PARENTING_KNOWLEDGE = 'parenting_knowledge',
+}
+
+export interface CreateUrgeUpdateDto {
+  /** 催更类型 */
+  urgeType: UrgeType;
+}
+
+export interface UrgeUpdateResponseDto {
+  /** 记录ID */
+  id: number;
+  /** 用户ID */
+  userId: number;
+  /** 催更类型 */
+  urgeType: UrgeType;
+  /** 催更次数 */
+  urgeCount: number;
+  /** 最后催更时间 */
+  lastUrgedAt?: string;
+  /** 创建时间 */
+  createdAt: string;
+  /** 更新时间 */
+  updatedAt: string;
+}
+
+export interface UrgeTypeStatsDto {
+  /** 催更类型 */
+  urgeType: UrgeType;
+  /** 总催更次数 */
+  totalCount: number;
+  /** 最后催更时间 */
+  lastUrgedAt?: string;
+}
+
+export interface AllUrgeStatsResponseDto {
+  /** 所有催更类型的统计 */
+  stats: UrgeTypeStatsDto[];
+  /** 总催更次数（所有类型） */
+  totalAllCount: number;
+}

@@ -380,7 +380,9 @@ const Profile: React.FC = () => {
 
               <div
                 className="flex items-center justify-between p-5 transition-all duration-200 hover:bg-[#FFF8F4] cursor-pointer group"
-                onClick={() => console.log('用户协议')}
+                onClick={() =>
+                  navigate('/user-agreement', { state: { from: '/profile' } })
+                }
               >
                 <div className="flex items-center">
                   <div className="flex justify-center items-center mr-4 w-10 h-10 bg-[#FFA726]/10 rounded-xl group-hover:bg-[#FFA726]/20 transition-colors duration-200">
