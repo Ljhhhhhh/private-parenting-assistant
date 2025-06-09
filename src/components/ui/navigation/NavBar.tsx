@@ -68,13 +68,16 @@ const NavBar: React.FC<NavBarProps> = ({
   return (
     <div
       className={`flex items-center h-[56px] bg-gradient-to-r from-[#FFB38A] to-[#FFC9A8] shadow-sm ${
-        safeArea ? 'pt-2' : ''
+        safeArea ? 'pt-safe-top' : ''
       } pl-2 pr-4 ${themeClasses.background}
         ${border && theme === 'light' ? 'border-b border-[#E0E0E0]' : ''} 
         ${fixed ? 'fixed top-0 left-0 right-0' : 'relative'} 
         ${
           theme === 'light' ? 'shadow-[0_2px_8px_rgba(0,0,0,0.08)]' : ''
         } z-10 ${className}`}
+      style={{
+        paddingTop: safeArea ? 'env(safe-area-inset-top, 0px)' : undefined,
+      }}
     >
       {!hideBack ? (
         <button

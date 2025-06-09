@@ -59,7 +59,7 @@ const wrapperEnv = (envConf: Recordable): ViteEnv => {
     VITE_CDN: false,
     VITE_HIDE_HOME: 'false',
     VITE_COMPRESSION: 'none',
-    VITE_API_BASE_URL: 'http://localhost:3010',
+    VITE_API_BASE_URL: 'http://localhost:3000',
   };
 
   for (const envName of Object.keys(envConf)) {

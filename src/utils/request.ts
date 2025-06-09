@@ -56,7 +56,7 @@ class Request {
 
   constructor(
     baseUrl: string = import.meta.env.VITE_API_BASE_URL ||
-      'http://localhost:3010',
+      'http://localhost:3000',
     defaultHeaders: Record<string, string> = {},
     timeout: number = 600000, // 只有聊天接口才需要特别长
   ) {

@@ -17,7 +17,7 @@ export const STORAGE_KEYS = {
 
 // API 相关常量
 export const API = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010',
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
   TIMEOUT: 10000,
 };
 

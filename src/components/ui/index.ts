@@ -82,5 +82,6 @@ export const Feedback = {
 };
 export const Navigation = { NavBar, TabBar };
 export const DataDisplay = { Tag, Progress, EmptyState };
+export { default as PWAStatusBar } from './layout/PWAStatusBar';
 export const Layout = { Card, SafeArea };
 export const Other = { DonationModal };

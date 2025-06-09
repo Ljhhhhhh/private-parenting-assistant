@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { SafeArea, DotLoading } from '@/components/ui';
 import RequireAuth from '@/components/auth/RequireAuth';
+import { usePWATheme } from '@/hooks/usePWATheme';
 
 const Login = lazy(() => import('./pages/auth/Login'));
 const Register = lazy(() => import('./pages/auth/Register'));
@@ -27,120 +28,125 @@ const Loading = () => (
   </div>
 );
 
-const App = () => (
-  <div className="App">
-    <SafeArea position="top" />
-    <Suspense fallback={<Loading />}>
-      <Routes>
-        {/* 公开路由 */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/agreement" element={<Agreement />} />
+const App = () => {
+  // 初始化PWA主题管理
+  usePWATheme();
 
-        {/* 受保护路由 */}
-        <Route
-          path="/children"
-          element={
-            <RequireAuth>
-              <ChildrenList />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/children/add"
-          element={
-            <RequireAuth>
-              <AddChild />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/children/edit/:id"
-          element={
-            <RequireAuth>
-              <EditChild />
-            </RequireAuth>
-          }
-        />
+  return (
+    <div className="App">
+      <SafeArea position="top" />
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          {/* 公开路由 */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/agreement" element={<Agreement />} />
 
-        {/* 主页 */}
-        <Route
-          path="/home"
-          element={
-            <RequireAuth>
-              <Home />
-            </RequireAuth>
-          }
-        />
+          {/* 受保护路由 */}
+          <Route
+            path="/children"
+            element={
+              <RequireAuth>
+                <ChildrenList />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/children/add"
+            element={
+              <RequireAuth>
+                <AddChild />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/children/edit/:id"
+            element={
+              <RequireAuth>
+                <EditChild />
+              </RequireAuth>
+            }
+          />
 
-        {/* 聊天页面 */}
-        <Route
-          path="/chat"
-          element={
-            <RequireAuth>
-              <Chat />
-            </RequireAuth>
-          }
-        />
+          {/* 主页 */}
+          <Route
+            path="/home"
+            element={
+              <RequireAuth>
+                <Home />
+              </RequireAuth>
+            }
+          />
 
-        {/* 历史记录页面 */}
-        <Route
-          path="/records"
-          element={
-            <RequireAuth>
-              <RecordHistory />
-            </RequireAuth>
-          }
-        />
+          {/* 聊天页面 */}
+          <Route
+            path="/chat"
+            element={
+              <RequireAuth>
+                <Chat />
+              </RequireAuth>
+            }
+          />
 
-        {/* 个人中心页面 */}
-        <Route
-          path="/profile"
-          element={
-            <RequireAuth>
-              <Profile />
-            </RequireAuth>
-          }
-        />
+          {/* 历史记录页面 */}
+          <Route
+            path="/records"
+            element={
+              <RequireAuth>
+                <RecordHistory />
+              </RequireAuth>
+            }
+          />
 
-        {/* 隐私政策页面 */}
-        <Route
-          path="/privacy-policy"
-          element={
-            <RequireAuth>
-              <PrivacyPolicy />
-            </RequireAuth>
-          }
-        />
+          {/* 个人中心页面 */}
+          <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <Profile />
+              </RequireAuth>
+            }
+          />
 
-        {/* 用户协议页面 */}
-        <Route
-          path="/user-agreement"
-          element={
-            <RequireAuth>
-              <UserAgreement />
-            </RequireAuth>
-          }
-        />
+          {/* 隐私政策页面 */}
+          <Route
+            path="/privacy-policy"
+            element={
+              <RequireAuth>
+                <PrivacyPolicy />
+              </RequireAuth>
+            }
+          />
 
-        {/* 建议与反馈页面 */}
-        <Route
-          path="/feedback"
-          element={
-            <RequireAuth>
-              <Feedback />
-            </RequireAuth>
-          }
-        />
+          {/* 用户协议页面 */}
+          <Route
+            path="/user-agreement"
+            element={
+              <RequireAuth>
+                <UserAgreement />
+              </RequireAuth>
+            }
+          />
 
-        {/* 重定向 */}
-        <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </Suspense>
-    <SafeArea position="bottom" />
-  </div>
-);
+          {/* 建议与反馈页面 */}
+          <Route
+            path="/feedback"
+            element={
+              <RequireAuth>
+                <Feedback />
+              </RequireAuth>
+            }
+          />
+
+          {/* 重定向 */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Suspense>
+      <SafeArea position="bottom" />
+    </div>
+  );
+};
 
 export default App;

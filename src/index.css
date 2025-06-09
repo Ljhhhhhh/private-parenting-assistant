@@ -86,6 +86,39 @@ body {
   background-color: inherit;
 }
 
+/* PWA 和安全区域支持 */
+html {
+  /* 设置安全区域变量 */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+/* PWA 模式下的特殊样式 */
+@media (display-mode: standalone) {
+  body {
+    /* 防止iOS Safari地址栏导致的布局跳动 */
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+
+  /* 状态栏区域 */
+  .status-bar-area {
+    height: env(safe-area-inset-top, 0px);
+    background-color: inherit;
+  }
+}
+
+/* iOS PWA 特殊处理 */
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone) {
+    body {
+      height: -webkit-fill-available;
+    }
+  }
+}
+
 /* 安全区域支持 */
 @layer utilities {
   .pb-safe {
