@@ -20,7 +20,6 @@ import {
   GrowthDetails,
   FeedingType,
 } from '@/types/models';
-import LogoImage from '@/assets/logo2.svg?react';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -163,7 +162,7 @@ const Home: React.FC = () => {
       const response = await getRecordsByChildId(currentChild.id);
 
       // 将API返回的数据转换为前端需要的格式
-      const formattedRecords = response.slice(0, 5).map((record) => {
+      const formattedRecords = response.slice(0, 3).map((record) => {
         // 根据记录类型设置图标和颜色
         const recordType = record.recordType.toLowerCase() as
           | 'sleep'
@@ -347,7 +346,6 @@ const Home: React.FC = () => {
       bgColor: 'bg-[#EEF0FB]',
       iconColor: 'text-[#7986CB]',
       borderColor: 'border-[#7986CB]/10',
-      hoverBgColor: 'bg-[#DFE3F5]',
       description: '记录宝宝的睡眠时间和质量',
     },
     {
@@ -357,7 +355,6 @@ const Home: React.FC = () => {
       bgColor: 'bg-[#FFF4EE]',
       iconColor: 'text-[#FF9F73]',
       borderColor: 'border-[#FF9F73]/10',
-      hoverBgColor: 'bg-[#FFE9DE]',
       description: '记录宝宝的喂养情况和食量',
     },
     {
@@ -367,7 +364,6 @@ const Home: React.FC = () => {
       bgColor: 'bg-[#F5F0EE]',
       iconColor: 'text-[#8D6E63]',
       borderColor: 'border-[#8D6E63]/10',
-      hoverBgColor: 'bg-[#EBE5E2]',
       description: '记录宝宝的排泄情况和频率',
     },
     {
@@ -377,7 +373,6 @@ const Home: React.FC = () => {
       bgColor: 'bg-[#F0F8F0]',
       iconColor: 'text-[#81C784]',
       borderColor: 'border-[#81C784]/10',
-      hoverBgColor: 'bg-[#E3F1E3]',
       description: '记录宝宝的身高、体重和头围',
     },
     {
@@ -387,7 +382,6 @@ const Home: React.FC = () => {
       bgColor: 'bg-[#FFFAED]',
       iconColor: 'text-[#FFD040]',
       borderColor: 'border-[#FFD040]/10',
-      hoverBgColor: 'bg-[#FFF5DB]',
       description: '记录宝宝的成长点滴和特殊事件',
     },
   ];
@@ -428,7 +422,7 @@ const Home: React.FC = () => {
             {/* 儿童信息展示 - 右侧紧凑版 */}
             {currentChild ? (
               <div
-                className="px-3 py-2 bg-white/80 backdrop-blur-sm rounded-xl border border-[#FFB38A]/20 shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer"
+                className="px-3 py-2 bg-white/80 backdrop-blur-sm rounded-xl border border-[#FFB38A]/20 shadow-sm cursor-pointer"
                 onClick={() => navigate('/children')}
               >
                 <div className="flex flex-col items-end">
@@ -469,7 +463,7 @@ const Home: React.FC = () => {
         <div className="px-5 pt-2 pb-4">
           {/* 最近记录展示 */}
           <div className="mb-4">
-            <div className="flex justify-between items-center mb-4">
+            <div className="mb-4">
               <h2 className="flex items-center text-lg font-semibold text-[#333333]">
                 <Icon icon="mdi:history" className="mr-2 text-[#FFB38A]" />
                 最近记录
@@ -479,20 +473,6 @@ const Home: React.FC = () => {
                   </span>
                 )}
               </h2>
-
-              {/* 查看更多按钮 */}
-              {hasRecords && (
-                <div
-                  className="flex items-center text-[#FF9F73] cursor-pointer group"
-                  onClick={() => navigate('/records')}
-                >
-                  <span className="mr-1 text-sm">查看更多</span>
-                  <Icon
-                    icon="mdi:chevron-right"
-                    className="text-sm transition-transform duration-300 group-hover:translate-x-1"
-                  />
-                </div>
-              )}
             </div>
 
             {hasRecords ? (
@@ -500,7 +480,7 @@ const Home: React.FC = () => {
                 {recentRecords.map((record) => (
                   <div
                     key={record.id}
-                    className="p-4 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-[#F0F0F0] transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                    className="p-4 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-[#F0F0F0]"
                   >
                     <div className="flex items-start">
                       {/* 记录类型图标 */}
@@ -534,13 +514,15 @@ const Home: React.FC = () => {
                   </div>
                 ))}
 
-                {/* 查看更多卡片 */}
+                {/* 查看全部记录卡片 */}
                 <div
-                  className="p-4 bg-white rounded-xl border border-dashed border-[#FFB38A] flex items-center justify-center cursor-pointer transition-all duration-300 hover:bg-[#FFF8F4]"
+                  className="p-4 bg-white rounded-xl border border-dashed border-[#FFB38A] flex items-center justify-center cursor-pointer"
                   onClick={() => navigate('/records')}
                 >
-                  {/* <Icon icon="mdi:plus" className="mr-2 text-[#FFB38A]" /> */}
-                  <span className="text-[#FF9F73]">查看全部记录</span>
+                  <Icon icon="mdi:history" className="mr-2 text-[#FFB38A]" />
+                  <span className="text-[#FF9F73] font-medium">
+                    查看全部记录
+                  </span>
                 </div>
               </div>
             ) : (
@@ -579,7 +561,7 @@ const Home: React.FC = () => {
                   >
                     {/* 精简卡片设计 */}
                     <div
-                      className={`flex flex-col items-center px-3 py-3 ${type.bgColor} rounded-xl border ${type.borderColor} transition-all duration-200 hover:${type.hoverBgColor} hover:shadow-sm min-w-[64px]`}
+                      className={`flex flex-col items-center px-3 py-3 ${type.bgColor} rounded-xl border ${type.borderColor} min-w-[64px]`}
                     >
                       {/* 图标 */}
                       <div className="flex justify-center items-center mb-1 w-8 h-8">
@@ -604,86 +586,7 @@ const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* AI 助手入口 - 主打功能突出设计 */}
-          <div>
-            <h2 className="flex items-center mb-4 text-lg font-semibold text-[#333333]">
-              <Icon icon="mdi:robot" className="mr-2 text-[#FFB38A]" />
-              咨询萌芽
-              <span className="ml-2 px-2 py-0.5 text-xs font-medium text-white bg-gradient-to-r from-[#FF9800] to-[#FFB38A] rounded-full">
-                AI
-              </span>
-            </h2>
-            <div
-              className="relative p-6 bg-gradient-to-br from-[#FFB38A] via-[#FFC9A8] to-[#F8BBD0] rounded-2xl shadow-[0_8px_24px_rgba(255,179,138,0.2)] border border-white/30 transition-all duration-500 cursor-pointer hover:shadow-[0_12px_32px_rgba(255,179,138,0.3)] hover:scale-[1.02] overflow-hidden group ai-assistant-card ripple-effect"
-              onClick={navigateToChat}
-            >
-              {/* 动态背景装饰元素 */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-4 right-8 w-3 h-3 bg-[#8B4513]/25 rounded-full soft-pulse"></div>
-                <div
-                  className="absolute top-12 right-16 w-2 h-2 bg-[#A0522D]/20 rounded-full soft-pulse"
-                  style={{ animationDelay: '0.5s' }}
-                ></div>
-                <div
-                  className="absolute bottom-8 right-6 w-4 h-4 bg-[#CD853F]/15 rounded-full floating-decoration"
-                  style={{ animationDelay: '1s' }}
-                ></div>
-                <div
-                  className="absolute top-8 left-1/3 w-2 h-2 bg-[#A0522D]/18 rounded-full soft-pulse"
-                  style={{ animationDelay: '1.5s' }}
-                ></div>
-                <div
-                  className="absolute bottom-12 left-8 w-1.5 h-1.5 bg-[#8B4513]/12 rounded-full floating-decoration"
-                  style={{ animationDelay: '2s' }}
-                ></div>
-              </div>
-
-              {/* 主要内容区域 */}
-              <div className="relative z-10">
-                <div className="flex items-start">
-                  {/* 3D风格机器人图标 */}
-                  <div className=" flex justify-center items-center mr-4 w-14 h-14 backdrop-blur-sm rounded-2xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-                    <LogoImage className="rounded-full object-cover w-full h-full" />
-                  </div>
-
-                  {/* 文字内容 */}
-                  <div className="flex-1 min-w-0">
-                    <div className="mb-2 text-lg font-bold text-[#8B4513] text-reveal">
-                      萌芽助手
-                    </div>
-                    <div
-                      className="text-[#A0522D] text-sm font-semibold text-reveal mb-1"
-                      style={{ animationDelay: '0.2s' }}
-                    >
-                      智能育儿，温暖陪伴
-                    </div>
-                    <div
-                      className="text-[#CD853F] text-xs text-reveal leading-relaxed"
-                      style={{ animationDelay: '0.4s' }}
-                    >
-                      24小时专业建议，科学育儿指导
-                    </div>
-                  </div>
-                </div>
-
-                {/* 交互指示器 - 移到底部右侧 */}
-                <div className="flex justify-end mt-4">
-                  <div className="flex items-center text-[#8B4513] group-hover:text-[#654321] transition-colors duration-300">
-                    <span className="mr-2 text-sm font-semibold">开始咨询</span>
-                    <div className="flex justify-center items-center w-8 h-8 bg-[#8B4513]/20 rounded-full group-hover:bg-[#8B4513]/30 transition-all duration-300 group-hover:translate-x-1">
-                      <Icon
-                        icon="mdi:arrow-right"
-                        className="text-lg text-[#8B4513]"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 底部装饰波浪 */}
-              <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-white/10 to-white/5 rounded-b-2xl"></div>
-            </div>
-          </div>
+          {/* AI助手入口已移至悬浮按钮 */}
 
           {/* 更多服务 - 全新分层设计 */}
           <div className="mt-8">
@@ -694,10 +597,10 @@ const Home: React.FC = () => {
 
             <div className="space-y-4">
               {/* 第一层：核心服务 */}
-              <div className="flex gap-3 cards-group-enter">
+              <div className="flex gap-3">
                 {/* 个人中心 */}
                 <div
-                  className="flex-1 flex items-center p-3 bg-gradient-to-br from-[#4A90E2]/8 to-[#7AADEE]/12 rounded-2xl border border-[#4A90E2]/15 transition-all duration-300 cursor-pointer hover:shadow-[0_6px_20px_rgba(74,144,226,0.15)] hover:scale-[1.02] relative overflow-hidden group"
+                  className="flex-1 flex items-center p-3 bg-gradient-to-br from-[#4A90E2]/8 to-[#7AADEE]/12 rounded-2xl border border-[#4A90E2]/15 cursor-pointer relative overflow-hidden"
                   onClick={() => navigate('/profile')}
                 >
                   {/* 背景装饰 */}
@@ -709,7 +612,7 @@ const Home: React.FC = () => {
                   </div>
 
                   <div className="relative z-10 flex items-center w-full">
-                    <div className="flex justify-center items-center mr-3 w-10 h-10 bg-gradient-to-br from-[#4A90E2] to-[#7AADEE] rounded-xl shadow-[0_3px_12px_rgba(74,144,226,0.2)] group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                    <div className="flex justify-center items-center mr-3 w-10 h-10 bg-gradient-to-br from-[#4A90E2] to-[#7AADEE] rounded-xl shadow-[0_3px_12px_rgba(74,144,226,0.2)] flex-shrink-0">
                       <Icon
                         icon="clarity:avatar-solid"
                         className="text-lg text-white"
@@ -725,14 +628,14 @@ const Home: React.FC = () => {
                     </div>
                     <Icon
                       icon="mdi:chevron-right"
-                      className="text-[#4A90E2] group-hover:translate-x-1 transition-transform duration-300 text-lg flex-shrink-0"
+                      className="text-[#4A90E2] text-lg flex-shrink-0"
                     />
                   </div>
                 </div>
 
                 {/* 意见反馈 */}
                 <div
-                  className="flex-1 flex items-center p-3 bg-gradient-to-br from-[#F8BBD0]/12 to-[#FAD1E0]/15 rounded-2xl border border-[#F8BBD0]/20 transition-all duration-300 cursor-pointer hover:shadow-[0_6px_20px_rgba(248,187,208,0.18)] hover:scale-[1.02] relative overflow-hidden group"
+                  className="flex-1 flex items-center p-3 bg-gradient-to-br from-[#F8BBD0]/12 to-[#FAD1E0]/15 rounded-2xl border border-[#F8BBD0]/20 cursor-pointer relative overflow-hidden"
                   onClick={() =>
                     navigate('/feedback', { state: { from: '/' } })
                   }
@@ -746,7 +649,7 @@ const Home: React.FC = () => {
                   </div>
 
                   <div className="relative z-10 flex items-center w-full">
-                    <div className="flex justify-center items-center mr-3 w-10 h-10 bg-gradient-to-br from-[#F8BBD0] to-[#FAD1E0] rounded-xl shadow-[0_3px_12px_rgba(248,187,208,0.2)] group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                    <div className="flex justify-center items-center mr-3 w-10 h-10 bg-gradient-to-br from-[#F8BBD0] to-[#FAD1E0] rounded-xl shadow-[0_3px_12px_rgba(248,187,208,0.2)] flex-shrink-0">
                       <Icon
                         icon="uil:feedback"
                         className="text-lg text-white"
@@ -762,20 +665,17 @@ const Home: React.FC = () => {
                     </div>
                     <Icon
                       icon="mdi:chevron-right"
-                      className="text-[#F8BBD0] group-hover:translate-x-1 transition-transform duration-300 text-lg flex-shrink-0"
+                      className="text-[#F8BBD0] text-lg flex-shrink-0"
                     />
                   </div>
                 </div>
               </div>
 
               {/* 第二层：实用工具 */}
-              <div
-                className="grid grid-cols-3 gap-3 cards-group-enter"
-                style={{ animationDelay: '0.2s' }}
-              >
+              <div className="grid grid-cols-3 gap-3">
                 {/* 成长报告 */}
                 <div
-                  className="flex flex-col items-center p-4 bg-gradient-to-br from-[#4CAF50]/8 to-[#81C784]/12 rounded-xl border border-[#4CAF50]/15 transition-all duration-300 cursor-pointer hover:shadow-[0_4px_16px_rgba(76,175,80,0.15)] hover:scale-[1.05] relative overflow-hidden group"
+                  className="flex flex-col items-center p-4 bg-gradient-to-br from-[#4CAF50]/8 to-[#81C784]/12 rounded-xl border border-[#4CAF50]/15 cursor-pointer relative overflow-hidden"
                   onClick={() => showGrowthReport()}
                 >
                   {/* 背景装饰 */}
@@ -787,7 +687,7 @@ const Home: React.FC = () => {
                   </div>
 
                   <div className="relative z-10 flex flex-col items-center text-center">
-                    <div className="flex justify-center items-center mb-3 w-10 h-10 bg-gradient-to-br from-[#4CAF50] to-[#81C784] rounded-lg shadow-[0_2px_8px_rgba(76,175,80,0.2)] group-hover:scale-110 transition-transform duration-300">
+                    <div className="flex justify-center items-center mb-3 w-10 h-10 bg-gradient-to-br from-[#4CAF50] to-[#81C784] rounded-lg shadow-[0_2px_8px_rgba(76,175,80,0.2)]">
                       <Icon
                         icon="mdi:chart-line-variant"
                         className="text-lg text-white"
@@ -804,7 +704,7 @@ const Home: React.FC = () => {
 
                 {/* 疫苗提醒 */}
                 <div
-                  className="flex flex-col items-center p-4 bg-gradient-to-br from-[#FF9800]/8 to-[#FFB74D]/12 rounded-xl border border-[#FF9800]/15 transition-all duration-300 cursor-pointer hover:shadow-[0_4px_16px_rgba(255,152,0,0.15)] hover:scale-[1.05] relative overflow-hidden group"
+                  className="flex flex-col items-center p-4 bg-gradient-to-br from-[#FF9800]/8 to-[#FFB74D]/12 rounded-xl border border-[#FF9800]/15 cursor-pointer relative overflow-hidden"
                   onClick={() => showVaccineReminder()}
                 >
                   {/* 背景装饰 */}
@@ -816,7 +716,7 @@ const Home: React.FC = () => {
                   </div>
 
                   <div className="relative z-10 flex flex-col items-center text-center">
-                    <div className="flex justify-center items-center mb-3 w-10 h-10 bg-gradient-to-br from-[#FF9800] to-[#FFB74D] rounded-lg shadow-[0_2px_8px_rgba(255,152,0,0.2)] group-hover:scale-110 transition-transform duration-300">
+                    <div className="flex justify-center items-center mb-3 w-10 h-10 bg-gradient-to-br from-[#FF9800] to-[#FFB74D] rounded-lg shadow-[0_2px_8px_rgba(255,152,0,0.2)]">
                       <Icon
                         icon="mdi:medical-bag"
                         className="text-lg text-white"
@@ -833,7 +733,7 @@ const Home: React.FC = () => {
 
                 {/* 育儿知识 */}
                 <div
-                  className="flex flex-col items-center p-4 bg-gradient-to-br from-[#2196F3]/8 to-[#64B5F6]/12 rounded-xl border border-[#2196F3]/15 transition-all duration-300 cursor-pointer hover:shadow-[0_4px_16px_rgba(33,150,243,0.15)] hover:scale-[1.05] relative overflow-hidden group"
+                  className="flex flex-col items-center p-4 bg-gradient-to-br from-[#2196F3]/8 to-[#64B5F6]/12 rounded-xl border border-[#2196F3]/15 cursor-pointer relative overflow-hidden"
                   onClick={() => showParentingKnowledge()}
                 >
                   {/* 背景装饰 */}
@@ -845,7 +745,7 @@ const Home: React.FC = () => {
                   </div>
 
                   <div className="relative z-10 flex flex-col items-center text-center">
-                    <div className="flex justify-center items-center mb-3 w-10 h-10 bg-gradient-to-br from-[#2196F3] to-[#64B5F6] rounded-lg shadow-[0_2px_8px_rgba(33,150,243,0.2)] group-hover:scale-110 transition-transform duration-300">
+                    <div className="flex justify-center items-center mb-3 w-10 h-10 bg-gradient-to-br from-[#2196F3] to-[#64B5F6] rounded-lg shadow-[0_2px_8px_rgba(33,150,243,0.2)]">
                       <Icon
                         icon="mdi:book-open-variant"
                         className="text-lg text-white"
@@ -961,6 +861,24 @@ const Home: React.FC = () => {
 
       {/* 功能预告对话框 */}
       <FeatureComingSoonDialog />
+
+      {/* AI聊天悬浮按钮 - 简洁直观设计 */}
+      <div
+        className="fixed bottom-[100px] right-4 z-50 cursor-pointer"
+        onClick={navigateToChat}
+        aria-label="AI助手聊天"
+      >
+        {/* 主按钮 */}
+        <div className="relative w-16 h-16 bg-gradient-to-r from-[#FFB38A] to-[#FFC9A8] rounded-full shadow-lg shadow-[#FFB38A]/30 flex items-center justify-center">
+          {/* 聊天图标 */}
+          <Icon icon="mdi:chat" className="text-white text-3xl" />
+
+          {/* AI标识徽章 */}
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-[#FF9800] to-[#FFB38A] rounded-full border-2 border-white flex items-center justify-center">
+            <span className="text-[10px] font-bold text-white">AI</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

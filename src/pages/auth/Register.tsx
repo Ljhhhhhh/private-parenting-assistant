@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Checkbox, Toast } from '@/components/ui';
 import type { FormInstance } from '@/components/ui';
@@ -20,32 +20,6 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
   const { sendRegisterCode, register } = useUserStore();
   const children = useChildrenStore((s) => s.children);
-
-  // 创建动态波浪背景效果
-  useEffect(() => {
-    const createWaveEffect = () => {
-      const container = document.getElementById('wave-container');
-      if (!container) return;
-
-      // 清除现有元素
-      container.innerHTML = '';
-
-      // 创建波浪元素
-      for (let i = 0; i < 3; i++) {
-        const wave = document.createElement('div');
-        wave.className = 'wave';
-        wave.style.animationDelay = `${i * 0.5}s`;
-        container.appendChild(wave);
-      }
-    };
-
-    createWaveEffect();
-
-    return () => {
-      const container = document.getElementById('wave-container');
-      if (container) container.innerHTML = '';
-    };
-  }, []);
 
   // 验证码倒计时
   const handleSendCode = async () => {
@@ -108,12 +82,6 @@ const Register: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center relative bg-gradient-to-b from-[#FFF0E6] to-[#FFF0F5] px-4">
-      {/* 波浪背景 */}
-      <div
-        id="wave-container"
-        className="overflow-hidden absolute bottom-0 left-0 z-0 w-full h-40 pointer-events-none"
-      />
-
       {/* 主内容区域 */}
       <div className="relative z-10 w-full max-w-md">
         {/* Logo和标题 */}
@@ -308,49 +276,6 @@ const Register: React.FC = () => {
           onClose={() => setToast(null)}
         />
       )}
-
-      {/* CSS动画样式 */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-          @keyframes wave {
-            0% {
-              transform: translateX(-50%) translateY(0) scaleY(1);
-            }
-            50% {
-              transform: translateX(-25%) translateY(-10px) scaleY(0.9);
-            }
-            100% {
-              transform: translateX(0) translateY(0) scaleY(1);
-            }
-          }
-          
-          .wave {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 200%;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent, rgba(74, 144, 226, 0.2));
-            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-            animation: wave 15s infinite linear;
-            transform-origin: center bottom;
-          }
-          
-          .wave:nth-child(2) {
-            height: 80%;
-            background: linear-gradient(to bottom, transparent, rgba(248, 187, 208, 0.2));
-            animation-duration: 18s;
-          }
-          
-          .wave:nth-child(3) {
-            height: 60%;
-            background: linear-gradient(to bottom, transparent, rgba(255, 152, 0, 0.1));
-            animation-duration: 20s;
-          }
-          `,
-        }}
-      />
     </div>
   );
 };

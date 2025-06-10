@@ -319,3 +319,69 @@
 .shadow-shift {
   animation: shadow-shift 4s ease-in-out infinite;
 }
+
+/* AI悬浮按钮专用动画 */
+
+/* AI悬浮按钮的轻柔呼吸效果 */
+@keyframes ai-float-breath {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 6px 20px rgba(255, 179, 138, 0.3);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px rgba(255, 179, 138, 0.4);
+  }
+}
+
+.ai-float-breath {
+  animation: ai-float-breath 3s ease-in-out infinite;
+}
+
+/* AI徽章脉动动画 */
+@keyframes ai-badge-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.ai-badge-pulse {
+  animation: ai-badge-pulse 2s ease-in-out infinite;
+}
+
+/* AI悬浮按钮悬停增强效果 */
+.ai-float-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ai-float-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 30px rgba(255, 179, 138, 0.5);
+}
+
+/* AI悬浮按钮点击反馈 */
+.ai-float-button:active {
+  transform: scale(0.98);
+}
+
+/* 优雅的光晕效果 */
+@keyframes ai-glow {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.ai-glow {
+  animation: ai-glow 4s ease-in-out infinite;
+}
