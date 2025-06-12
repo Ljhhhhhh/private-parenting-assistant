@@ -4,7 +4,6 @@
 import request from '@/utils/request';
 import {
   ChatRequestDto,
-  ChatResponseDto,
   ChatFeedbackDto,
   ChatStreamResponseDto,
   ChatHistoryDto,
@@ -12,7 +11,6 @@ import {
   UpdateConversationDto,
   ConversationResponseDto,
   ConversationDetailDto,
-  ConversationMessageDto,
   ConversationQueryParams,
   MessageQueryParams,
   ChatHistoryQueryParams,
@@ -75,58 +73,6 @@ export const deleteConversation = (id: number) => {
 // ============ 会话中的消息交互 API ============
 
 /**
- * 在会话中发送消息（普通方式）
- * @param conversationId 会话ID
- * @param data 消息数据
- * @returns 聊天历史记录
- */
-export const sendConversationMessage = (
-  conversationId: number,
-  data: ConversationMessageDto,
-) => {
-  return request.post<ChatHistoryDto>(
-    `/chat/conversations/${conversationId}/messages`,
-    data,
-  );
-};
-
-/**
- * 在会话中发送消息（流式方式）
- * @param conversationId 会话ID
- * @param message 用户消息
- * @param onStream 处理流式响应的回调函数
- * @returns 流式响应
- */
-export const sendConversationMessageStream = (
-  conversationId: number,
-  message: string,
-  onStream?: (chunk: string) => void,
-) => {
-  const params = { message };
-
-  if (onStream) {
-    console.debug('🌊 发起会话流式请求:', {
-      conversationId,
-      message: message.substring(0, 50),
-    });
-    return request.stream<ChatStreamResponseDto>(
-      `/chat/conversations/${conversationId}/stream`,
-      params,
-      onStream,
-    );
-  } else {
-    console.debug('📝 发起会话普通请求:', {
-      conversationId,
-      message: message.substring(0, 50),
-    });
-    return request.post<ChatStreamResponseDto>(
-      `/chat/conversations/${conversationId}/messages`,
-      params,
-    );
-  }
-};
-
-/**
  * 获取会话中的消息历史
  * @param conversationId 会话ID
  * @param params 查询参数
@@ -145,15 +91,6 @@ export const getConversationMessages = (
 // ============ 传统聊天功能 API ============
 
 /**
- * 发送聊天消息并获取非流式AI回复
- * @param data 聊天请求数据
- * @returns AI回复
- */
-export const chatSync = (data: ChatRequestDto) => {
-  return request.post<ChatResponseDto>('/chat/sync', data);
-};
-
-/**
  * 发送聊天消息并以SSE方式获取AI回复
  * @param data 聊天请求数据
  * @param onStream 处理流式响应的回调函数
@@ -169,21 +106,6 @@ export const chat = (
     return request.post<ChatStreamResponseDto>('/chat', data);
   }
 };
-
-/**
- * 发送聊天消息并以GET方式获取SSE流式回复
- * @param message 用户消息
- * @param childId 儿童ID（可选）
- * @returns 流式响应
- */
-export const chatStream = (message: string, childId?: number) => {
-  const params: Record<string, string> = { message };
-  if (childId) {
-    params.childId = childId.toString();
-  }
-  return request.get<ChatStreamResponseDto>('/chat/stream', params);
-};
-
 // ============ 聊天历史查询 API ============
 
 /**
@@ -265,20 +187,12 @@ export const chatApi = {
   deleteConversation,
 
   // ===== 会话消息交互 =====
-  /** 在会话中发送消息（同步） */
-  sendConversationMessage,
-  /** 在会话中发送消息（流式） */
-  sendConversationMessageStream,
   /** 获取会话消息历史 */
   getConversationMessages,
 
   // ===== 传统聊天功能 =====
-  /** 发送消息并获取回复（同步） */
-  sendMessage: chatSync,
   /** 发送消息并获取流式回复 */
   sendMessageStream: chat,
-  /** 流式聊天（GET方式） */
-  chatStream,
 
   // ===== 聊天历史查询 =====
   /** 获取历史消息 */
