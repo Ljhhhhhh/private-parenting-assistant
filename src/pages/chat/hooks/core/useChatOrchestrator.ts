@@ -14,7 +14,7 @@ import { useStreamProcessor } from './useStreamProcessor';
 import { useMessageManager, type ChatMessage } from './useMessageManager';
 import { useConversationStore } from '../useConversationStore';
 import { generateConversationTitle } from '../../utils/conversationUtils';
-import { getConversationMessages } from '@/api/chat';
+import { getConversationMessages } from '@/api/conversation';
 import { isNil } from 'lodash-es';
 
 // ========== 类型定义 ==========

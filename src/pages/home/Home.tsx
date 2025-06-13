@@ -862,20 +862,31 @@ const Home: React.FC = () => {
       {/* 功能预告对话框 */}
       <FeatureComingSoonDialog />
 
-      {/* AI聊天悬浮按钮 - 简洁直观设计 */}
+      {/* AI聊天悬浮按钮 - 多层次精致设计 */}
       <div
-        className="fixed bottom-[100px] right-4 z-50 cursor-pointer"
+        className="fixed bottom-[90px] right-4 z-50 cursor-pointer"
         onClick={navigateToChat}
         aria-label="AI助手聊天"
       >
-        {/* 主按钮 */}
-        <div className="relative w-16 h-16 bg-gradient-to-r from-[#FFB38A] to-[#FFC9A8] rounded-full shadow-lg shadow-[#FFB38A]/30 flex items-center justify-center">
-          {/* 聊天图标 */}
-          <Icon icon="mdi:chat" className="text-white text-3xl" />
+        {/* 外层光晕效果 */}
+        <div className="relative w-[72px] h-[72px] flex items-center justify-center">
+          {/* 光晕背景 */}
+          <div className="absolute inset-0 bg-gradient-radial from-[#FFB38A]/15 via-[#FFB38A]/8 to-transparent rounded-full"></div>
 
-          {/* AI标识徽章 */}
-          <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-[#FF9800] to-[#FFB38A] rounded-full border-2 border-white flex items-center justify-center">
-            <span className="text-[10px] font-bold text-white">AI</span>
+          {/* 主按钮容器 */}
+          <div className="relative w-14 h-14 bg-gradient-to-br from-[#FFB38A] to-[#FFC9A8] rounded-full shadow-lg shadow-[#FFB38A]/25 drop-shadow-lg flex items-center justify-center border border-white/20 active:scale-95 transition-transform duration-150">
+            {/* 聊天图标 */}
+            <Icon icon="mdi:chat-processing" className="text-white text-2xl" />
+
+            {/* AI标识徽章 - 增强版 */}
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-[#FFDA63] to-[#FFE58C] rounded-full border-2 border-white flex items-center justify-center shadow-md">
+              <span className="text-[9px] font-bold text-[#333333] leading-none">
+                AI
+              </span>
+            </div>
+
+            {/* 内部微光效果 */}
+            <div className="absolute top-2 left-2 w-2 h-2 bg-white/30 rounded-full blur-sm"></div>
           </div>
         </div>
       </div>

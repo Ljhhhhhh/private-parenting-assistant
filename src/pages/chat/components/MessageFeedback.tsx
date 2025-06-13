@@ -34,8 +34,6 @@ export const MessageFeedback: React.FC<MessageFeedbackProps> = ({
       setFeedback(finalFeedback);
       onFeedbackChange?.(finalFeedback);
 
-      console.log(chatHistoryId, 'chatHistoryId');
-
       // 如果有chatHistoryId，提交到API
       if (chatHistoryId && finalFeedback) {
         try {

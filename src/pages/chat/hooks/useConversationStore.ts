@@ -3,13 +3,11 @@ import { devtools } from 'zustand/middleware';
 import {
   getConversations,
   createConversation as apiCreateConversation,
-  updateConversation as apiUpdateConversation,
   deleteConversation as apiDeleteConversation,
-} from '@/api/chat';
+} from '@/api/conversation';
 import type {
   ConversationResponseDto,
   CreateConversationDto,
-  UpdateConversationDto,
 } from '@/types/models';
 
 interface ConversationState {
@@ -32,10 +30,6 @@ interface ConversationActions {
     initialMessage?: string,
   ) => Promise<ConversationResponseDto>;
   selectConversation: (id: number | null) => void;
-  updateConversation: (
-    id: number,
-    data: UpdateConversationDto,
-  ) => Promise<void>;
   deleteConversation: (id: number) => Promise<void>;
 
   // 批量操作
@@ -168,29 +162,6 @@ export const useConversationStore = create<ConversationStore>()(
       // 选择会话
       selectConversation: (id: number | null) => {
         set({ currentConversationId: id });
-      },
-
-      // 更新会话
-      updateConversation: async (id: number, data: UpdateConversationDto) => {
-        try {
-          set({ error: null });
-
-          await apiUpdateConversation(id, data);
-
-          set((state) => ({
-            conversations: state.conversations.map((conv) =>
-              conv.id === id
-                ? { ...conv, ...data, updatedAt: new Date().toISOString() }
-                : conv,
-            ),
-          }));
-        } catch (error) {
-          console.error('更新会话失败:', error);
-          set({
-            error: error instanceof Error ? error.message : '更新会话失败',
-          });
-          throw error;
-        }
       },
 
       // 删除会话

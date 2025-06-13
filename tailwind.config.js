@@ -177,6 +177,11 @@ module.exports = {
         'scale-in': 'scale-in 0.3s cubic-bezier(0.4,0,0.2,1)',
         'fade-in-down': 'fade-in-down 0.3s cubic-bezier(0.4,0,0.2,1)',
       },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic':
+          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      },
     },
   },
   plugins: [],
