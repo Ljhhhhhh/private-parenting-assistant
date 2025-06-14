@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import dayjs from 'dayjs';
 import RecordModal from './RecordModal';
+import TimePicker from '@/components/ui/data-entry/TimePicker';
 import { createRecord } from '@/api/records';
 import {
   CreateRecordDto,
@@ -130,21 +131,11 @@ const FeedingRecord: React.FC<FeedingRecordProps> = ({
     <RecordModal isOpen={isOpen} onClose={onClose} title="记录喂养">
       <div className="space-y-5">
         {/* 记录时间 */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-[#333333]">
-            时间
-          </label>
-          <div className="relative">
-            <input
-              type="datetime-local"
-              value={recordTime}
-              onChange={(e) => setRecordTime(e.target.value)}
-              className="w-full p-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFC9A8] focus:ring-offset-0"
-              style={{ colorScheme: 'light' }}
-            />
-            {/* 移除自定义时钟图标，使用浏览器原生图标 */}
-          </div>
-        </div>
+        <TimePicker
+          value={recordTime}
+          onChange={setRecordTime}
+          label="记录时间"
+        />
 
         {/* 喂养类型 */}
         <div className="space-y-2">

@@ -138,9 +138,9 @@ const RecordHistory: React.FC = () => {
         const sleepDetails = record.details as SleepDetails;
         title = '睡眠记录';
         details = sleepDetails.sleepDuration
-          ? `睡眠时长: ${sleepDetails.sleepDuration}${
+          ? `睡眠时长: ${sleepDetails.sleepDuration}小时 ${
               sleepDetails.quality
-                ? ` 质量: ${
+                ? ` 睡眠质量: ${
                     sleepDetails.quality === 1
                       ? '较差'
                       : sleepDetails.quality === 3

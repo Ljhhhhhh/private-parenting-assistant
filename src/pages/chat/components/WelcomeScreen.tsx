@@ -1,5 +1,6 @@
 import React from 'react';
-import logoImage from '@/assets/logo.png';
+// import logoImage from '@/assets/logo.png';
+import LogoImage from '@/assets/logo.svg?react';
 
 interface WelcomeScreenProps {
   suggestions: string[];
@@ -13,7 +14,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   return (
     <div className="flex flex-col justify-center items-center min-h-full">
       <div className="w-36 h-36 mb-4 animate-float flex items-center justify-center text-[#FFB38A]">
-        <img src={logoImage} alt="" className="w-full h-full" />
+        <LogoImage className="w-full h-full" />
       </div>
       <p className="mb-6 text-lg font-medium text-center text-[#666666]">
         有什么育儿问题，请随时向我提问

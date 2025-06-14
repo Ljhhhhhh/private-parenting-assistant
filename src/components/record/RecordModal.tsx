@@ -28,7 +28,7 @@ const RecordModal: React.FC<RecordModalProps> = ({
       />
 
       {/* 弹窗内容 */}
-      <div className="relative p-5 mx-4 w-full max-w-md bg-white rounded-xl shadow-lg animate-fadeIn">
+      <div className="relative p-5 mx-4 w-[90%] max-w-md bg-white rounded-xl shadow-lg animate-fadeIn">
         {/* 弹窗标题 */}
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold text-[#333333]">{title}</h3>

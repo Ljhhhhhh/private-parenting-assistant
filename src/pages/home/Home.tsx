@@ -20,6 +20,7 @@ import {
   GrowthDetails,
   FeedingType,
 } from '@/types/models';
+import LogoImage from '@/assets/logo2.svg?react';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -204,9 +205,9 @@ const Home: React.FC = () => {
             sleepDetails = record.details as SleepDetails;
             title = '睡眠记录';
             details = sleepDetails.sleepDuration
-              ? `睡眠时长: ${sleepDetails.sleepDuration}${
+              ? `睡眠时长: ${sleepDetails.sleepDuration}小时 ${
                   sleepDetails.quality
-                    ? ` 质量: ${
+                    ? ` 睡眠质量: ${
                         sleepDetails.quality === 1
                           ? '较差'
                           : sleepDetails.quality === 3
@@ -586,7 +587,62 @@ const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* AI助手入口已移至悬浮按钮 */}
+          {/* AI 助手入口 - 主打功能突出设计 */}
+          <div>
+            <h2 className="flex items-center mb-4 text-lg font-semibold text-[#333333]">
+              <Icon icon="mdi:robot" className="mr-2 text-[#FFB38A]" />
+              咨询萌芽
+              <span className="ml-2 px-2 py-0.5 text-xs font-medium text-white bg-gradient-to-r from-[#FF9800] to-[#FFB38A] rounded-full">
+                AI
+              </span>
+            </h2>
+            <div
+              className="relative p-6 bg-gradient-to-br from-[#FFB38A] via-[#FFC9A8] to-[#F8BBD0] rounded-2xl shadow-[0_8px_24px_rgba(255,179,138,0.2)] border border-white/30 transition-all duration-500 cursor-pointer hover:shadow-[0_12px_32px_rgba(255,179,138,0.3)] hover:scale-[1.02] overflow-hidden group ai-assistant-card"
+              onClick={navigateToChat}
+            >
+              {/* 主要内容区域 */}
+              <div className="relative z-10">
+                <div className="flex items-start">
+                  {/* 3D风格机器人图标 */}
+                  <div className=" flex justify-center items-center mr-4 w-14 h-14 backdrop-blur-sm rounded-2xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                    <LogoImage className="rounded-full object-cover w-full h-full" />
+                  </div>
+
+                  {/* 文字内容 */}
+                  <div className="flex-1 min-w-0">
+                    <div className="mb-2 text-lg font-bold text-[#8B4513] text-reveal">
+                      萌芽助手
+                    </div>
+                    <div
+                      className="text-[#A0522D] text-sm font-semibold text-reveal mb-1"
+                      style={{ animationDelay: '0.2s' }}
+                    >
+                      知心萌芽，温暖陪伴
+                    </div>
+                    <div
+                      className="text-[#CD853F] text-xs text-reveal leading-relaxed"
+                      style={{ animationDelay: '0.4s' }}
+                    >
+                      24小时专业建议，科学育儿指导
+                    </div>
+                  </div>
+                </div>
+
+                {/* 交互指示器 - 移到底部右侧 */}
+                <div className="flex justify-end mt-4">
+                  <div className="flex items-center text-[#8B4513] group-hover:text-[#654321] transition-colors duration-300">
+                    <span className="mr-2 text-sm font-semibold">开始咨询</span>
+                    <div className="flex justify-center items-center w-8 h-8 bg-[#8B4513]/20 rounded-full group-hover:bg-[#8B4513]/30 transition-all duration-300 group-hover:translate-x-1">
+                      <Icon
+                        icon="mdi:arrow-right"
+                        className="text-lg text-[#8B4513]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* 更多服务 - 全新分层设计 */}
           <div className="mt-8">
@@ -864,7 +920,7 @@ const Home: React.FC = () => {
 
       {/* AI聊天悬浮按钮 - 多层次精致设计 */}
       <div
-        className="fixed bottom-[90px] right-4 z-50 cursor-pointer"
+        className="fixed bottom-[90px] right-4 z-50 cursor-pointer hidden"
         onClick={navigateToChat}
         aria-label="AI助手聊天"
       >

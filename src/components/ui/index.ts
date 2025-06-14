@@ -2,9 +2,12 @@
 import Button from './base/Button';
 import Input from './base/Input';
 import Checkbox from './base/Checkbox';
+import { AutoResizeTextarea } from './base/AutoResizeTextarea';
 
 // 导入表单与数据录入组件
 import Form from './data-entry/Form';
+import TimePicker from './data-entry/TimePicker';
+import Radio from './data-entry/Radio';
 export type { FormInstance } from './data-entry/Form';
 
 // 导入反馈组件
@@ -36,9 +39,12 @@ export {
   Button,
   Input,
   Checkbox,
+  AutoResizeTextarea,
 
   // 表单与数据录入组件
   Form,
+  TimePicker,
+  Radio,
 
   // 反馈组件
   Toast,
@@ -68,8 +74,8 @@ export {
 };
 
 // 组件分组导出
-export const Base = { Button, Input, Checkbox };
-export const DataEntry = { Form };
+export const Base = { Button, Input, Checkbox, AutoResizeTextarea };
+export const DataEntry = { Form, TimePicker, Radio };
 export const Feedback = {
   Toast,
   useToast,

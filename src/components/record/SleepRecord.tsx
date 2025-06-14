@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import dayjs from 'dayjs';
 import RecordModal from './RecordModal';
+import TimePicker from '@/components/ui/data-entry/TimePicker';
 import { createRecord } from '@/api/records';
 import { CreateRecordDto, RecordType, SleepDetails } from '@/types/models';
 
@@ -33,10 +34,10 @@ const SleepRecord: React.FC<SleepRecordProps> = ({
   }, [isOpen]);
 
   // 睡眠时长（格式为小时:minute）
-  const [sleepDuration, setSleepDuration] = useState<string>('1:00');
+  const [sleepDuration, setSleepDuration] = useState<number>(1);
 
   // 睡眠质量
-  const [quality, setQuality] = useState<number>(3);
+  const [quality, setQuality] = useState<number>(5);
 
   // 睡眠环境
   const [environment, setEnvironment] = useState<string>('');
@@ -48,14 +49,14 @@ const SleepRecord: React.FC<SleepRecordProps> = ({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // 预设时长选项
-  const durationOptions = [
-    { minutes: 30, display: '0:30' },
-    { minutes: 60, display: '1:00' },
-    { minutes: 90, display: '1:30' },
-    { minutes: 120, display: '2:00' },
-    { minutes: 150, display: '2:30' },
-    { minutes: 180, display: '3:00' },
-  ];
+  // const durationOptions = [
+  //   { minutes: 30, display: '0.5' },
+  //   { minutes: 60, display: '1' },
+  //   { minutes: 90, display: '1.5' },
+  //   { minutes: 120, display: '2' },
+  //   { minutes: 150, display: '2.5' },
+  //   { minutes: 180, display: '3' },
+  // ];
 
   // 睡眠质量选项
   const qualityOptions = [
@@ -102,7 +103,7 @@ const SleepRecord: React.FC<SleepRecordProps> = ({
       await createRecord(recordData);
 
       // 重置表单
-      setSleepDuration('1:00');
+      setSleepDuration(1);
       setQuality(3);
       setEnvironment('');
       setNotes('');
@@ -126,21 +127,11 @@ const SleepRecord: React.FC<SleepRecordProps> = ({
     <RecordModal isOpen={isOpen} onClose={onClose} title="记录睡眠">
       <div className="space-y-5">
         {/* 记录时间 */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-[#333333]">
-            时间
-          </label>
-          <div className="relative">
-            <input
-              type="datetime-local"
-              value={recordTime}
-              onChange={(e) => setRecordTime(e.target.value)}
-              className="w-full p-3 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C5CAE9] focus:ring-offset-0"
-              style={{ colorScheme: 'light' }}
-            />
-            {/* 移除自定义时钟图标，使用浏览器原生图标 */}
-          </div>
-        </div>
+        <TimePicker
+          value={recordTime}
+          onChange={setRecordTime}
+          label="记录时间"
+        />
 
         {/* 睡眠时长 */}
         <div className="space-y-2">
@@ -151,13 +142,13 @@ const SleepRecord: React.FC<SleepRecordProps> = ({
             <input
               type="text"
               value={sleepDuration}
-              onChange={(e) => setSleepDuration(e.target.value)}
-              placeholder="格式: 1:30"
+              onChange={(e) => setSleepDuration(Number(e.target.value))}
+              placeholder="睡眠时长"
               className="flex-1 p-2 border border-[#E5E5E5] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C5CAE9] focus:ring-offset-0"
             />
-            <span className="text-[#666666]">小时:分钟</span>
+            <span className="text-[#666666]">小时</span>
           </div>
-          <div className="flex flex-wrap gap-2 mt-2">
+          {/* <div className="flex flex-wrap gap-2 mt-2">
             {durationOptions.map((option) => (
               <button
                 key={option.minutes}
@@ -171,7 +162,7 @@ const SleepRecord: React.FC<SleepRecordProps> = ({
                 {option.display}
               </button>
             ))}
-          </div>
+          </div> */}
         </div>
 
         {/* 睡眠质量 */}

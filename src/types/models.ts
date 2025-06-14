@@ -105,7 +105,7 @@ export enum FeedingType {
 
 // 睡眠记录详情
 export interface SleepDetails {
-  sleepDuration: string;
+  sleepDuration: number;
   quality?: number;
   environment?: string;
   notes?: string;
