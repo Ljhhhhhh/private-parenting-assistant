@@ -24,8 +24,8 @@ const AddChild: React.FC = () => {
         duration: 2000,
       });
       setTimeout(() => {
-        navigate('/children');
-      }, 500);
+        navigate('/home');
+      }, 1000);
     } catch (err) {
       console.error(err);
       setToast({ type: 'fail', content: '添加失败，请重试', duration: 2000 });
