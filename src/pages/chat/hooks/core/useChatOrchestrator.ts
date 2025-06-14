@@ -16,6 +16,7 @@ import { useConversationStore } from '../useConversationStore';
 import { generateConversationTitle } from '../../utils/conversationUtils';
 import { getConversationMessages } from '@/api/conversation';
 import { isNil } from 'lodash-es';
+import { preprocessChineseTilde } from '@/utils/chineseTildeProcessor';
 
 // ========== 类型定义 ==========
 
@@ -78,29 +79,29 @@ export const useChatOrchestrator = (
   const [error, setError] = useState<Error | null>(null);
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
   const [lastSendFunction, setLastSendFunction] = useState<
-    | ((content: string, onStream: (chunk: string) => void) => Promise<string>)
+    | ((
+        content: string,
+        onStream: (chunk: string) => void,
+        conversationId?: number | null,
+      ) => Promise<string>)
     | null
   >(null);
-
-  // 🔧 会话管理
-  const conversationStore = useConversationStore();
+  const [currentConversationId, setCurrentConversationId] = useState<
+    number | null
+  >(options.conversationId || null);
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false);
 
-  // 直接使用 options.conversationId，不需要额外的状态
-  const currentConversationId = options.conversationId || null;
-
-  // 🔧 修复：先初始化消息管理器
+  // 消息管理器
   const messageManager = useMessageManager({
-    onMessageAdded: (message) => {
-      if (message.isUser) {
-        options.onMessageSent?.(message);
-      }
-    },
+    onMessageAdded: options.onMessageSent,
+    onMessageUpdated: options.onMessageReceived,
   });
 
-  // 🔧 修复：使用 useRef 存储最新的 messageManager 引用，避免闭包陷阱
   const messageManagerRef = useRef(messageManager);
   messageManagerRef.current = messageManager;
+
+  // 会话管理
+  const conversationStore = useConversationStore();
 
   // 🆕 提取历史消息加载函数，使其可以在多处调用
   const loadConversationHistory = useCallback(
@@ -152,12 +153,12 @@ export const useChatOrchestrator = (
               });
             }
 
-            // 添加AI回复
+            // 添加AI回复 - 🔧 使用统一的预处理函数处理历史消息内容
             if (item.aiResponse) {
               historyMessages.push({
                 id: `ai-${item.id}`,
                 chatHistoryId: item.id,
-                content: item.aiResponse,
+                content: preprocessChineseTilde(item.aiResponse), // 🔧 使用统一的预处理函数
                 isUser: false,
                 timestamp: new Date(item.responseTimestamp || item.createdAt),
                 feedback: !isNil(item.feedback)
@@ -220,6 +221,8 @@ export const useChatOrchestrator = (
       currentConversationId,
     });
 
+    setCurrentConversationId(options.conversationId || null);
+
     // 当 conversationId 变化时
     if (
       options.conversationId !== null &&
@@ -236,9 +239,8 @@ export const useChatOrchestrator = (
       const currentManager = messageManagerRef.current;
       currentManager.clearMessages();
     }
-  }, [options.conversationId]); // 依赖 conversationId 变化
+  }, [options.conversationId]);
 
-  // 🔧 修复：使用 useRef 确保回调函数能访问到最新的 messageManager
   const streamProcessor = useStreamProcessor({
     onChunk: (content) => {
       const currentManager = messageManagerRef.current;
@@ -249,7 +251,6 @@ export const useChatOrchestrator = (
         currentStreamingId: currentManager.currentStreamingId,
       });
 
-      // 🔧 修复：通过 ref 访问最新的 currentStreamingId
       const latestStreamingId = currentManager.currentStreamingId;
 
       if (latestStreamingId) {
@@ -273,7 +274,6 @@ export const useChatOrchestrator = (
       const currentManager = messageManagerRef.current;
       console.debug('🎭 流式处理完成，编排后续操作');
 
-      // 🔧 修复：通过 ref 访问最新的 currentStreamingId
       const latestStreamingId = currentManager.currentStreamingId;
       if (latestStreamingId) {
         currentManager.completeAiMessage(
@@ -312,7 +312,6 @@ export const useChatOrchestrator = (
       setError(err);
       setIsLoading(false);
 
-      // 🔧 修复：通过 ref 访问最新的 currentStreamingId
       const latestStreamingId = currentManager.currentStreamingId;
       if (latestStreamingId) {
         currentManager.removeMessage(latestStreamingId);
@@ -333,64 +332,40 @@ export const useChatOrchestrator = (
     },
   });
 
-  /**
-   * 🆕 创建新会话
-   */
+  // 🆕 创建会话的辅助函数
   const createConversationIfNeeded = useCallback(
-    async (firstMessage: string): Promise<number | null> => {
-      // 如果已经有会话ID，直接返回
-      if (currentConversationId) {
-        console.debug('🗂️ 使用现有会话:', {
-          conversationId: currentConversationId,
-        });
-        return currentConversationId;
-      }
-
-      // 如果没有childId，无法创建会话
-      if (!options.childId) {
-        console.warn('⚠️ 没有childId，无法创建会话');
-        return null;
-      }
+    async (firstMessage: string): Promise<number> => {
+      console.debug('🆕 准备创建新会话:', { firstMessage });
 
       try {
-        console.debug('🆕 创建新会话:', {
-          childId: options.childId,
-          firstMessage: firstMessage.substring(0, 50),
-        });
-
         // 生成会话标题
         const title = generateConversationTitle(firstMessage);
 
         // 创建会话
         const newConversation = await conversationStore.createConversation(
-          options.childId,
+          options.childId || 0,
           title,
           firstMessage,
         );
 
-        const newConversationId = newConversation.id;
-
         console.debug('✅ 会话创建成功:', {
-          conversationId: newConversationId,
-          title,
+          conversationId: newConversation.id,
+          title: newConversation.title,
         });
 
-        // 通知会话创建完成
-        options.onConversationCreated?.(newConversationId);
+        // 更新当前会话ID
+        setCurrentConversationId(newConversation.id);
 
-        return newConversationId;
+        // 通知外部
+        options.onConversationCreated?.(newConversation.id);
+
+        return newConversation.id;
       } catch (error) {
         console.error('❌ 创建会话失败:', error);
-        // 会话创建失败不应该阻止消息发送，返回null继续发送
-        return null;
+        throw error;
       }
     },
-    [
-      currentConversationId,
-      options.childId,
-      options.onConversationCreated,
-      conversationStore,
-    ],
+    [conversationStore, options.childId, options.onConversationCreated],
   );
 
   /**
@@ -416,9 +391,11 @@ export const useChatOrchestrator = (
         setLastUserMessage(content);
         setLastSendFunction(() => sendFunction);
 
-        // 3. 🆕 检查是否需要创建会话（第一条消息时）
         let effectiveConversationId = currentConversationId;
-        const isFirstMessage = messageManager.messages.length === 0;
+        // 只有当没有会话ID且没有消息时，才认为是第一条消息（需要创建新会话）
+        const isFirstMessage =
+          currentConversationId === null &&
+          messageManager.messages.length === 0;
 
         if (isFirstMessage) {
           console.debug('🆕 检测到第一条消息，尝试创建会话');
@@ -427,6 +404,10 @@ export const useChatOrchestrator = (
           effectiveConversationId = newConversationId;
           console.debug('🗂️ 会话创建完成，使用新会话ID:', {
             conversationId: newConversationId,
+          });
+        } else {
+          console.debug('🔄 继续现有会话，使用会话ID:', {
+            conversationId: effectiveConversationId,
           });
         }
 

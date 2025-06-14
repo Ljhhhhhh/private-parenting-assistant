@@ -1,237 +1,268 @@
 /**
  * 流式响应解析器
- * 专门处理OpenAI格式的流式聊天响应
+ * 专门处理SSE格式的流式聊天响应
  */
 
-interface StreamChunk {
-  id: string;
-  object: string;
-  created: number;
-  model: string;
-  choices: Array<{
-    index: number;
-    delta: {
-      content?: string;
-      role?: string;
-    };
-    finish_reason: string | null;
-  }>;
+import {
+  preprocessChineseTilde,
+  postprocessChineseTilde,
+} from './chineseTildeProcessor';
+
+// 更新SSE响应数据结构，conversationId可能是数字类型
+interface ChatStreamResponseDto {
+  type: 'content' | 'done';
+  content?: string;
+  chatId?: string;
+  conversationId?: string | number;
+}
+
+// SSE消息结构
+interface SSEMessage {
+  event?: string;
+  id?: string;
+  data?: string;
 }
 
 interface StreamParseResult {
   content: string;
   isComplete: boolean;
-  messageId?: string;
-  model?: string;
+  chatId?: string;
+  conversationId?: string;
 }
 
 /**
- * 解析单个流式数据块
- * @param chunkData 原始数据块字符串
+ * 解析单个完整的SSE事件
+ * @param eventData 单个完整的SSE事件数据
+ * @returns 解析后的SSE消息对象
+ */
+const parseSSEEvent = (eventData: string): SSEMessage => {
+  const lines = eventData.trim().split('\n');
+  const message: SSEMessage = {};
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+
+    if (trimmedLine.startsWith('event:')) {
+      message.event = trimmedLine.replace(/^event:\s*/, '').trim();
+    } else if (trimmedLine.startsWith('id:')) {
+      message.id = trimmedLine.replace(/^id:\s*/, '').trim();
+    } else if (trimmedLine.startsWith('data:')) {
+      message.data = trimmedLine.replace(/^data:\s*/, '').trim();
+    }
+  }
+
+  return message;
+};
+
+/**
+ * 解析单个SSE事件并返回内容
+ * @param eventData 单个完整的SSE事件数据
  * @returns 解析结果，如果解析失败返回null
  */
-export const parseStreamChunk = (
-  chunkData: string,
-): StreamParseResult | null => {
+const parseSSEEventContent = (eventData: string): StreamParseResult | null => {
   try {
-    // 临时调试日志 - 生产环境应移除
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('📥 接收到数据块:', JSON.stringify(chunkData));
+    if (!eventData || !eventData.trim()) {
+      return null;
     }
 
-    // 首先检查是否是标准的 "data: " 格式
-    if (chunkData.startsWith('data:')) {
-      // 移除 "data: " 前缀
-      const jsonData = chunkData.replace(/^data:\s*/, '').trim();
+    // 解析SSE格式消息
+    const sseMessage = parseSSEEvent(eventData);
 
-      // 跳过空数据和特殊标记
-      if (!jsonData) {
-        console.debug('🚫 跳过空数据');
-        return null;
-      }
-      if (jsonData === '[DONE]') {
-        console.debug('🏁 检测到流结束标记 [DONE]');
-        // 返回一个明确的完成信号，但不包含内容
-        return {
-          content: '',
-          isComplete: true,
-          messageId: undefined,
-          model: undefined,
-        };
-      }
+    // 检查是否有data字段
+    if (!sseMessage.data) {
+      console.debug('⚠️ SSE消息缺少data字段:', sseMessage);
+      return null;
+    }
 
-      // 尝试解析JSON
-      try {
-        const chunk: StreamChunk = JSON.parse(jsonData);
-        // console.debug('✅ JSON解析成功:', chunk); // 减少默认日志量
+    // 记录事件类型用于调试
+    if (process.env.NODE_ENV === 'development') {
+      console.debug(
+        '📨 SSE事件类型:',
+        sseMessage.event,
+        '数据:',
+        sseMessage.data,
+      );
+    }
 
-        // 提取内容
-        const choice = chunk.choices?.[0];
-        if (!choice) {
-          // console.debug('⚠️ 无有效选择项'); // 减少默认日志量
-          return null;
+    // 尝试解析JSON数据
+    try {
+      const chunk: ChatStreamResponseDto = JSON.parse(sseMessage.data);
+
+      // 根据事件类型和数据类型进行处理
+      switch (sseMessage.event) {
+        case 'content': {
+          // 内容事件 - 检查数据类型是否匹配
+          if (chunk.type === 'content') {
+            let content = chunk.content || '';
+
+            // 🔧 使用统一的预处理函数，避免中文波浪号被误识别为删除线
+            if (content) {
+              content = preprocessChineseTilde(content);
+            }
+
+            return {
+              content,
+              isComplete: false,
+            };
+          } else {
+            console.warn('⚠️ content事件的数据类型不匹配:', chunk.type);
+            return null;
+          }
         }
 
-        // OpenAI流有时只包含role，或者content为null，这通常不是实际要显示的内容
-        if (choice.delta?.role && !choice.delta?.content) {
-          console.debug('ℹ️ 跳过仅包含role的块:', choice.delta);
-          return null;
+        case 'done': {
+          // 完成事件 - 检查数据类型是否匹配
+          if (chunk.type === 'done') {
+            console.debug('🏁 检测到流结束标记 event: done');
+            return {
+              content: '',
+              isComplete: true,
+              chatId: chunk.chatId,
+              // 确保conversationId转换为字符串
+              conversationId: chunk.conversationId?.toString(),
+            };
+          } else {
+            console.warn('⚠️ done事件的数据类型不匹配:', chunk.type);
+            return null;
+          }
         }
 
-        // content 可能为 null 或 undefined
-        const content = choice.delta?.content || '';
-        const isComplete = choice.finish_reason !== null;
+        default: {
+          // 未知事件类型，尝试根据数据类型处理（向后兼容）
+          console.debug(
+            '🤔 未知SSE事件类型，尝试根据数据类型处理:',
+            sseMessage.event,
+          );
 
-        if (content || isComplete) {
-          // 只在有实际内容或完成时才返回
-          // console.debug('📤 提取内容:', { content, isComplete }); // 减少默认日志量
-          return {
-            content,
-            isComplete,
-            messageId: chunk.id,
-            model: chunk.model,
-          };
+          switch (chunk.type) {
+            case 'content': {
+              let content = chunk.content || '';
+              if (content) {
+                content = preprocessChineseTilde(content);
+              }
+              return {
+                content,
+                isComplete: false,
+              };
+            }
+
+            case 'done': {
+              console.debug('🏁 检测到流结束标记 type: done');
+              return {
+                content: '',
+                isComplete: true,
+                chatId: chunk.chatId,
+                conversationId: chunk.conversationId?.toString(),
+              };
+            }
+
+            default:
+              console.warn('❓ 未知的数据类型:', chunk.type);
+              return null;
+          }
         }
-        // console.debug('🤔 无实际内容且未完成的块'); // 减少默认日志量
-        return null;
-      } catch (jsonError) {
-        // JSON解析失败，可能是格式错误
-        console.warn('❌ JSON解析失败:', { jsonData, error: jsonError });
-        // 尝试提取是否有[DONE]字样，防止被截断的[DONE]无法识别
-        if (jsonData.includes('[DONE]')) {
-          console.warn('⚠️ 包含[DONE]但JSON解析失败，可能被截断，视为完成');
-          return { content: '', isComplete: true };
-        }
-        return null;
       }
-    } else {
-      // 不是标准格式，可能是纯文本内容或错误格式
-      const trimmedText = chunkData.trim();
-
-      // 跳过空内容
-      if (!trimmedText || trimmedText.length < 1) {
-        // console.debug('🚫 跳过空文本'); // 减少默认日志量
-        return null;
-      }
-
-      // 如果非data: 开头，但包含 [DONE] 字符串，也认为是结束标记
-      if (trimmedText === '[DONE]') {
-        console.debug('🏁 检测到非标准格式的流结束标记 [DONE]');
-        return {
-          content: '',
-          isComplete: true,
-          messageId: undefined,
-          model: undefined,
-        };
-      }
-
-      // 检查是否只包含控制字符
-      if (trimmedText.charCodeAt(0) < 32 && trimmedText.length === 1) {
-        // console.debug('🚫 跳过控制字符'); // 减少默认日志量
-        return null;
-      }
-
-      // 检查是否看起来像是被意外分割的JSON
-      // 进一步细化，只在确定是JSON一部分时才警告并跳过
-      if (
-        (trimmedText.startsWith('{') && !trimmedText.endsWith('}')) ||
-        (trimmedText.startsWith('[') && !trimmedText.endsWith(']')) ||
-        (trimmedText.includes('choices') &&
-          trimmedText.includes('delta') &&
-          !trimmedText.startsWith('{'))
-      ) {
-        console.warn('⚠️ 疑似JSON片段，但格式不完整或非标准:', trimmedText);
-        return null;
-      }
-
-      // 如果文本不是以 { 开头，并且不包含常见的 JSON 结构特征，则认为是普通文本
-      // 这有助于捕获API直接返回的错误信息文本
-      if (
-        !trimmedText.startsWith('{') &&
-        !trimmedText.includes('"id":') &&
-        !trimmedText.includes('"object":') &&
-        !trimmedText.includes('"choices":')
-      ) {
-        console.debug('📝 检测到纯文本内容 (非data: 开头):', trimmedText);
-        return {
-          content: trimmedText,
-          isComplete: false,
-          messageId: undefined,
-          model: undefined,
-        };
-      }
-
-      console.warn('❓ 未知格式数据块，已跳过:', JSON.stringify(trimmedText));
+    } catch (jsonError) {
+      console.warn('❌ JSON解析失败:', {
+        data: sseMessage.data,
+        event: sseMessage.event,
+        error: jsonError,
+      });
       return null;
     }
   } catch (error) {
-    console.warn('💥 解析流式数据块时发生严重错误:', chunkData, error);
+    console.warn('💥 解析SSE事件时发生严重错误:', eventData, error);
     return null;
   }
 };
 
 /**
  * 流式消息累积器
- * 管理流式响应的状态和内容累积
+ * 管理流式响应的状态和内容累积，处理不完整的SSE事件
  */
 export class StreamAccumulator {
+  private buffer: string = ''; // 缓冲区，存储不完整的SSE事件
   private fullContent: string = '';
-  private messageId: string | null = null;
-  private model: string | null = null;
+  private chatId: string | null = null;
+  private conversationId: string | null = null;
   private isComplete: boolean = false;
 
   /**
-   * 处理新的数据块
+   * 处理新的数据块（可能包含多个事件或不完整的事件）
    * @param chunkData 原始数据块字符串
    * @returns 当前累积的完整内容，如果无有效内容返回null
    */
   processChunk(chunkData: string): string | null {
-    const parsed = parseStreamChunk(chunkData);
-
-    if (!parsed) {
+    if (!chunkData) {
       return null;
     }
 
-    // 更新元数据
-    if (parsed.messageId) {
-      this.messageId = parsed.messageId;
-    }
-    if (parsed.model) {
-      this.model = parsed.model;
+    // 临时调试日志 - 生产环境应移除
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('📥 接收到SSE数据块:', JSON.stringify(chunkData));
     }
 
-    // 累积内容
-    if (parsed.content) {
-      this.fullContent += parsed.content;
+    // 将新数据添加到缓冲区
+    this.buffer += chunkData;
+
+    // 按双换行符分割事件（SSE规范）
+    const events = this.buffer.split('\n\n');
+
+    // 最后一个可能是不完整的事件，保留在缓冲区中
+    this.buffer = events.pop() || '';
+
+    let hasNewContent = false;
+
+    // 处理完整的事件
+    for (const event of events) {
+      if (event.trim()) {
+        const parsed = parseSSEEventContent(event);
+
+        if (parsed) {
+          // 更新元数据
+          if (parsed.chatId) {
+            this.chatId = parsed.chatId;
+          }
+          if (parsed.conversationId) {
+            this.conversationId = parsed.conversationId;
+          }
+
+          // 累积内容
+          if (parsed.content) {
+            this.fullContent += parsed.content;
+            hasNewContent = true;
+          }
+
+          // 检查是否完成
+          if (parsed.isComplete) {
+            this.isComplete = true;
+          }
+        }
+      }
     }
 
-    // 检查是否完成
-    if (parsed.isComplete) {
-      this.isComplete = true;
-    }
-
-    return this.fullContent;
+    return hasNewContent || this.isComplete ? this.fullContent : null;
   }
 
   /**
-   * 获取当前累积的完整内容
+   * 获取当前累积的完整内容（恢复中文波浪号）
    */
   getFullContent(): string {
-    return this.fullContent;
+    return postprocessChineseTilde(this.fullContent);
   }
 
   /**
-   * 获取消息ID
+   * 获取聊天记录ID
    */
-  getMessageId(): string | null {
-    return this.messageId;
+  getChatId(): string | null {
+    return this.chatId;
   }
 
   /**
-   * 获取模型信息
+   * 获取会话ID
    */
-  getModel(): string | null {
-    return this.model;
+  getConversationId(): string | null {
+    return this.conversationId;
   }
 
   /**
@@ -245,12 +276,18 @@ export class StreamAccumulator {
    * 重置累积器
    */
   reset(): void {
+    this.buffer = '';
     this.fullContent = '';
-    this.messageId = null;
-    this.model = null;
+    this.chatId = null;
+    this.conversationId = null;
     this.isComplete = false;
   }
 }
+
+/**
+ * 解析单个流式数据块（向后兼容）
+ * @deprecated  parseSSEEventContent 建议直接使用 StreamAccumulator
+ */
 
 /**
  * 处理多行流式数据
@@ -263,23 +300,11 @@ export const processStreamData = (
   onChunk?: (content: string, isIncremental: boolean) => void,
 ): string => {
   const accumulator = new StreamAccumulator();
-  const lines = rawData.split('\n');
+  const result = accumulator.processChunk(rawData);
 
-  let lastContent = '';
-
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    if (!trimmedLine) continue;
-
-    const currentContent = accumulator.processChunk(trimmedLine);
-    if (currentContent !== null && currentContent !== lastContent) {
-      // 只传递新增的内容
-      const incrementalContent = currentContent.slice(lastContent.length);
-      if (incrementalContent) {
-        onChunk?.(incrementalContent, true);
-      }
-      lastContent = currentContent;
-    }
+  if (result !== null && onChunk) {
+    // 传递恢复后的内容
+    onChunk(postprocessChineseTilde(result), true);
   }
 
   return accumulator.getFullContent();
@@ -287,47 +312,41 @@ export const processStreamData = (
 
 /**
  * 创建流式处理器Hook
- * @param onChunk 处理增量内容的回调
+ * @param onChunk 处理完整内容的回调
  * @param onComplete 流式响应完成的回调
  * @returns 处理函数
  */
 export const createStreamProcessor = (
   onChunk?: (content: string) => void,
-  onComplete?: (fullContent: string, messageId?: string) => void,
+  onComplete?: (
+    fullContent: string,
+    chatId?: string,
+    conversationId?: string,
+  ) => void,
 ) => {
   const accumulator = new StreamAccumulator();
-  let lastContent = '';
 
   return {
     /**
      * 处理原始数据块（可能包含多行）
      */
     processChunk: (rawChunkData: string) => {
-      // 按行分割原始数据
-      const lines = rawChunkData.split('\n');
+      const result = accumulator.processChunk(rawChunkData);
 
-      for (const line of lines) {
-        const trimmedLine = line.trim();
-        if (!trimmedLine) continue; // 跳过空行
+      if (result !== null && onChunk) {
+        // 传递恢复后的完整内容给回调
+        onChunk(postprocessChineseTilde(result));
+      }
 
-        const currentContent = accumulator.processChunk(trimmedLine);
-
-        if (currentContent !== null && currentContent !== lastContent) {
-          // 只传递新增的内容
-          const incrementalContent = currentContent.slice(lastContent.length);
-          if (incrementalContent && onChunk) {
-            onChunk(incrementalContent);
-          }
-          lastContent = currentContent;
-        }
-
-        // 检查是否完成
-        if (accumulator.getIsComplete() && onComplete) {
+      // 检查是否完成
+      if (accumulator.getIsComplete()) {
+        if (onComplete) {
+          // 处理完成
           onComplete(
             accumulator.getFullContent(),
-            accumulator.getMessageId() || undefined,
+            accumulator.getChatId() || undefined,
+            accumulator.getConversationId() || undefined,
           );
-          return; // 完成后退出循环
         }
       }
     },
@@ -337,8 +356,8 @@ export const createStreamProcessor = (
      */
     getState: () => ({
       fullContent: accumulator.getFullContent(),
-      messageId: accumulator.getMessageId(),
-      model: accumulator.getModel(),
+      chatId: accumulator.getChatId(),
+      conversationId: accumulator.getConversationId(),
       isComplete: accumulator.getIsComplete(),
     }),
 
@@ -347,7 +366,6 @@ export const createStreamProcessor = (
      */
     reset: () => {
       accumulator.reset();
-      lastContent = '';
     },
   };
 };

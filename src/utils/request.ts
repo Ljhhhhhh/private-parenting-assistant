@@ -422,21 +422,21 @@ class Request {
   }
 
   /**
-   * 处理流式响应的请求
+   * 处理SSE (Server-Sent Events) 流式响应
    * @param url URL
    * @param data 请求体
    * @param onStream 处理每个数据块的回调函数
    * @param options 请求选项
    * @returns 完成时的 Promise
    */
-  async stream<T = unknown>(
+  async streamSSE<T = unknown>(
     url: string,
     data?: unknown,
     onStream?: (chunk: string) => void,
     options: Omit<RequestOptions, 'method' | 'data' | 'onStream'> = {},
   ): Promise<T> {
     if (!onStream) {
-      throw new Error('流式请求需要提供 onStream 回调函数');
+      throw new Error('SSE流式请求需要提供 onStream 回调函数');
     }
 
     const controller = new AbortController();
@@ -446,6 +446,7 @@ class Request {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'text/event-stream',
+        'Cache-Control': 'no-cache',
         ...options.headers,
       },
       data,
@@ -457,6 +458,8 @@ class Request {
     return new Promise((resolve, reject) => {
       let hasReceivedData = false;
       let timeoutId: number | null = null;
+      const fullContent = '';
+      const finalResult: T | null = null;
       let processedLength = 0; // 追踪已处理的内容长度
 
       // 重置活动计时器的函数
@@ -465,6 +468,12 @@ class Request {
           clearTimeout(timeoutId);
           timeoutId = null;
         }
+      };
+
+      // 清理资源的函数
+      const cleanup = () => {
+        resetActivityTimer();
+        controller.abort();
       };
 
       // 设置请求
@@ -477,16 +486,14 @@ class Request {
           const responseText = response.responseText;
 
           if (responseText) {
-            // 重置活动计时器，因为我们收到了数据
             resetActivityTimer();
             hasReceivedData = true;
 
-            // 只传递新增的原始内容，让上层解析器处理所有解析逻辑
+            // 只处理新增的内容
             const newContent = responseText.slice(processedLength);
             processedLength = responseText.length;
 
             if (newContent) {
-              // 直接传递原始新增内容，不做任何预处理
               onStream(newContent);
             }
           }
@@ -497,20 +504,26 @@ class Request {
       if (options.timeout) {
         timeoutId = window.setTimeout(() => {
           if (!hasReceivedData) {
-            controller.abort();
-            reject(new Error('流请求超时'));
+            cleanup();
+            reject(new Error('SSE连接超时'));
           }
         }, options.timeout);
       }
 
       // 处理请求完成
       axiosRequest
-        .then((response) => {
-          resetActivityTimer();
-          resolve(response as T);
+        .then((_response) => {
+          cleanup();
+          // 如果没有通过done消息正常结束，则返回累积的内容
+          if (!finalResult) {
+            resolve({
+              content: fullContent,
+              type: 'done',
+            } as T);
+          }
         })
         .catch((error) => {
-          resetActivityTimer();
+          cleanup();
           reject(error);
         });
     });

@@ -81,20 +81,17 @@ export const useStreamProcessor = (
 
     // 创建新的流式处理器
     processorRef.current = createStreamProcessor(
-      // 处理增量内容
-      (chunk: string) => {
-        setContent((prev) => {
-          const newContent = prev + chunk;
-          console.debug('📝 流式内容更新:', {
-            previousLength: prev.length,
-            chunkLength: chunk.length,
-            newLength: newContent.length,
-          });
-
-          // 通知外部
-          options.onChunk?.(newContent);
-          return newContent;
+      // 处理完整内容（不是增量内容）
+      (fullContent: string) => {
+        console.debug('📝 流式内容更新:', {
+          contentLength: fullContent.length,
         });
+
+        // 直接设置完整内容
+        setContent(fullContent);
+
+        // 通知外部
+        options.onChunk?.(fullContent);
       },
 
       // 处理完成
@@ -186,14 +183,12 @@ export const useStreamProcessor = (
    * 获取当前状态快照
    */
   const getState = useCallback((): StreamProcessorState => {
-    const processorState = processorRef.current?.getState();
-
     return {
       content,
       isProcessing,
       isComplete,
-      messageId: messageId || processorState?.messageId || null,
-      model: model || processorState?.model || null,
+      messageId,
+      model,
       error,
     };
   }, [content, isProcessing, isComplete, messageId, model, error]);

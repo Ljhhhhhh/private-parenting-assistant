@@ -23,9 +23,14 @@ export const chat = (
   onStream?: (chunk: string) => void,
 ) => {
   if (onStream) {
-    return request.stream<ChatStreamResponseDto>('/chat', data, onStream);
+    // 使用SSE流式接口
+    return request.streamSSE<ChatStreamResponseDto>('/chat', data, onStream);
   } else {
-    return request.post<ChatStreamResponseDto>('/chat', data);
+    // 对于非流式调用，仍然使用SSE但不传递onStream回调
+    // 这样可以获得完整的响应内容
+    return request.streamSSE<ChatStreamResponseDto>('/chat', data, () => {
+      // 空回调，忽略流式内容
+    });
   }
 };
 
@@ -52,7 +57,7 @@ export const provideChatFeedback = (data: ChatFeedbackDto) => {
 // 聊天API集合对象，提供统一的接口调用方式
 export const chatApi = {
   /** 发送消息并获取流式回复 */
-  sendMessageStream: chat,
+  sendMecssageStream: chat,
 
   /** 获取问题建议 */
   getSuggestions: getChatSuggestions,
