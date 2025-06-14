@@ -4,6 +4,7 @@ import { Toast } from '@/components/ui';
 import { Icon } from '@iconify/react';
 import ChildForm, { ChildFormValues } from '@/components/children/ChildForm';
 import { createChild } from '@/api/children';
+import { useAppStore } from '@/stores/app';
 
 const AddChild: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -13,11 +14,13 @@ const AddChild: React.FC = () => {
     duration?: number;
   } | null>(null);
   const navigate = useNavigate();
+  const appStore = useAppStore();
 
   const handleSubmit = async (values: ChildFormValues) => {
     setLoading(true);
     try {
       await createChild(values);
+      await appStore.refreshUserData();
       setToast({
         type: 'success',
         content: '添加成功！开启美好的育儿时光 🎉',
