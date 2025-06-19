@@ -117,7 +117,7 @@ const Login: React.FC = () => {
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
-                  className="absolute right-3 top-1/2 z-10 -translate-y-1/2 p-1 text-gray-500 hover:text-primary transition-colors duration-200 focus:outline-none focus:text-primary"
+                  className="absolute right-6 top-1/2 z-10 -translate-y-1/2 p-1 text-gray-500 hover:text-primary transition-colors duration-200 focus:outline-none focus:text-primary"
                   aria-label={showPassword ? '隐藏密码' : '显示密码'}
                 >
                   <Icon

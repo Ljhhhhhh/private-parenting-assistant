@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-82141bcb'], (function (workbox) { 'use strict';
+define(['./workbox-8b9ee101'], (function (workbox) { 'use strict';
 
   self.skipWaiting();
   workbox.clientsClaim();
@@ -81,28 +81,108 @@ define(['./workbox-82141bcb'], (function (workbox) { 'use strict';
     "url": "registerSW.js",
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
-    "url": "index.html",
-    "revision": "0.o33ddjqdkv"
+    "url": "/index.html",
+    "revision": "0.n00f94lpblo"
   }], {});
   workbox.cleanupOutdatedCaches();
-  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
-    allowlist: [/^\/$/]
+  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/index.html"), {
+    allowlist: [/^\/$/],
+    denylist: [/^\/_/, /\/[^/?]+\.[^/]+$/, /^\/api\//]
   }));
   workbox.registerRoute(({
     url
   }) => url.pathname.startsWith("/api"), new workbox.NetworkFirst({
     "cacheName": "api-cache",
-    "networkTimeoutSeconds": 3,
+    "networkTimeoutSeconds": 5,
+    plugins: [new workbox.CacheableResponsePlugin({
+      statuses: [0, 200, 201, 204]
+    }), new workbox.ExpirationPlugin({
+      maxEntries: 100,
+      maxAgeSeconds: 86400,
+      purgeOnQuotaError: true
+    }), {
+      cacheKeyWillBeUsed: async ({
+        request
+      }) => {
+        const url = new URL(request.url);
+        url.searchParams.delete("_t");
+        url.searchParams.delete("timestamp");
+        return url.toString();
+      }
+    }]
+  }), 'GET');
+  workbox.registerRoute(({
+    url
+  }) => url.pathname.includes("/api/chat") || url.pathname.includes("/api/conversation"), new workbox.CacheFirst({
+    "cacheName": "chat-cache",
     plugins: [new workbox.CacheableResponsePlugin({
       statuses: [0, 200]
+    }), new workbox.ExpirationPlugin({
+      maxEntries: 200,
+      maxAgeSeconds: 604800,
+      purgeOnQuotaError: true
     })]
   }), 'GET');
   workbox.registerRoute(({
     url
-  }) => url.origin === "https://fonts.googleapis.com" || url.origin === "https://fonts.gstatic.com", new workbox.CacheFirst({
-    "cacheName": "google-fonts",
+  }) => url.pathname.includes("/api/records") || url.pathname.includes("/api/children"), new workbox.NetworkFirst({
+    "cacheName": "records-cache",
+    "networkTimeoutSeconds": 3,
+    plugins: [new workbox.CacheableResponsePlugin({
+      statuses: [0, 200, 201, 204]
+    }), new workbox.ExpirationPlugin({
+      maxEntries: 300,
+      maxAgeSeconds: 2592000,
+      purgeOnQuotaError: true
+    })]
+  }), 'GET');
+  workbox.registerRoute(({
+    url,
+    request
+  }) => request.destination === "image" || url.pathname.match(/\.(png|jpg|jpeg|svg|webp|gif)$/i), new workbox.CacheFirst({
+    "cacheName": "images-cache",
     plugins: [new workbox.CacheableResponsePlugin({
       statuses: [0, 200]
+    }), new workbox.ExpirationPlugin({
+      maxEntries: 500,
+      maxAgeSeconds: 5184000,
+      purgeOnQuotaError: true
+    })]
+  }), 'GET');
+  workbox.registerRoute(({
+    url
+  }) => url.origin === "https://fonts.googleapis.com" || url.origin === "https://fonts.gstatic.com" || url.pathname.match(/\.(woff|woff2|ttf|eot)$/i), new workbox.CacheFirst({
+    "cacheName": "fonts-cache",
+    plugins: [new workbox.CacheableResponsePlugin({
+      statuses: [0, 200]
+    }), new workbox.ExpirationPlugin({
+      maxEntries: 50,
+      maxAgeSeconds: 31536000,
+      purgeOnQuotaError: true
+    })]
+  }), 'GET');
+  workbox.registerRoute(({
+    url
+  }) => url.origin.includes("cdn") || url.origin.includes("static"), new workbox.CacheFirst({
+    "cacheName": "cdn-cache",
+    plugins: [new workbox.CacheableResponsePlugin({
+      statuses: [0, 200]
+    }), new workbox.ExpirationPlugin({
+      maxEntries: 100,
+      maxAgeSeconds: 2592000,
+      purgeOnQuotaError: true
+    })]
+  }), 'GET');
+  workbox.registerRoute(({
+    url
+  }) => url.pathname.includes("/docs/") || url.pathname.includes("/knowledge/"), new workbox.StaleWhileRevalidate({
+    "cacheName": "docs-cache",
+    plugins: [new workbox.CacheableResponsePlugin({
+      statuses: [0, 200]
+    }), new workbox.ExpirationPlugin({
+      maxEntries: 200,
+      maxAgeSeconds: 604800,
+      purgeOnQuotaError: true
     })]
   }), 'GET');
 

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>萌芽育儿 - 离线模式</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e3f2fd 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #333;
+        padding: 20px;
+      }
+
+      .offline-container {
+        text-align: center;
+        max-width: 400px;
+        background: white;
+        border-radius: 20px;
+        padding: 40px 30px;
+        box-shadow: 0 10px 30px rgba(74, 144, 226, 0.15);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .offline-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #4a90e2, #7aadee);
+      }
+
+      .offline-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4a90e2, #7aadee);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        color: white;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .offline-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 12px;
+      }
+
+      .offline-message {
+        font-size: 16px;
+        color: #666;
+        line-height: 1.5;
+        margin-bottom: 24px;
+      }
+
+      .offline-tips {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        text-align: left;
+      }
+
+      .offline-tips h4 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #4a90e2;
+        margin-bottom: 12px;
+      }
+
+      .offline-tips ul {
+        list-style: none;
+        font-size: 14px;
+        color: #666;
+      }
+
+      .offline-tips li {
+        margin-bottom: 8px;
+        padding-left: 20px;
+        position: relative;
+      }
+
+      .offline-tips li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #4caf50;
+        font-weight: bold;
+      }
+
+      .retry-button {
+        background: linear-gradient(135deg, #4a90e2, #7aadee);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        width: 100%;
+      }
+
+      .retry-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+      }
+
+      .retry-button:active {
+        transform: translateY(0);
+      }
+
+      .cached-data {
+        margin-top: 20px;
+        padding: 16px;
+        background: #e8f4fd;
+        border-radius: 12px;
+        text-align: left;
+      }
+
+      .cached-data h4 {
+        font-size: 14px;
+        color: #4a90e2;
+        margin-bottom: 8px;
+      }
+
+      .cached-data p {
+        font-size: 12px;
+        color: #666;
+        line-height: 1.4;
+      }
+
+      @media (max-width: 480px) {
+        .offline-container {
+          margin: 20px;
+          padding: 30px 20px;
+        }
+
+        .offline-title {
+          font-size: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="offline-container">
+      <div class="offline-icon">📱</div>
+
+      <h1 class="offline-title">您正在离线模式</h1>
+
+      <p class="offline-message">
+        网络连接似乎有些问题，但别担心！您依然可以使用萌芽育儿的核心功能。
+      </p>
+
+      <div class="offline-tips">
+        <h4>💡 离线模式下您可以：</h4>
+        <ul>
+          <li>查看已缓存的育儿记录</li>
+          <li>浏览历史聊天内容</li>
+          <li>查看离线育儿知识</li>
+          <li>使用基础记录功能</li>
+        </ul>
+      </div>
+
+      <button class="retry-button" onclick="checkConnection()">
+        🔄 重新连接
+      </button>
+
+      <div class="cached-data">
+        <h4>📦 本地数据状态</h4>
+        <p id="cache-info">正在检查本地缓存数据...</p>
+      </div>
+    </div>
+
+    <script>
+      // 检查网络连接
+      function checkConnection() {
+        if (navigator.onLine) {
+          window.location.href = '/';
+        } else {
+          // 显示重试动画
+          const button = document.querySelector('.retry-button');
+          const originalText = button.textContent;
+          button.textContent = '🔄 检查中...';
+          button.disabled = true;
+
+          setTimeout(() => {
+            button.textContent = originalText;
+            button.disabled = false;
+            alert('网络仍未连接，请稍后再试');
+          }, 2000);
+        }
+      }
+
+      // 检查缓存状态
+      async function checkCacheStatus() {
+        const cacheInfo = document.getElementById('cache-info');
+
+        try {
+          // 检查 Service Worker 缓存
+          if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            const totalCaches = cacheNames.length;
+
+            let totalSize = 0;
+            for (const cacheName of cacheNames) {
+              const cache = await caches.open(cacheName);
+              const keys = await cache.keys();
+              totalSize += keys.length;
+            }
+
+            cacheInfo.innerHTML = `
+            发现 ${totalCaches} 个缓存组，包含 ${totalSize} 个资源。<br>
+            <small style="color: #999;">包括记录数据、聊天历史和应用资源</small>
+          `;
+          } else {
+            cacheInfo.textContent = '缓存功能不可用，部分离线功能可能受限';
+          }
+        } catch (error) {
+          cacheInfo.textContent = '无法检查缓存状态';
+        }
+      }
+
+      // 监听网络状态变化
+      window.addEventListener('online', () => {
+        window.location.href = '/';
+      });
+
+      window.addEventListener('offline', () => {
+        console.log('网络已断开');
+      });
+
+      // 页面加载完成后检查缓存状态
+      document.addEventListener('DOMContentLoaded', () => {
+        checkCacheStatus();
+      });
+
+      // 尝试连接到主应用
+      function tryReturnToApp() {
+        // 延迟检查，给 Service Worker 一些时间
+        setTimeout(() => {
+          if (navigator.onLine) {
+            window.location.href = '/';
+          }
+        }, 1000);
+      }
+
+      // 自动尝试返回主应用
+      tryReturnToApp();
+    </script>
+  </body>
+</html>

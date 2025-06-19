@@ -1,8 +1,16 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { SafeArea, DotLoading } from '@/components/ui';
 import RequireAuth from '@/components/auth/RequireAuth';
 import { usePWATheme } from '@/hooks/usePWATheme';
+import { useServiceWorkerStatus } from '@/hooks/useServiceWorker';
+import { initServiceWorkerOptimizations } from '@/utils/serviceWorker';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
+
+// 在开发环境下导入PWA调试工具
+if (process.env.NODE_ENV === 'development') {
+  import('@/utils/pwaDebugHelper');
+}
 
 const Login = lazy(() => import('./pages/auth/Login'));
 const Register = lazy(() => import('./pages/auth/Register'));
@@ -31,6 +39,33 @@ const Loading = () => (
 const App = () => {
   // 初始化PWA主题管理
   usePWATheme();
+
+  // 初始化PWA安装监听器（全局监听beforeinstallprompt事件）
+  usePWAInstall();
+
+  // Service Worker状态监控
+  const swStatus = useServiceWorkerStatus();
+
+  // 初始化Service Worker优化
+  useEffect(() => {
+    if (swStatus.isSupported) {
+      initServiceWorkerOptimizations().catch((error) => {
+        console.error('Service Worker优化初始化失败:', error);
+      });
+    }
+  }, [swStatus.isSupported]);
+
+  // 在控制台输出PWA状态信息（仅开发模式）
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📱 PWA状态:', {
+        支持SW: swStatus.isSupported,
+        PWA模式: swStatus.isPWA,
+        在线状态: swStatus.isOnline,
+        有更新: swStatus.hasUpdate,
+      });
+    }
+  }, [swStatus]);
 
   return (
     <div className="App">

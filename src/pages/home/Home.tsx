@@ -20,6 +20,7 @@ import {
   GrowthDetails,
   FeedingType,
 } from '@/types/models';
+import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt';
 import LogoImage from '@/assets/logo2.svg?react';
 
 const Home: React.FC = () => {
@@ -912,6 +913,9 @@ const Home: React.FC = () => {
 
       {/* 功能预告对话框 */}
       <FeatureComingSoonDialog />
+
+      {/* PWA安装提示 */}
+      <PWAInstallPrompt autoShow={true} showDelay={3000} />
 
       {/* AI聊天悬浮按钮 - 多层次精致设计 */}
       <div

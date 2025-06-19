@@ -10,6 +10,22 @@
   display: none;
 }
 
+/* PWA安装提示滑入动画 */
+@keyframes slide-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.5s ease-out;
+}
+
 /* 咨询萌芽模块的呼吸灯效果 */
 @keyframes breathe {
   0%,
