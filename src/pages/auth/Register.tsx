@@ -12,6 +12,7 @@ const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [codeLoading, setCodeLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
   const [toast, setToast] = useState<{
     type: 'success' | 'fail' | 'loading' | 'info';
     content: string;
@@ -20,6 +21,11 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
   const { sendRegisterCode, register } = useUserStore();
   const children = useChildrenStore((s) => s.children);
+
+  // 切换密码可见性
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   // 验证码倒计时
   const handleSendCode = async () => {
@@ -138,8 +144,8 @@ const Register: React.FC = () => {
                 rules={[
                   { required: true, message: '请输入密码' },
                   {
-                    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/,
-                    message: '密码需8位以上，含大小写字母和数字',
+                    pattern: /^(?=.*[a-zA-Z])(?=.*\d)[A-Za-z\d]{6,}$/,
+                    message: '密码需6位以上，含字母和数字',
                   },
                 ]}
               >
@@ -149,10 +155,24 @@ const Register: React.FC = () => {
                   </div>
                   <Input
                     placeholder="请输入密码"
-                    className="w-full h-[48px] pl-12 pr-4 text-base-lg border border-gray-300 rounded-input focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-normal bg-white/70 focus:bg-white/90"
+                    className="w-full h-[48px] pl-12 pr-20 text-base-lg border border-gray-300 rounded-input focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-normal bg-white/70 focus:bg-white/90"
                     clearable
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                   />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-3 top-1/2 z-10 -translate-y-1/2 p-1 text-gray-500 hover:text-primary transition-colors duration-200 focus:outline-none focus:text-primary"
+                    aria-label={showPassword ? '隐藏密码' : '显示密码'}
+                  >
+                    <Icon
+                      icon={
+                        showPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'
+                      }
+                      width="24"
+                      height="24"
+                    />
+                  </button>
                 </div>
               </Form.Item>
             </div>

@@ -12,9 +12,15 @@ const Login: React.FC = () => {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const logoRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const login = useUserStore((s) => s.login);
+
+  // 切换密码可见性
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,6 +38,7 @@ const Login: React.FC = () => {
       }
       navigate('/home');
     } catch (err: any) {
+      console.log(err, '登录失败');
       setError(err?.message || '登录失败');
     } finally {
       setLoading(false);
@@ -100,13 +107,27 @@ const Login: React.FC = () => {
                 </div>
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="请输入密码"
                   clearable
-                  className="w-full h-[48px] pl-12 pr-4 text-base-lg border border-gray-300 rounded-input focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-normal bg-white/70 focus:bg-white/90"
+                  className="w-full h-[48px] pl-12 pr-20 text-base-lg border border-gray-300 rounded-input focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-normal bg-white/70 focus:bg-white/90"
                 />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute right-3 top-1/2 z-10 -translate-y-1/2 p-1 text-gray-500 hover:text-primary transition-colors duration-200 focus:outline-none focus:text-primary"
+                  aria-label={showPassword ? '隐藏密码' : '显示密码'}
+                >
+                  <Icon
+                    icon={
+                      showPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'
+                    }
+                    width="24"
+                    height="24"
+                  />
+                </button>
               </div>
             </div>
 

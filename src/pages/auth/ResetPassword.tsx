@@ -10,6 +10,7 @@ const ResetPassword: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [codeLoading, setCodeLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
   const [toast, setToast] = useState<{
     type: 'success' | 'fail' | 'loading' | 'info';
     content: string;
@@ -23,10 +24,10 @@ const ResetPassword: React.FC = () => {
     const createWaveEffect = () => {
       const container = document.getElementById('wave-container');
       if (!container) return;
-      
+
       // 清除现有元素
       container.innerHTML = '';
-      
+
       // 创建波浪元素
       for (let i = 0; i < 3; i++) {
         const wave = document.createElement('div');
@@ -35,14 +36,19 @@ const ResetPassword: React.FC = () => {
         container.appendChild(wave);
       }
     };
-    
+
     createWaveEffect();
-    
+
     return () => {
       const container = document.getElementById('wave-container');
       if (container) container.innerHTML = '';
     };
   }, []);
+
+  // 切换密码可见性
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   // 验证码倒计时
   const handleSendCode = async () => {
@@ -110,27 +116,22 @@ const ResetPassword: React.FC = () => {
         id="wave-container"
         className="absolute bottom-0 left-0 w-full overflow-hidden pointer-events-none z-0 h-40"
       />
-      
+
       {/* 主内容区域 */}
       <div className="w-full max-w-md z-10 relative">
         {/* Logo和标题 */}
         <div className="flex flex-col items-center mb-8">
-          <div
-            className="w-20 h-20 rounded-full bg-primary flex items-center justify-center mb-4 shadow-lg"
-          >
-            <Icon 
-              icon="mdi:lock-reset" 
-              width="40" 
-              height="40" 
-              color="white" 
-            />
+          <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center mb-4 shadow-lg">
+            <Icon icon="mdi:lock-reset" width="40" height="40" color="white" />
           </div>
-          <h1 className="text-h1 font-semibold text-primary-dark mb-1">重置密码</h1>
+          <h1 className="text-h1 font-semibold text-primary-dark mb-1">
+            重置密码
+          </h1>
           <p className="text-gray-600 text-center max-w-xs text-base">
             别担心，我们会帮您找回账号访问权限
           </p>
         </div>
-        
+
         {/* 重置密码表单 */}
         <div className="bg-white backdrop-blur-md rounded-dialog p-6 shadow-card border border-gray-300/20">
           <h2 className="text-h2 font-semibold text-gray-700 mb-6">找回密码</h2>
@@ -176,7 +177,11 @@ const ResetPassword: React.FC = () => {
               >
                 <div className="relative flex">
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary z-10">
-                    <Icon icon="mdi:shield-check-outline" width="20" height="20" />
+                    <Icon
+                      icon="mdi:shield-check-outline"
+                      width="20"
+                      height="20"
+                    />
                   </div>
                   <Input
                     placeholder="请输入验证码"
@@ -208,8 +213,8 @@ const ResetPassword: React.FC = () => {
                 rules={[
                   { required: true, message: '请输入新密码' },
                   {
-                    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/,
-                    message: '密码需8位以上，含大小写字母和数字',
+                    pattern: /^(?=.*[a-zA-Z])(?=.*\d)[A-Za-z\d]{6,}$/,
+                    message: '密码需6位以上，含字母和数字',
                   },
                 ]}
               >
@@ -219,10 +224,24 @@ const ResetPassword: React.FC = () => {
                   </div>
                   <Input
                     placeholder="请输入新密码"
-                    className="w-full h-[48px] pl-12 pr-4 text-base-lg border border-gray-300 rounded-input focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-normal bg-white/70 focus:bg-white/90"
+                    className="w-full h-[48px] pl-12 pr-20 text-base-lg border border-gray-300 rounded-input focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-normal bg-white/70 focus:bg-white/90"
                     clearable
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                   />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-3 top-1/2 z-10 -translate-y-1/2 p-1 text-gray-500 hover:text-primary transition-colors duration-200 focus:outline-none focus:text-primary"
+                    aria-label={showPassword ? '隐藏密码' : '显示密码'}
+                  >
+                    <Icon
+                      icon={
+                        showPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'
+                      }
+                      width="24"
+                      height="24"
+                    />
+                  </button>
                 </div>
               </Form.Item>
             </div>
@@ -243,7 +262,12 @@ const ResetPassword: React.FC = () => {
             >
               <span className="relative z-10 flex items-center justify-center text-base-lg font-medium">
                 重置密码
-                <Icon icon="mdi:arrow-right" width="18" height="18" className="ml-2 transition-transform duration-normal group-hover:translate-x-1" />
+                <Icon
+                  icon="mdi:arrow-right"
+                  width="18"
+                  height="18"
+                  className="ml-2 transition-transform duration-normal group-hover:translate-x-1"
+                />
               </span>
               <div
                 className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary-dark to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-normal"
@@ -258,7 +282,12 @@ const ResetPassword: React.FC = () => {
               to="/login"
               className="text-sm font-medium text-text-link hover:text-primary-dark transition-colors flex items-center justify-center"
             >
-              <Icon icon="mdi:arrow-left" width="16" height="16" className="mr-1" />
+              <Icon
+                icon="mdi:arrow-left"
+                width="16"
+                height="16"
+                className="mr-1"
+              />
               返回登录
             </Link>
           </div>
@@ -313,7 +342,7 @@ const ResetPassword: React.FC = () => {
             background: linear-gradient(to bottom, transparent, rgba(255, 152, 0, 0.1));
             animation-duration: 20s;
           }
-          `
+          `,
         }}
       />
     </div>

@@ -4,7 +4,7 @@ import { Icon } from '@iconify/react';
 import { Button, NavBar, Toast, DonationModal } from '@/components/ui';
 import { useUserStore, useChildrenStore } from '@/stores';
 import { calculateAge } from '@/utils';
-import logoImage from '@/assets/logo.png';
+import LogoImage from '@/assets/logo2.svg?react';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -77,7 +77,7 @@ const Profile: React.FC = () => {
                     />
                   </div>
                   <div className="flex-1">
-                    <div className="mb-2 text-xl font-semibold text-[#333333] tracking-wide">
+                    <div className="mb-1 text-base font-semibold text-[#333333] tracking-wide">
                       {user?.email || '未登录用户'}
                     </div>
                     <div className="flex items-center text-sm text-[#999999]">
@@ -87,12 +87,6 @@ const Profile: React.FC = () => {
                       />
                       {user?.id || '未知'}
                     </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="w-2 h-2 bg-[#66BB6A] rounded-full animate-pulse"></div>
-                    <span className="text-xs text-[#66BB6A] font-medium">
-                      在线
-                    </span>
                   </div>
                 </div>
               </div>
@@ -248,11 +242,7 @@ const Profile: React.FC = () => {
               <div className="p-6">
                 <div className="flex items-center mb-6">
                   <div className="flex justify-center items-center mr-5 w-16 h-16 bg-gradient-to-br from-[#FFB38A] to-[#FFC9A8] rounded-3xl shadow-[0_6px_20px_rgba(255,179,138,0.3)]">
-                    <img
-                      src={logoImage}
-                      alt="萌芽育儿 Logo"
-                      className="object-cover w-full h-full rounded-3xl"
-                    />
+                    <LogoImage className="object-cover w-full h-full rounded-3xl" />
                   </div>
                   <div className="flex-1">
                     <div className="mb-2 text-xl font-semibold text-[#333333]">

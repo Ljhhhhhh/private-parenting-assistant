@@ -40,16 +40,16 @@ const FeatureComingSoon: React.FC<FeatureComingSoonProps> = ({
       case UrgeType.VACCINE_REMINDER:
         return {
           icon: 'mdi:needle',
-          color: '#64B5F6',
-          bgColor: '#64B5F620',
-          accentColor: '#2196F3',
+          color: '#FFB74D',
+          bgColor: '#FFB74D20',
+          accentColor: '#FF9800',
         };
       case UrgeType.PARENTING_KNOWLEDGE:
         return {
           icon: 'mdi:book-heart',
-          color: '#FFB74D',
-          bgColor: '#FFB74D20',
-          accentColor: '#FF9800',
+          color: '#64B5F6',
+          bgColor: '#64B5F620',
+          accentColor: '#2196F3',
         };
       default:
         return {

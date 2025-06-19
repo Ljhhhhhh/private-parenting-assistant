@@ -115,7 +115,9 @@ class Request {
       },
       async (error: AxiosError) => {
         // 处理错误响应
-        const apiError: ApiError = new Error(error.message || '请求失败');
+        const apiError: ApiError = new Error(
+          (error.response?.data as any)?.message || '请求失败',
+        );
 
         if (error.response) {
           // 请求已发出，服务器返回状态码不在 2xx 范围内

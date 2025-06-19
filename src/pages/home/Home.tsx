@@ -468,11 +468,6 @@ const Home: React.FC = () => {
               <h2 className="flex items-center text-lg font-semibold text-[#333333]">
                 <Icon icon="mdi:history" className="mr-2 text-[#FFB38A]" />
                 最近记录
-                {hasRecords && (
-                  <span className="ml-2 text-sm font-normal text-[#999999]">
-                    {recentRecords.length} 项内容
-                  </span>
-                )}
               </h2>
             </div>
 
