@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { NavBar, Toast } from '@/components/ui';
 import ChildForm, { ChildFormValues } from '@/components/children/ChildForm';
-import { getAllChildren, updateChild } from '@/api/children';
+import { getChildById, updateChild } from '@/api/children';
 import { ChildResponseDto } from '@/types/models';
 
 const EditChild: React.FC = () => {
@@ -21,10 +21,8 @@ const EditChild: React.FC = () => {
     const fetchChild = async () => {
       setInitLoading(true);
       try {
-        const list = await getAllChildren();
-        const found = list.find((c) => String(c.id) === id);
-        if (found) setChild(found);
-        else setToast({ type: 'fail', content: '未找到宝宝信息' });
+        const child = await getChildById(+id!);
+        setChild(child);
       } catch {
         setToast({ type: 'fail', content: '获取宝宝信息失败' });
       } finally {

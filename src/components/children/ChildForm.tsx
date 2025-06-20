@@ -7,8 +7,8 @@ export interface ChildFormValues {
   nickname: string;
   dateOfBirth: string;
   gender?: string;
-  allergies?: string[];
-  additionalInfo?: string;
+  allergyInfo?: string[];
+  moreInfo?: string;
 }
 
 interface ChildFormProps {
@@ -97,7 +97,7 @@ interface AllergyTagProps {
 const AllergyTag: React.FC<AllergyTagProps> = ({ name, selected, onClick }) => {
   return (
     <div
-      className={`px-4 py-2 rounded-tag cursor-pointer transition-all duration-300 text-sm flex items-center gap-2 hover:shadow-sm ${
+      className={`px-2 py-2 rounded-tag cursor-pointer transition-all duration-300 text-sm flex items-center gap-1 hover:shadow-sm ${
         selected
           ? 'bg-primary/10 text-primary border border-primary/30'
           : 'bg-background-card border border-gray-300 text-text-secondary hover:bg-gray-50 hover:border-gray-400'
@@ -107,7 +107,7 @@ const AllergyTag: React.FC<AllergyTagProps> = ({ name, selected, onClick }) => {
       {selected && (
         <Icon
           icon="material-symbols:check-small"
-          className="text-base text-primary"
+          className=" text-primary text-lg"
         />
       )}
       {name}
@@ -241,9 +241,30 @@ const ChildForm: React.FC<ChildFormProps> = ({
   onSubmit,
   submitText = '保存',
 }) => {
+  // 日期格式转换函数
+  const formatDateForInput = (dateString: string | undefined): string => {
+    if (!dateString) return '';
+
+    // 如果已经是 YYYY-MM-DD 格式，直接返回
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+
+    // 处理 ISO 格式（如：2023-11-01T00:00:00.000Z）
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return '';
+      }
+      return date.toISOString().split('T')[0];
+    } catch {
+      return '';
+    }
+  };
+
   const formRef = React.useRef<FormInstance>(null);
   const [selectedDate, setSelectedDate] = useState(
-    initialValues.dateOfBirth || '',
+    formatDateForInput(initialValues.dateOfBirth),
   );
 
   React.useEffect(() => {
@@ -253,31 +274,31 @@ const ChildForm: React.FC<ChildFormProps> = ({
         formRef.current.setFieldValue('nickname', initialValues.nickname);
       }
       if (initialValues.dateOfBirth) {
-        formRef.current.setFieldValue('dateOfBirth', initialValues.dateOfBirth);
+        const formattedDate = formatDateForInput(initialValues.dateOfBirth);
+        formRef.current.setFieldValue('dateOfBirth', formattedDate);
+        setSelectedDate(formattedDate);
       }
       if (initialValues.gender) {
         formRef.current.setFieldValue('gender', initialValues.gender);
       }
-      if (initialValues.allergies) {
-        formRef.current.setFieldValue('allergies', initialValues.allergies);
+      if (initialValues.allergyInfo) {
+        formRef.current.setFieldValue('allergies', initialValues.allergyInfo);
       }
-      if (initialValues.additionalInfo) {
-        formRef.current.setFieldValue(
-          'additionalInfo',
-          initialValues.additionalInfo,
-        );
+      if (initialValues.moreInfo) {
+        formRef.current.setFieldValue('additionalInfo', initialValues.moreInfo);
       }
-
-      setSelectedDate(initialValues.dateOfBirth || '');
     }
   }, [initialValues]);
 
   const handleFinish = (values: any) => {
     // 直接使用表单收集的值
     onSubmit({
-      ...values,
+      nickname: values.nickname,
+      gender: values.gender,
       // 确保日期有值
       dateOfBirth: values.dateOfBirth || selectedDate,
+      allergyInfo: values.allergies,
+      moreInfo: values.moreInfo,
     });
   };
 

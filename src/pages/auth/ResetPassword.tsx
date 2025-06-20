@@ -184,7 +184,7 @@ const ResetPassword: React.FC = () => {
                     />
                   </div>
                   <Input
-                    placeholder="请输入验证码"
+                    placeholder="填写验证码"
                     className="w-full h-[48px] pl-12 pr-4 text-base-lg border border-gray-300 rounded-input focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-normal bg-white/70 focus:bg-white/90 flex-1"
                     clearable
                     type="number"

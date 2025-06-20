@@ -22,8 +22,11 @@ const Button: React.FC<ButtonProps> = ({
     'inline-flex items-center justify-center font-medium rounded-btn transition-all duration-300 focus:outline-none';
   let color = '';
 
-  // 检查是否有自定义文字颜色
-  const hasCustomTextColor = /text-\[.*?\]|text-\w+/.test(className);
+  // 检查是否有自定义文字颜色（排除文字大小相关的类名）
+  const hasCustomTextColor =
+    /text-\[.*?\]|text-(?!base|sm|xs|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|9xl)\w+/.test(
+      className,
+    );
 
   // 根据设计规范调整尺寸
   // 主按钮48px，次要按钮44px，文本按钮40px

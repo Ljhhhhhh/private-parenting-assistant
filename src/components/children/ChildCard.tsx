@@ -70,9 +70,6 @@ const ChildCard: React.FC<ChildCardProps> = ({
         </div>
       </div>
       <div className="flex items-center gap-2">
-        {isSelected && (
-          <div className="mr-2 text-sm font-medium text-primary">当前选中</div>
-        )}
         <Button
           variant="secondary"
           className="px-3 py-1 text-sm"

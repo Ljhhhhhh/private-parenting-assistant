@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+import '@pwabuilder/pwainstall';
 import './index.css';
 import './styles/global.css'; // 引入全局样式
 import './styles/animations.css'; // 引入动画样式

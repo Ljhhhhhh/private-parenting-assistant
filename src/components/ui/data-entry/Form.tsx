@@ -321,9 +321,9 @@ const FormItem: React.FC<FormItemProps> = ({
           error: touched ? error : '',
         })}
 
-        {error && touched && (
+        {/* {error && touched && (
           <div className="mt-1 text-sm text-red-500">{error}</div>
-        )}
+        )} */}
 
         {extra && <div className="mt-1">{extra}</div>}
       </div>
