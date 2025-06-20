@@ -25,39 +25,29 @@ export function getPluginsList(VITE_CDN: boolean): PluginOption[] {
     }),
     viteBuildInfo(),
     /**
-     * PWA 支持 - 优化版
-     * 针对育儿助手的特殊需求进行深度优化
-     * 考虑离线使用、弱网环境、移动端性能等因素
+     * PWA 支持
+     * 优雅美观的 PWA 功能，符合育儿助手的温暖设计理念
      */
     VitePWA({
       registerType: 'autoUpdate',
-
-      // Manifest 配置 - 优化后的应用清单
       includeAssets: [
         'favicon.ico',
         'logo.svg',
-        'logo2.svg',
-        'icons/*.png',
-        '*.{jpg,jpeg,webp}',
+        'boy-avatar.svg',
+        'girl-avatar.svg',
       ],
       manifest: {
         name: '萌芽育儿',
         short_name: '萌芽育儿',
         description: '专业贴心的育儿记录与问答助手，陪伴您的育儿之旅',
-        theme_color: '#FFB38A', // 使用设计规范中的主色调
-        background_color: '#F5F7FA', // 使用设计规范中的背景色
+        theme_color: '#FFB38A',
+        background_color: '#FDFBF8',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
         scope: '/',
         lang: 'zh-CN',
-        dir: 'ltr',
-        categories: ['lifestyle', 'health', 'education', 'family'],
-
-        // 启动屏幕配置（使用标准 manifest 属性）
-        // splash_pages: null, // 非标准属性，移除
-
-        // 图标配置 - 完整的图标集
+        categories: ['lifestyle', 'health', 'education'],
         icons: [
           {
             src: '/icons/icon-72x72.png',
@@ -101,7 +91,6 @@ export function getPluginsList(VITE_CDN: boolean): PluginOption[] {
           },
         ],
       },
-
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
@@ -130,18 +119,10 @@ export function getPluginsList(VITE_CDN: boolean): PluginOption[] {
           },
         ],
       },
-
-      // 开发选项
       devOptions: {
         enabled: true,
         type: 'module',
-        /* 当开启此选项时，sw.js 文件将通过 http 而不是 filesystem 提供服务 */
-        navigateFallback: 'index.html',
       },
-
-      // 注册配置
-      injectRegister: 'auto',
-      strategies: 'generateSW',
     }),
     /**
      * 开发环境下移除非必要的vue-router动态路由警告No match found for location with path

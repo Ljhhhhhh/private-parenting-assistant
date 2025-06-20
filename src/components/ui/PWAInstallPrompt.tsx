@@ -96,18 +96,17 @@ export const PWAInstallPrompt: React.FC<SimplePWAInstallPromptProps> = ({
             {/* 操作按钮 */}
             <div className="flex space-x-2">
               <button
+                onClick={handleDismissClick}
+                className="px-3 py-2 text-sm text-[#666666] hover:text-[#333333] transition-colors"
+              >
+                稍后
+              </button>
+              <button
                 onClick={handleInstallClick}
                 className="flex-1 text-white bg-gradient-to-r from-[#FFB38A] to-[#FFC9A8] text-sm font-medium py-2 px-4 rounded-xl hover:shadow-lg transition-shadow flex items-center justify-center space-x-1"
               >
                 <Icon icon="mdi:download" className="w-4 h-4" />
                 <span>安装</span>
-              </button>
-
-              <button
-                onClick={handleDismissClick}
-                className="px-3 py-2 text-sm text-[#666666] hover:text-[#333333] transition-colors"
-              >
-                稍后
               </button>
             </div>
           </div>

@@ -80,13 +80,13 @@ const Profile: React.FC = () => {
                     <div className="mb-1 text-base font-semibold text-[#333333] tracking-wide">
                       {user?.email || '未登录用户'}
                     </div>
-                    <div className="flex items-center text-sm text-[#999999]">
+                    {/* <div className="flex items-center text-sm text-[#999999]">
                       <Icon
                         icon="mdi:identifier"
                         className="size-6 mr-1 text-[#FFB38A]"
                       />
                       {user?.id || '未知'}
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>

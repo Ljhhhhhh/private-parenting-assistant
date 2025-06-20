@@ -12,10 +12,15 @@ export const THEME_COLORS = {
   white: '#FFFFFF', // 白色
 
   // 功能页面颜色
+  home: '#FDFBF8', // 首页页面
   chat: '#FFB38A', // 聊天页面
   record: '#FFB38A', // 记录页面
   profile: '#FFB38A', // 个人资料页面
   auth: '#FFB38A', // 认证页面
+  // 登录、注册、重置密码
+  login: '#FFF0E6',
+  register: '#FFF0E6',
+  resetPassword: '#FFF0E6',
 
   // 深色模式颜色
   dark: {
@@ -98,7 +103,9 @@ export function setPageThemeColor(
     statusBarStyle = 'light-content';
   } else {
     // 根据页面路径设置不同的主题色
-    if (pathname.startsWith('/chat')) {
+    if (pathname.startsWith('/home') || pathname === '/') {
+      themeColor = THEME_COLORS.home;
+    } else if (pathname.startsWith('/chat')) {
       themeColor = THEME_COLORS.chat;
     } else if (pathname.startsWith('/record')) {
       themeColor = THEME_COLORS.record;
